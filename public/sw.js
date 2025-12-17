@@ -57,3 +57,44 @@ self.addEventListener('fetch', (event) => {
       })
   );
 });
+
+self.addEventListener('push', (event) => {
+  const data = event.data ? event.data.json() : {};
+
+  const options = {
+    body: data.body || 'You have a new notification',
+    icon: '/icon-192.svg',
+    badge: '/icon-192.svg',
+    data: data.data || {},
+    tag: data.tag || 'default',
+    requireInteraction: data.requireInteraction || false,
+    actions: data.actions || []
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(data.title || 'Poetry Suite', options)
+  );
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true })
+      .then((clientList) => {
+        const data = event.notification.data;
+        const urlToOpen = data.url || '/';
+
+        for (let i = 0; i < clientList.length; i++) {
+          const client = clientList[i];
+          if (client.url === urlToOpen && 'focus' in client) {
+            return client.focus();
+          }
+        }
+
+        if (clients.openWindow) {
+          return clients.openWindow(urlToOpen);
+        }
+      })
+  );
+});

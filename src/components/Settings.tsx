@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { Moon, Sun, User, Mail, Download, Smartphone, FileText, ChevronDown, ChevronUp, Clock, Trash2, AlertTriangle } from 'lucide-react';
+import { Moon, Sun, User, Mail, Download, Smartphone, FileText, ChevronDown, ChevronUp, Clock, Trash2, AlertTriangle, Bell, BellOff } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import packageJson from '../../package.json';
 
@@ -17,6 +17,10 @@ export default function Settings() {
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [isSubscribing, setIsSubscribing] = useState(false);
+  const [notificationError, setNotificationError] = useState<string | null>(null);
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -40,6 +44,27 @@ export default function Settings() {
     };
   }, []);
 
+  useEffect(() => {
+    if ('Notification' in window) {
+      setNotificationPermission(Notification.permission);
+      checkSubscriptionStatus();
+    }
+  }, []);
+
+  const checkSubscriptionStatus = async () => {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      return;
+    }
+
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      const subscription = await registration.pushManager.getSubscription();
+      setIsSubscribed(!!subscription);
+    } catch (error) {
+      console.error('Error checking subscription:', error);
+    }
+  };
+
   const handleInstall = async () => {
     if (!deferredPrompt) return;
 
@@ -48,6 +73,111 @@ export default function Settings() {
 
     if (outcome === 'accepted') {
       setDeferredPrompt(null);
+    }
+  };
+
+  const urlBase64ToUint8Array = (base64String: string) => {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding)
+      .replace(/-/g, '+')
+      .replace(/_/g, '/');
+
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  };
+
+  const subscribeToPushNotifications = async () => {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      setNotificationError('Push notifications are not supported by your browser');
+      return;
+    }
+
+    setIsSubscribing(true);
+    setNotificationError(null);
+
+    try {
+      const permission = await Notification.requestPermission();
+      setNotificationPermission(permission);
+
+      if (permission !== 'granted') {
+        setNotificationError('Notification permission denied');
+        setIsSubscribing(false);
+        return;
+      }
+
+      const registration = await navigator.serviceWorker.ready;
+
+      const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+      if (!vapidPublicKey) {
+        setNotificationError('Push notification configuration is missing');
+        setIsSubscribing(false);
+        return;
+      }
+
+      const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
+      });
+
+      const subscriptionJSON = subscription.toJSON();
+
+      const { error } = await supabase
+        .from('push_subscriptions')
+        .upsert({
+          user_id: user?.id,
+          endpoint: subscriptionJSON.endpoint!,
+          p256dh_key: subscriptionJSON.keys!.p256dh,
+          auth_key: subscriptionJSON.keys!.auth
+        }, {
+          onConflict: 'endpoint'
+        });
+
+      if (error) throw error;
+
+      setIsSubscribed(true);
+    } catch (error) {
+      console.error('Error subscribing to push notifications:', error);
+      setNotificationError('Failed to subscribe to notifications. Please try again.');
+    } finally {
+      setIsSubscribing(false);
+    }
+  };
+
+  const unsubscribeFromPushNotifications = async () => {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      return;
+    }
+
+    setIsSubscribing(true);
+    setNotificationError(null);
+
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      const subscription = await registration.pushManager.getSubscription();
+
+      if (subscription) {
+        const subscriptionJSON = subscription.toJSON();
+
+        const { error } = await supabase
+          .from('push_subscriptions')
+          .delete()
+          .eq('endpoint', subscriptionJSON.endpoint!);
+
+        if (error) throw error;
+
+        await subscription.unsubscribe();
+        setIsSubscribed(false);
+      }
+    } catch (error) {
+      console.error('Error unsubscribing from push notifications:', error);
+      setNotificationError('Failed to unsubscribe. Please try again.');
+    } finally {
+      setIsSubscribing(false);
     }
   };
 
@@ -136,6 +266,78 @@ export default function Settings() {
                 }`}
               />
             </button>
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm">
+          <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-4">
+            Push Notifications
+          </h3>
+          <div className="space-y-4">
+            {!('Notification' in window) ? (
+              <div className="p-4 bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-lg">
+                <p className="text-sm text-slate-600 dark:text-slate-400">
+                  Push notifications are not supported by your browser.
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                      isSubscribed
+                        ? 'bg-green-100 dark:bg-green-900/30'
+                        : 'bg-slate-100 dark:bg-slate-700'
+                    }`}>
+                      {isSubscribed ? (
+                        <Bell className="text-green-600 dark:text-green-400" size={20} />
+                      ) : (
+                        <BellOff className="text-slate-600 dark:text-slate-400" size={20} />
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-medium text-slate-900 dark:text-white">
+                        {isSubscribed ? 'Notifications Enabled' : 'Notifications Disabled'}
+                      </p>
+                      <p className="text-sm text-slate-600 dark:text-slate-400">
+                        {isSubscribed
+                          ? 'Get notified about comments, likes, and updates'
+                          : 'Enable to receive important updates'}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={isSubscribed ? unsubscribeFromPushNotifications : subscribeToPushNotifications}
+                    disabled={isSubscribing || notificationPermission === 'denied'}
+                    className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${
+                      isSubscribed ? 'bg-green-500' : 'bg-slate-300'
+                    } ${(isSubscribing || notificationPermission === 'denied') ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    <span
+                      className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${
+                        isSubscribed ? 'translate-x-7' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+
+                {notificationPermission === 'denied' && (
+                  <div className="flex items-start gap-2 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                    <AlertTriangle className="text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" size={16} />
+                    <p className="text-sm text-amber-800 dark:text-amber-200">
+                      Notifications are blocked. Please enable them in your browser settings to use this feature.
+                    </p>
+                  </div>
+                )}
+
+                {notificationError && (
+                  <div className="flex items-start gap-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                    <AlertTriangle className="text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" size={16} />
+                    <p className="text-sm text-red-800 dark:text-red-200">{notificationError}</p>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         </div>
 
