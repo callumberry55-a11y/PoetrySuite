@@ -19,15 +19,32 @@ interface Poem {
   comments_count?: number;
 }
 
+interface Contest {
+  id: string;
+  title: string;
+  description: string;
+  theme: string;
+  start_date: string;
+  end_date: string;
+  voting_end_date: string;
+  status: string;
+  created_at: string;
+}
+
 export default function Discover() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'feed' | 'contests' | 'trending' | 'following'>('feed');
   const [poems, setPoems] = useState<Poem[]>([]);
+  const [contests, setContests] = useState<Contest[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    loadPoems();
+    if (activeTab === 'contests') {
+      loadContests();
+    } else {
+      loadPoems();
+    }
   }, [activeTab]);
 
   const loadPoems = async () => {
@@ -50,6 +67,24 @@ export default function Discover() {
       setPoems(data || []);
     } catch (error) {
       console.error('Error loading poems:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadContests = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('contests')
+        .select('*')
+        .order('start_date', { ascending: false });
+
+      if (error) throw error;
+
+      setContests(data || []);
+    } catch (error) {
+      console.error('Error loading contests:', error);
     } finally {
       setLoading(false);
     }
@@ -150,6 +185,71 @@ export default function Discover() {
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : activeTab === 'contests' ? (
+          <div className="max-w-4xl mx-auto space-y-6">
+            {contests.map(contest => {
+              const statusColor = contest.status === 'active'
+                ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
+                : contest.status === 'voting'
+                ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+                : 'bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300';
+
+              return (
+                <div
+                  key={contest.id}
+                  className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden hover:shadow-md transition-shadow"
+                >
+                  <div className="p-6">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <Trophy className="text-amber-500" size={24} />
+                          <h3 className="text-2xl font-bold text-slate-900 dark:text-white">{contest.title}</h3>
+                        </div>
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusColor}`}>
+                            {contest.status}
+                          </span>
+                          <span className="px-3 py-1 rounded-full text-sm font-medium bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-300">
+                            {contest.theme}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <p className="text-slate-700 dark:text-slate-300 mb-4 leading-relaxed">
+                      {contest.description}
+                    </p>
+
+                    <div className="flex items-center gap-6 text-sm text-slate-600 dark:text-slate-400 mb-4">
+                      <div>
+                        <span className="font-medium">Submissions:</span> {new Date(contest.start_date).toLocaleDateString()} - {new Date(contest.end_date).toLocaleDateString()}
+                      </div>
+                      <div>
+                        <span className="font-medium">Voting ends:</span> {new Date(contest.voting_end_date).toLocaleDateString()}
+                      </div>
+                    </div>
+
+                    {contest.status === 'active' && (
+                      <button
+                        className="w-full mt-4 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                      >
+                        <Trophy size={18} />
+                        Submit Your Poem
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+
+            {contests.length === 0 && (
+              <div className="text-center py-12">
+                <Trophy className="mx-auto mb-4 text-slate-400" size={48} />
+                <p className="text-slate-600 dark:text-slate-400">No contests available</p>
+              </div>
+            )}
           </div>
         ) : (
           <div className="max-w-3xl mx-auto space-y-6">
