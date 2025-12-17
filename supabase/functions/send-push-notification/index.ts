@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import webpush from "npm:web-push@3";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -57,6 +58,12 @@ Deno.serve(async (req: Request) => {
       throw new Error("VAPID keys not configured");
     }
 
+    webpush.setVapidDetails(
+      'mailto:noreply@poetrysuite.app',
+      vapidPublicKey,
+      vapidPrivateKey
+    );
+
     let query = supabaseClient
       .from("push_subscriptions")
       .select("*");
@@ -91,31 +98,31 @@ Deno.serve(async (req: Request) => {
 
     const results = await Promise.allSettled(
       subscriptions.map(async (subscription) => {
-        const pushSubscription = {
-          endpoint: subscription.endpoint,
-          keys: {
-            p256dh: subscription.p256dh_key,
-            auth: subscription.auth_key,
-          },
-        };
+        try {
+          const pushSubscription = {
+            endpoint: subscription.endpoint,
+            keys: {
+              p256dh: subscription.p256dh_key,
+              auth: subscription.auth_key,
+            },
+          };
 
-        const response = await fetch(pushSubscription.endpoint, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "TTL": "86400",
-          },
-          body: JSON.stringify(notificationPayload),
-        });
+          await webpush.sendNotification(
+            pushSubscription,
+            JSON.stringify(notificationPayload)
+          );
 
-        if (!response.ok && (response.status === 404 || response.status === 410)) {
-          await supabaseClient
-            .from("push_subscriptions")
-            .delete()
-            .eq("endpoint", subscription.endpoint);
+          return true;
+        } catch (error: any) {
+          if (error.statusCode === 404 || error.statusCode === 410) {
+            await supabaseClient
+              .from("push_subscriptions")
+              .delete()
+              .eq("endpoint", subscription.endpoint);
+          }
+          console.error("Error sending to subscription:", error);
+          return false;
         }
-
-        return response.ok;
       })
     );
 
