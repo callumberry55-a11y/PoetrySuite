@@ -7,7 +7,6 @@ import {
   Trash2,
   FolderPlus,
   Tag,
-  Plus,
   X,
   Folder,
   Globe,
@@ -32,13 +31,7 @@ interface Collection {
   color: string;
 }
 
-interface LibraryProps {
-  onPoemSelect: (poemId: string) => void;
-  onNewPoem: () => void;
-  refreshTrigger: number;
-}
-
-function Library({ onPoemSelect, onNewPoem, refreshTrigger }: LibraryProps) {
+function Library() {
   const { user } = useAuth();
   const [poems, setPoems] = useState<Poem[]>([]);
   const [collections, setCollections] = useState<Collection[]>([]);
@@ -113,7 +106,7 @@ function Library({ onPoemSelect, onNewPoem, refreshTrigger }: LibraryProps) {
       loadCollections();
       loadPoemCollections();
     }
-  }, [user, refreshTrigger, loadPoems, loadCollections, loadPoemCollections]);
+  }, [user, loadPoems, loadCollections, loadPoemCollections]);
 
   const addPoemToCollection = useCallback(async (poemId: string, collectionId: string) => {
     const { error } = await supabase
@@ -218,14 +211,6 @@ function Library({ onPoemSelect, onNewPoem, refreshTrigger }: LibraryProps) {
       <div className="mb-8">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">Your Library</h2>
-          <button
-            onClick={onNewPoem}
-            className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors text-sm sm:text-base"
-          >
-            <Plus size={18} />
-            <span className="hidden xs:inline">New Poem</span>
-            <span className="xs:hidden">New</span>
-          </button>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
@@ -336,8 +321,7 @@ function Library({ onPoemSelect, onNewPoem, refreshTrigger }: LibraryProps) {
           filteredPoems.map((poem) => (
             <div
               key={poem.id}
-              className="bg-white dark:bg-slate-800 rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow cursor-pointer group relative"
-              onClick={() => onPoemSelect(poem.id)}
+              className="bg-white dark:bg-slate-800 rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow group relative"
             >
               <div className="flex items-start justify-between mb-3">
                 <h3 className="text-lg font-semibold text-slate-900 dark:text-white line-clamp-1">

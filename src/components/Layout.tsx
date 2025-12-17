@@ -3,7 +3,6 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import {
   BookHeart,
-  PenLine,
   Library,
   BarChart3,
   Settings,
@@ -17,8 +16,8 @@ import {
 
 interface LayoutProps {
   children: ReactNode;
-  currentView: 'editor' | 'library' | 'analytics' | 'settings';
-  onViewChange: (view: 'editor' | 'library' | 'analytics' | 'settings') => void;
+  currentView: 'library' | 'analytics' | 'settings';
+  onViewChange: (view: 'library' | 'analytics' | 'settings') => void;
 }
 
 export default function Layout({ children, currentView, onViewChange }: LayoutProps) {
@@ -29,7 +28,6 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
   const navItems = [
-    { id: 'editor', icon: PenLine, label: 'Write' },
     { id: 'library', icon: Library, label: 'Library' },
     { id: 'analytics', icon: BarChart3, label: 'Analytics' },
     { id: 'settings', icon: Settings, label: 'Settings' },
