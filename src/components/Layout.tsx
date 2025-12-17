@@ -12,13 +12,19 @@ import {
   Sun,
   Menu,
   X,
-  Download
+  Download,
+  Compass,
+  Lightbulb,
+  BookOpen,
+  Send
 } from 'lucide-react';
+
+type ViewType = 'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'submissions';
 
 interface LayoutProps {
   children: ReactNode;
-  currentView: 'write' | 'library' | 'analytics' | 'settings';
-  onViewChange: (view: 'write' | 'library' | 'analytics' | 'settings') => void;
+  currentView: ViewType;
+  onViewChange: (view: ViewType) => void;
 }
 
 export default function Layout({ children, currentView, onViewChange }: LayoutProps) {
@@ -29,11 +35,15 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
   const navItems = [
-    { id: 'write', icon: PenLine, label: 'Write' },
-    { id: 'library', icon: Library, label: 'Library' },
-    { id: 'analytics', icon: BarChart3, label: 'Analytics' },
-    { id: 'settings', icon: Settings, label: 'Settings' },
-  ] as const;
+    { id: 'write' as const, icon: PenLine, label: 'Write' },
+    { id: 'library' as const, icon: Library, label: 'Library' },
+    { id: 'discover' as const, icon: Compass, label: 'Discover' },
+    { id: 'prompts' as const, icon: Lightbulb, label: 'Prompts' },
+    { id: 'forms' as const, icon: BookOpen, label: 'Forms' },
+    { id: 'submissions' as const, icon: Send, label: 'Submissions' },
+    { id: 'analytics' as const, icon: BarChart3, label: 'Analytics' },
+    { id: 'settings' as const, icon: Settings, label: 'Settings' },
+  ];
 
   useEffect(() => {
     const handler = (e: Event) => {

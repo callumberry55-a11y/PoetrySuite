@@ -8,10 +8,16 @@ const PoemEditor = lazy(() => import('./components/PoemEditor'));
 const Library = lazy(() => import('./components/Library'));
 const Analytics = lazy(() => import('./components/Analytics'));
 const Settings = lazy(() => import('./components/Settings'));
+const Discover = lazy(() => import('./components/Discover'));
+const Prompts = lazy(() => import('./components/Prompts'));
+const Forms = lazy(() => import('./components/Forms'));
+const Submissions = lazy(() => import('./components/Submissions'));
+
+type ViewType = 'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'submissions';
 
 function AppContent() {
   const { user, loading } = useAuth();
-  const [currentView, setCurrentView] = useState<'write' | 'library' | 'analytics' | 'settings'>('library');
+  const [currentView, setCurrentView] = useState<ViewType>('library');
   const [selectedPoemId, setSelectedPoemId] = useState<string | null>(null);
 
   const handleNewPoem = useCallback(() => {
@@ -63,6 +69,24 @@ function AppContent() {
             onEditPoem={handleEditPoem}
           />
         )}
+        {currentView === 'discover' && <Discover />}
+        {currentView === 'prompts' && (
+          <Prompts
+            onUsePrompt={(prompt) => {
+              setCurrentView('write');
+              setSelectedPoemId(null);
+            }}
+          />
+        )}
+        {currentView === 'forms' && (
+          <Forms
+            onSelectForm={(form) => {
+              setCurrentView('write');
+              setSelectedPoemId(null);
+            }}
+          />
+        )}
+        {currentView === 'submissions' && <Submissions />}
         {currentView === 'analytics' && <Analytics />}
         {currentView === 'settings' && <Settings />}
       </Suspense>
