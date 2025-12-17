@@ -3,14 +3,18 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { MessageCircle, Send, Users, X, Search, ChevronLeft } from 'lucide-react';
 
+interface UserProfile {
+  user_id: string;
+  email: string;
+  display_name: string | null;
+}
+
 interface Message {
   id: string;
   user_id: string;
   content: string;
   created_at: string;
-  user?: {
-    email: string;
-  };
+  user_profiles?: UserProfile;
 }
 
 interface PrivateMessage {
@@ -21,9 +25,7 @@ interface PrivateMessage {
   content: string;
   created_at: string;
   read_at: string | null;
-  sender?: {
-    email: string;
-  };
+  sender?: UserProfile;
 }
 
 interface Conversation {
@@ -31,16 +33,8 @@ interface Conversation {
   participant_1_id: string;
   participant_2_id: string;
   last_message_at: string;
-  other_user?: {
-    id: string;
-    email: string;
-  };
+  other_user?: UserProfile;
   unread_count?: number;
-}
-
-interface User {
-  id: string;
-  email: string;
 }
 
 export default function Chat() {
@@ -53,7 +47,7 @@ export default function Chat() {
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [showUserList, setShowUserList] = useState(false);
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<UserProfile[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const publicChannelRef = useRef<any>(null);
@@ -103,7 +97,11 @@ export default function Chat() {
         .from('public_chat_messages')
         .select(`
           *,
-          user:user_id (email)
+          user_profiles!public_chat_messages_user_id_fkey (
+            user_id,
+            email,
+            display_name
+          )
         `)
         .eq('is_deleted', false)
         .order('created_at', { ascending: true })
@@ -135,27 +133,20 @@ export default function Chat() {
             : conv.participant_1_id;
 
           const { data: userData } = await supabase
-            .from('profiles')
-            .select('id, email')
-            .eq('id', otherUserId)
+            .from('user_profiles')
+            .select('user_id, email, display_name')
+            .eq('user_id', otherUserId)
             .maybeSingle();
-
-          if (!userData) {
-            const { data: authUser } = await supabase.auth.admin.getUserById(otherUserId);
-            return {
-              ...conv,
-              other_user: {
-                id: otherUserId,
-                email: authUser?.user?.email || 'Unknown User'
-              }
-            };
-          }
 
           const unreadCount = await getUnreadCount(conv.id);
 
           return {
             ...conv,
-            other_user: userData,
+            other_user: userData || {
+              user_id: otherUserId,
+              email: 'Unknown User',
+              display_name: null
+            },
             unread_count: unreadCount
           };
         })
@@ -190,7 +181,11 @@ export default function Chat() {
         .from('private_messages')
         .select(`
           *,
-          sender:sender_id (email)
+          sender:user_profiles!private_messages_sender_id_fkey (
+            user_id,
+            email,
+            display_name
+          )
         `)
         .eq('conversation_id', conversationId)
         .eq('is_deleted', false)
@@ -221,18 +216,14 @@ export default function Chat() {
 
   const loadUsers = async () => {
     try {
-      const { data: { users: authUsers }, error } = await supabase.auth.admin.listUsers();
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('user_id, email, display_name')
+        .neq('user_id', user?.id || '');
 
       if (error) throw error;
 
-      const filteredUsers = (authUsers || [])
-        .filter(u => u.id !== user?.id)
-        .map(u => ({
-          id: u.id,
-          email: u.email || 'Unknown User'
-        }));
-
-      setUsers(filteredUsers);
+      setUsers(data || []);
     } catch (error) {
       console.error('Error loading users:', error);
     }
@@ -250,23 +241,15 @@ export default function Chat() {
         },
         async (payload) => {
           const { data: userData } = await supabase
-            .from('profiles')
-            .select('email')
-            .eq('id', payload.new.user_id)
+            .from('user_profiles')
+            .select('user_id, email, display_name')
+            .eq('user_id', payload.new.user_id)
             .maybeSingle();
 
-          if (!userData) {
-            const { data: authUser } = await supabase.auth.admin.getUserById(payload.new.user_id);
-            setPublicMessages((prev) => [...prev, {
-              ...payload.new as Message,
-              user: { email: authUser?.user?.email || 'Unknown User' }
-            }]);
-          } else {
-            setPublicMessages((prev) => [...prev, {
-              ...payload.new as Message,
-              user: userData
-            }]);
-          }
+          setPublicMessages((prev) => [...prev, {
+            ...payload.new as Message,
+            user_profiles: userData || undefined
+          }]);
         }
       )
       .subscribe();
@@ -285,23 +268,15 @@ export default function Chat() {
         },
         async (payload) => {
           const { data: userData } = await supabase
-            .from('profiles')
-            .select('email')
-            .eq('id', payload.new.sender_id)
+            .from('user_profiles')
+            .select('user_id, email, display_name')
+            .eq('user_id', payload.new.sender_id)
             .maybeSingle();
 
-          if (!userData) {
-            const { data: authUser } = await supabase.auth.admin.getUserById(payload.new.sender_id);
-            setPrivateMessages((prev) => [...prev, {
-              ...payload.new as PrivateMessage,
-              sender: { email: authUser?.user?.email || 'Unknown User' }
-            }]);
-          } else {
-            setPrivateMessages((prev) => [...prev, {
-              ...payload.new as PrivateMessage,
-              sender: userData
-            }]);
-          }
+          setPrivateMessages((prev) => [...prev, {
+            ...payload.new as PrivateMessage,
+            sender: userData || undefined
+          }]);
 
           if (payload.new.recipient_id === user?.id) {
             markMessagesAsRead(conversationId);
@@ -355,10 +330,10 @@ export default function Chat() {
     }
   };
 
-  const startConversation = async (otherUser: User) => {
+  const startConversation = async (otherUser: UserProfile) => {
     try {
-      const participant1 = user!.id < otherUser.id ? user!.id : otherUser.id;
-      const participant2 = user!.id < otherUser.id ? otherUser.id : user!.id;
+      const participant1 = user!.id < otherUser.user_id ? user!.id : otherUser.user_id;
+      const participant2 = user!.id < otherUser.user_id ? otherUser.user_id : user!.id;
 
       const { data: existing } = await supabase
         .from('conversations')
@@ -416,6 +391,11 @@ export default function Chat() {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
+  const getDisplayName = (profile?: UserProfile) => {
+    if (!profile) return 'Unknown User';
+    return profile.display_name || profile.email;
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-96">
@@ -468,7 +448,7 @@ export default function Chat() {
                     >
                       <div className="flex items-center justify-between">
                         <p className="font-medium text-slate-900 dark:text-white truncate">
-                          {conv.other_user?.email}
+                          {getDisplayName(conv.other_user)}
                         </p>
                         {conv.unread_count! > 0 && (
                           <span className="ml-2 px-2 py-1 bg-blue-500 text-white text-xs rounded-full">
@@ -497,7 +477,7 @@ export default function Chat() {
                     <ChevronLeft size={20} className="text-slate-600 dark:text-slate-400" />
                   </button>
                   <h3 className="font-semibold text-slate-900 dark:text-white">
-                    {selectedConversation.other_user?.email}
+                    {getDisplayName(selectedConversation.other_user)}
                   </h3>
                 </div>
               ) : (
@@ -556,7 +536,7 @@ export default function Chat() {
                     >
                       {message.user_id !== user?.id && (
                         <p className="text-xs font-medium mb-1 opacity-70">
-                          {message.user?.email}
+                          {getDisplayName(message.user_profiles)}
                         </p>
                       )}
                       <p className="break-words">{message.content}</p>
@@ -654,11 +634,12 @@ export default function Chat() {
               ) : (
                 filteredUsers.map((u) => (
                   <button
-                    key={u.id}
+                    key={u.user_id}
                     onClick={() => startConversation(u)}
                     className="w-full p-4 border-b border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors text-left"
                   >
-                    <p className="font-medium text-slate-900 dark:text-white">{u.email}</p>
+                    <p className="font-medium text-slate-900 dark:text-white">{getDisplayName(u)}</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">{u.email}</p>
                   </button>
                 ))
               )}
