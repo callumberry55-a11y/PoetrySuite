@@ -11,7 +11,9 @@ import {
   Folder,
   Globe,
   Lock,
-  MoreVertical
+  MoreVertical,
+  Plus,
+  Edit3
 } from 'lucide-react';
 
 interface Poem {
@@ -31,7 +33,12 @@ interface Collection {
   color: string;
 }
 
-function Library() {
+interface LibraryProps {
+  onNewPoem: () => void;
+  onEditPoem: (poemId: string) => void;
+}
+
+function Library({ onNewPoem, onEditPoem }: LibraryProps) {
   const { user } = useAuth();
   const [poems, setPoems] = useState<Poem[]>([]);
   const [collections, setCollections] = useState<Collection[]>([]);
@@ -211,6 +218,14 @@ function Library() {
       <div className="mb-8">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">Your Library</h2>
+          <button
+            onClick={onNewPoem}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors"
+          >
+            <Plus size={18} />
+            <span className="hidden sm:inline">New Poem</span>
+            <span className="sm:hidden">New</span>
+          </button>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
@@ -324,10 +339,20 @@ function Library() {
               className="bg-white dark:bg-slate-800 rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow group relative"
             >
               <div className="flex items-start justify-between mb-3">
-                <h3 className="text-lg font-semibold text-slate-900 dark:text-white line-clamp-1">
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-white line-clamp-1 flex-1">
                   {poem.title}
                 </h3>
                 <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEditPoem(poem.id);
+                    }}
+                    className="text-blue-500 hover:text-blue-600"
+                    aria-label="Edit poem"
+                  >
+                    <Edit3 size={16} />
+                  </button>
                   {poem.favorited && <Star size={16} className="text-yellow-500" fill="currentColor" />}
                   {poem.is_public ? (
                     <Globe size={16} className="text-green-500" />

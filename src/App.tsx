@@ -4,13 +4,30 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import AuthPage from './components/AuthPage';
 import Layout from './components/Layout';
 
+const PoemEditor = lazy(() => import('./components/PoemEditor'));
 const Library = lazy(() => import('./components/Library'));
 const Analytics = lazy(() => import('./components/Analytics'));
 const Settings = lazy(() => import('./components/Settings'));
 
 function AppContent() {
   const { user, loading } = useAuth();
-  const [currentView, setCurrentView] = useState<'library' | 'analytics' | 'settings'>('library');
+  const [currentView, setCurrentView] = useState<'write' | 'library' | 'analytics' | 'settings'>('library');
+  const [selectedPoemId, setSelectedPoemId] = useState<string | null>(null);
+
+  const handleNewPoem = useCallback(() => {
+    setSelectedPoemId(null);
+    setCurrentView('write');
+  }, []);
+
+  const handleEditPoem = useCallback((poemId: string) => {
+    setSelectedPoemId(poemId);
+    setCurrentView('write');
+  }, []);
+
+  const handleBackToLibrary = useCallback(() => {
+    setSelectedPoemId(null);
+    setCurrentView('library');
+  }, []);
 
   if (loading) {
     return (
@@ -34,7 +51,18 @@ function AppContent() {
           <div className="text-slate-600 dark:text-slate-400">Loading...</div>
         </div>
       }>
-        {currentView === 'library' && <Library />}
+        {currentView === 'write' && (
+          <PoemEditor
+            selectedPoemId={selectedPoemId}
+            onBack={handleBackToLibrary}
+          />
+        )}
+        {currentView === 'library' && (
+          <Library
+            onNewPoem={handleNewPoem}
+            onEditPoem={handleEditPoem}
+          />
+        )}
         {currentView === 'analytics' && <Analytics />}
         {currentView === 'settings' && <Settings />}
       </Suspense>
