@@ -405,7 +405,7 @@ export default function Chat() {
   }
 
   return (
-    <div className="h-full flex flex-col px-4 py-4">
+    <div className="max-w-7xl mx-auto px-4 py-4">
       <div className="mb-4">
         <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">Community Chat</h2>
         <p className="text-sm text-slate-600 dark:text-slate-400">
@@ -413,7 +413,7 @@ export default function Chat() {
         </p>
       </div>
 
-      <div className="flex-1 bg-white dark:bg-slate-800 rounded-xl shadow-sm overflow-hidden min-h-0">
+      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm overflow-hidden" style={{ height: 'calc(100vh - 200px)' }}>
         <div className="flex h-full">
           {activeTab === 'private' && !selectedConversation && (
             <div className="w-80 border-r border-slate-200 dark:border-slate-700 flex flex-col">
