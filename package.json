@@ -1,11 +1,11 @@
 {
   "name": "poetry-suite",
-  "description": "A modern poetry writing and management application with AI assistance",
-  "version": "21.0.0",
+  "description": "A modern poetry writing and management application with helpful writing resources",
+  "version": "35.0.0",
   "type": "module",
   "author": "",
   "license": "MIT",
-  "keywords": ["poetry", "writing", "ai", "react", "supabase", "typescript"],
+  "keywords": ["poetry", "writing", "react", "supabase", "typescript"],
   "repository": {
     "type": "git",
     "url": ""
