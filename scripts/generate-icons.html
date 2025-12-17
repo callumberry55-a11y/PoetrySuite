@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Generate Icons</title>
+</head>
+<body>
+  <canvas id="canvas192" width="192" height="192"></canvas>
+  <canvas id="canvas512" width="512" height="512"></canvas>
+  <script>
+    function drawIcon(canvas) {
+      const ctx = canvas.getContext('2d');
+      const size = canvas.width;
+
+      ctx.fillStyle = '#3B82F6';
+      ctx.beginPath();
+      ctx.roundRect(0, 0, size, size, size / 4);
+      ctx.fill();
+
+      ctx.strokeStyle = 'white';
+      ctx.lineWidth = size * 0.0625;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      const centerX = size / 2;
+      const centerY = size / 2;
+
+      ctx.beginPath();
+      ctx.moveTo(centerX, size * 0.25);
+      ctx.quadraticCurveTo(size * 0.35, size * 0.35, size * 0.35, centerY);
+      ctx.quadraticCurveTo(size * 0.35, size * 0.65, centerX, size * 0.75);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(centerX, size * 0.25);
+      ctx.quadraticCurveTo(size * 0.65, size * 0.35, size * 0.65, centerY);
+      ctx.quadraticCurveTo(size * 0.65, size * 0.65, centerX, size * 0.75);
+      ctx.stroke();
+
+      ctx.fillStyle = 'white';
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, size * 0.047, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = 'white';
+      ctx.lineWidth = size * 0.047;
+      ctx.beginPath();
+      ctx.moveTo(size * 0.273, size * 0.625);
+      ctx.lineTo(size * 0.273, size * 0.664);
+      ctx.quadraticCurveTo(size * 0.273, size * 0.701, size * 0.311, size * 0.701);
+      ctx.lineTo(size * 0.689, size * 0.701);
+      ctx.quadraticCurveTo(size * 0.727, size * 0.701, size * 0.727, size * 0.664);
+      ctx.lineTo(size * 0.727, size * 0.625);
+      ctx.stroke();
+
+      ctx.lineWidth = size * 0.031;
+      ctx.beginPath();
+      ctx.moveTo(size * 0.391, size * 0.391);
+      ctx.lineTo(size * 0.43, size * 0.313);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(size * 0.609, size * 0.391);
+      ctx.lineTo(size * 0.57, size * 0.313);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(centerX, size * 0.313);
+      ctx.lineTo(centerX, size * 0.273);
+      ctx.stroke();
+    }
+
+    drawIcon(document.getElementById('canvas192'));
+    drawIcon(document.getElementById('canvas512'));
+
+    console.log('Icons generated. Right-click on each canvas to save as PNG.');
+  </script>
+</body>
+</html>
