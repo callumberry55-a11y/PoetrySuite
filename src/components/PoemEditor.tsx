@@ -135,7 +135,7 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
   };
 
   return (
-    <div className="h-full flex flex-col bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
+    <div className="h-full flex flex-col">
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-4xl mx-auto px-4 py-6 sm:py-8">
           <button

@@ -97,7 +97,7 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex flex-col pb-16 md:pb-0">
+    <div className="min-h-screen bg-gradient-to-br from-[rgb(var(--bg-primary))] to-[rgb(var(--bg-secondary))] flex flex-col pb-16 md:pb-0">
       <a
         href="#main-content"
         className="skip-link bg-blue-600 text-white px-4 py-2 rounded-lg font-medium shadow-lg"
@@ -105,13 +105,13 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
         Skip to main content
       </a>
       {showInstallPrompt && localStorage.getItem('installPromptDismissed') !== 'true' && (
-        <aside className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-3 shadow-lg" role="banner" aria-label="Install app banner">
+        <aside className="glass-strong text-slate-900 dark:text-white px-4 py-3 shadow-lg" role="banner" aria-label="Install app banner">
           <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
             <div className="flex items-center gap-3 flex-1 min-w-0">
               <Download size={20} className="flex-shrink-0" aria-hidden="true" />
               <div className="flex-1 min-w-0">
                 <p className="text-sm sm:text-base font-medium">Install Poetry Suite</p>
-                <p className="text-xs sm:text-sm text-blue-100 hidden sm:block">Get quick access and offline support</p>
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 hidden sm:block">Get quick access and offline support</p>
               </div>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
@@ -134,7 +134,7 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
         </aside>
       )}
 
-      <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-50">
+      <header className="glass-strong sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
@@ -194,7 +194,7 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
         </div>
 
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 max-h-[calc(100vh-4rem)] overflow-y-auto">
+          <div className="md:hidden glass-strong max-h-[calc(100vh-4rem)] overflow-y-auto">
             <nav className="px-4 py-2 space-y-1" aria-label="Mobile navigation">
               <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider px-4 py-2">
                 More
@@ -232,13 +232,13 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
         )}
       </header>
 
-      <main className="flex-1 bg-slate-50 dark:bg-slate-900" id="main-content" role="main">
+      <main className="flex-1" id="main-content" role="main">
         {children}
       </main>
 
       {/* Mobile Bottom Navigation */}
       <nav
-        className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 z-50"
+        className="md:hidden fixed bottom-0 left-0 right-0 glass-strong shadow-lg z-50"
         aria-label="Mobile bottom navigation"
       >
         <div className="grid grid-cols-4 gap-1 px-2 py-2">

@@ -171,8 +171,8 @@ export default function Prompts({ onUsePrompt }: PromptsProps) {
     : prompts.filter(p => p.prompt_type === filter);
 
   return (
-    <div className="h-full flex flex-col bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
-      <div className="p-6 border-b border-slate-200 dark:border-slate-700">
+    <div className="h-full flex flex-col">
+      <div className="p-6 glass-subtle border-b border-slate-200/20 dark:border-slate-700/20">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Writing Prompts</h1>

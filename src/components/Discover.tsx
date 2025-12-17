@@ -130,8 +130,8 @@ export default function Discover() {
   );
 
   return (
-    <div className="h-full flex flex-col bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
-      <div className="p-6 border-b border-slate-200 dark:border-slate-700">
+    <div className="h-full flex flex-col">
+      <div className="p-6 glass-subtle border-b border-slate-200/20 dark:border-slate-700/20">
         <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-6">Discover Poetry</h1>
 
         <div className="mb-6">
