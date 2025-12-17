@@ -12,8 +12,9 @@ const Discover = lazy(() => import('./components/Discover'));
 const Prompts = lazy(() => import('./components/Prompts'));
 const Forms = lazy(() => import('./components/Forms'));
 const Submissions = lazy(() => import('./components/Submissions'));
+const Chat = lazy(() => import('./components/Chat'));
 
-type ViewType = 'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'submissions';
+type ViewType = 'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'submissions' | 'chat';
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -70,6 +71,7 @@ function AppContent() {
           />
         )}
         {currentView === 'discover' && <Discover />}
+        {currentView === 'chat' && <Chat />}
         {currentView === 'prompts' && (
           <Prompts
             onUsePrompt={(prompt) => {

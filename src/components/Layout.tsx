@@ -16,10 +16,11 @@ import {
   Compass,
   Lightbulb,
   BookOpen,
-  Send
+  Send,
+  MessageCircle
 } from 'lucide-react';
 
-type ViewType = 'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'submissions';
+type ViewType = 'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'submissions' | 'chat';
 
 interface LayoutProps {
   children: ReactNode;
@@ -38,6 +39,7 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
     { id: 'write' as const, icon: PenLine, label: 'Write' },
     { id: 'library' as const, icon: Library, label: 'Library' },
     { id: 'discover' as const, icon: Compass, label: 'Discover' },
+    { id: 'chat' as const, icon: MessageCircle, label: 'Chat' },
     { id: 'prompts' as const, icon: Lightbulb, label: 'Prompts' },
     { id: 'forms' as const, icon: BookOpen, label: 'Forms' },
     { id: 'submissions' as const, icon: Send, label: 'Submissions' },
@@ -87,11 +89,11 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
   };
 
   const primaryNavItems = navItems.filter(item =>
-    ['write', 'library', 'discover', 'prompts'].includes(item.id)
+    ['write', 'library', 'discover', 'chat'].includes(item.id)
   );
 
   const secondaryNavItems = navItems.filter(item =>
-    !['write', 'library', 'discover', 'prompts'].includes(item.id)
+    !['write', 'library', 'discover', 'chat'].includes(item.id)
   );
 
   return (
