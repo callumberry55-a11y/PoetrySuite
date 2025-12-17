@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Lightbulb, Sparkles, Calendar, Target } from 'lucide-react';
+import { Lightbulb, Plus, Calendar, Target } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import * as AI from '../lib/ai-assistant';
+import { useAuth } from '../contexts/AuthContext';
 
 interface Prompt {
   id: string;
@@ -16,10 +16,73 @@ interface PromptsProps {
   onUsePrompt: (prompt: Prompt) => void;
 }
 
+const predefinedPrompts = [
+  {
+    title: 'Morning Ritual',
+    content: 'Write about the first hour of your day. Focus on sensory details and small moments of awareness.',
+    prompt_type: 'daily',
+    difficulty: 'beginner',
+  },
+  {
+    title: 'Transformation',
+    content: 'Explore a moment of personal change. What was the catalyst? How did you emerge different?',
+    prompt_type: 'weekly',
+    difficulty: 'intermediate',
+  },
+  {
+    title: 'In the Voice of Water',
+    content: 'Personify an element of nature. Write from its perspective about witnessing human life.',
+    prompt_type: 'challenge',
+    difficulty: 'advanced',
+  },
+  {
+    title: 'Memory Fragment',
+    content: 'Capture a childhood memory using only sensory details. No explanations, just images and feelings.',
+    prompt_type: 'daily',
+    difficulty: 'beginner',
+  },
+  {
+    title: 'Conversations Unspoken',
+    content: 'Write the dialogue you wish you could have with someone. What would you say if fear didn\'t hold you back?',
+    prompt_type: 'weekly',
+    difficulty: 'intermediate',
+  },
+  {
+    title: 'Ekphrastic Challenge',
+    content: 'Find a painting or photograph that moves you. Write a poem responding to or entering the image.',
+    prompt_type: 'challenge',
+    difficulty: 'advanced',
+  },
+  {
+    title: 'Weather Within',
+    content: 'Describe your current emotional state using only weather metaphors and imagery.',
+    prompt_type: 'daily',
+    difficulty: 'beginner',
+  },
+  {
+    title: 'The Abandoned',
+    content: 'Write about an abandoned place you know or imagine. What stories do the empty spaces hold?',
+    prompt_type: 'weekly',
+    difficulty: 'intermediate',
+  },
+  {
+    title: 'Constraint: Lipogram',
+    content: 'Write a poem without using the letter "e". Embrace the challenge and find creative solutions.',
+    prompt_type: 'challenge',
+    difficulty: 'advanced',
+  },
+  {
+    title: 'Sound Poem',
+    content: 'Write a poem focused entirely on sounds. Use onomatopoeia, rhythm, and auditory imagery.',
+    prompt_type: 'daily',
+    difficulty: 'intermediate',
+  },
+];
+
 export default function Prompts({ onUsePrompt }: PromptsProps) {
+  const { user } = useAuth();
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [loading, setLoading] = useState(true);
-  const [generating, setGenerating] = useState(false);
   const [filter, setFilter] = useState<'all' | 'daily' | 'weekly' | 'challenge'>('all');
 
   useEffect(() => {
@@ -33,30 +96,65 @@ export default function Prompts({ onUsePrompt }: PromptsProps) {
         .from('writing_prompts')
         .select('*')
         .order('active_date', { ascending: false })
-        .limit(20);
+        .limit(50);
 
       if (error) throw error;
 
-      setPrompts(data || []);
+      if (!data || data.length === 0) {
+        await initializePrompts();
+      } else {
+        setPrompts(data || []);
+      }
     } catch (error) {
       console.error('Error loading prompts:', error);
+      setPrompts([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const generateNewPrompt = async () => {
-    setGenerating(true);
-    try {
-      const result = await AI.generateWritingPrompt('intermediate');
+  const initializePrompts = async () => {
+    if (!user) return;
 
+    try {
+      const promptsToInsert = predefinedPrompts.map((prompt, index) => ({
+        ...prompt,
+        active_date: new Date(Date.now() - index * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      }));
+
+      const { data, error } = await supabase
+        .from('writing_prompts')
+        .insert(promptsToInsert)
+        .select();
+
+      if (error) throw error;
+
+      setPrompts(data || []);
+    } catch (error) {
+      console.error('Error initializing prompts:', error);
+    }
+  };
+
+  const addCustomPrompt = async () => {
+    if (!user) return;
+
+    const title = prompt('Enter prompt title:');
+    if (!title) return;
+
+    const content = prompt('Enter prompt content:');
+    if (!content) return;
+
+    const difficulty = prompt('Enter difficulty (beginner/intermediate/advanced):', 'intermediate');
+    if (!difficulty) return;
+
+    try {
       const { error } = await supabase
         .from('writing_prompts')
         .insert({
-          title: result.title,
-          content: result.prompt,
+          title,
+          content,
           prompt_type: 'daily',
-          difficulty: 'intermediate',
+          difficulty,
           active_date: new Date().toISOString().split('T')[0],
         });
 
@@ -64,9 +162,7 @@ export default function Prompts({ onUsePrompt }: PromptsProps) {
 
       await loadPrompts();
     } catch (error) {
-      console.error('Error generating prompt:', error);
-    } finally {
-      setGenerating(false);
+      console.error('Error adding custom prompt:', error);
     }
   };
 
@@ -83,16 +179,15 @@ export default function Prompts({ onUsePrompt }: PromptsProps) {
             <p className="text-slate-600 dark:text-slate-400">Get inspired and overcome writer's block</p>
           </div>
           <button
-            onClick={generateNewPrompt}
-            disabled={generating}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-400 text-white rounded-lg font-medium transition-colors"
+            onClick={addCustomPrompt}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
           >
-            <Sparkles size={18} />
-            {generating ? 'Generating...' : 'Generate New'}
+            <Plus size={18} />
+            Add Custom
           </button>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <button
             onClick={() => setFilter('all')}
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
@@ -152,11 +247,11 @@ export default function Prompts({ onUsePrompt }: PromptsProps) {
               >
                 <div className="p-6">
                   <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <Lightbulb className="text-amber-500" size={20} />
+                    <div className="flex items-center gap-2 flex-1">
+                      <Lightbulb className="text-amber-500 flex-shrink-0" size={20} />
                       <h3 className="text-lg font-bold text-slate-900 dark:text-white">{prompt.title}</h3>
                     </div>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ml-2 ${
                       prompt.difficulty === 'beginner'
                         ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
                         : prompt.difficulty === 'intermediate'

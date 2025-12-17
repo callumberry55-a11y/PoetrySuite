@@ -1,14 +1,17 @@
 # Poetry Suite
 
-A modern, feature-rich poetry writing and management application built with React, TypeScript, and Supabase. Poetry Suite helps writers create, organize, and analyze their poetry with AI-powered assistance.
+A modern, feature-rich poetry writing and management application built with React, TypeScript, and Supabase. Poetry Suite helps writers create, organize, and improve their poetry with helpful writing resources.
 
 ## Features
 
 - **Authentication**: Secure user authentication with email/password
 - **Poem Editor**: Write and edit poems with real-time saving
-- **AI Assistance**: Get creative help from Google's Gemini AI for poetry composition
+- **Writing Resources**: Access literary devices, meter patterns, rhyme schemes, and imagery suggestions
 - **Library Management**: Organize poems into collections
+- **Writing Prompts**: Daily, weekly, and challenge prompts to inspire creativity
+- **Poetry Forms**: Learn and practice different poetic forms
 - **Analytics**: Track your writing progress and statistics
+- **Submissions Tracker**: Manage journal submissions and responses
 - **Dark/Light Theme**: Toggle between dark and light modes
 - **Offline Support**: Progressive Web App (PWA) with offline capabilities
 - **Responsive Design**: Beautiful UI that works on all devices
@@ -19,7 +22,6 @@ A modern, feature-rich poetry writing and management application built with Reac
 - **Styling**: Tailwind CSS
 - **Database**: Supabase (PostgreSQL)
 - **Authentication**: Supabase Auth
-- **AI Integration**: Google Gemini API
 - **Icons**: Lucide React
 - **PWA**: Service Worker with offline support
 
@@ -27,7 +29,6 @@ A modern, feature-rich poetry writing and management application built with Reac
 
 - Node.js 18+ and npm
 - Supabase account
-- Google Gemini API key (optional, for AI features)
 
 ## Environment Setup
 
@@ -36,7 +37,6 @@ Create a `.env` file in the root directory with the following variables:
 ```env
 VITE_SUPABASE_URL=your_supabase_project_url
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-VITE_GEMINI_API_KEY=your_gemini_api_key
 ```
 
 ### Getting Supabase Credentials
@@ -45,12 +45,6 @@ VITE_GEMINI_API_KEY=your_gemini_api_key
 2. Go to Project Settings → API
 3. Copy the Project URL and anon/public key
 4. The database migrations will run automatically when you use the app
-
-### Getting Gemini API Key
-
-1. Visit [Google AI Studio](https://makersuite.google.com/app/apikey)
-2. Create a new API key
-3. Add it to your `.env` file
 
 ### Supabase Security Configuration
 
@@ -75,7 +69,7 @@ After creating your Supabase project, configure these security settings:
 #### Database Migrations
 
 The database migrations in `supabase/migrations/` will automatically set up:
-- All required tables (poems, collections, poem_collections, analytics)
+- All required tables (poems, collections, poem_collections, analytics, writing_prompts, poetry_forms, submissions)
 - Row Level Security (RLS) policies
 - Foreign key indexes for optimal performance
 - Proper constraints and default values
@@ -113,15 +107,20 @@ npm run lint
 │   ├── components/     # React components
 │   │   ├── Analytics.tsx
 │   │   ├── AuthPage.tsx
+│   │   ├── Discover.tsx
+│   │   ├── Forms.tsx
 │   │   ├── Layout.tsx
 │   │   ├── Library.tsx
 │   │   ├── PoemEditor.tsx
-│   │   └── Settings.tsx
+│   │   ├── Prompts.tsx
+│   │   ├── Settings.tsx
+│   │   ├── Submissions.tsx
+│   │   └── WritingAssistant.tsx
 │   ├── contexts/       # React contexts
 │   │   ├── AuthContext.tsx
 │   │   └── ThemeContext.tsx
 │   ├── lib/           # Library integrations
-│   │   ├── gemini.ts
+│   │   ├── poetry-forms.ts
 │   │   └── supabase.ts
 │   ├── utils/         # Utility functions
 │   │   └── registerSW.ts
@@ -141,6 +140,9 @@ The app uses the following tables:
 - **collections**: Organize poems into collections
 - **poem_collections**: Junction table for poem-collection relationships
 - **analytics**: Track writing metrics and statistics
+- **writing_prompts**: Store daily, weekly, and challenge prompts
+- **poetry_forms**: Catalog of poetic forms and structures
+- **submissions**: Track journal submissions and responses
 
 All tables include Row Level Security (RLS) policies to ensure data privacy.
 
@@ -148,10 +150,28 @@ All tables include Row Level Security (RLS) policies to ensure data privacy.
 
 ### Writing Poems
 
-1. Click "New Poem" in the editor
+1. Click "Write" in the navigation
 2. Write your poem with title and content
-3. Save manually or enable auto-save
-4. Use AI assistance for creative suggestions
+3. Poems auto-save as you type
+4. Use the Writing Resources panel for help with literary devices, meter, rhyme schemes, and imagery
+
+### Writing Resources
+
+Access helpful poetry writing information:
+- **Tips**: General writing advice and best practices
+- **Devices**: Literary devices with definitions and examples
+- **Meter**: Metrical patterns and their characteristics
+- **Rhyme**: Common rhyme schemes and structures
+- **Imagery**: Pre-written imagery examples you can use
+- **Forms**: Learn about different poetic forms
+
+### Writing Prompts
+
+Get inspired with curated writing prompts:
+- Daily prompts for regular practice
+- Weekly prompts for deeper exploration
+- Challenge prompts for advanced techniques
+- Add your own custom prompts
 
 ### Managing Collections
 
@@ -159,6 +179,20 @@ All tables include Row Level Security (RLS) policies to ensure data privacy.
 2. Create new collections to organize your work
 3. Add poems to collections
 4. Search and filter your library
+
+### Poetry Forms
+
+Explore and learn different poetic forms:
+- Sonnets, haikus, villanelles, and more
+- Structural guidelines for each form
+- Tips and examples to help you practice
+
+### Submissions Tracker
+
+Manage your poetry submissions:
+- Track which poems you've submitted where
+- Record submission dates and responses
+- Monitor acceptance rates and feedback
 
 ### Analytics
 
@@ -172,8 +206,8 @@ Track your writing progress:
 
 Configure your experience:
 - Toggle dark/light theme
-- Manage AI API keys
-- Set auto-save preferences
+- Manage account settings
+- Export your data
 
 ## Deployment
 
@@ -204,8 +238,8 @@ firebase deploy
 - Row Level Security (RLS) on all database tables
 - Secure authentication with Supabase Auth
 - Password breach protection
-- API keys stored securely in environment variables
 - CORS protection
+- Client-side validation
 
 ## Contributing
 
@@ -227,5 +261,5 @@ For issues or questions, please open an issue in the GitHub repository.
 
 - Built with [Vite](https://vitejs.dev/)
 - Database by [Supabase](https://supabase.com)
-- AI powered by [Google Gemini](https://deepmind.google/technologies/gemini/)
 - Icons by [Lucide](https://lucide.dev/)
+- Styled with [Tailwind CSS](https://tailwindcss.com/)
