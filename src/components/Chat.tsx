@@ -93,22 +93,30 @@ export default function Chat() {
 
   const loadPublicMessages = async () => {
     try {
-      const { data, error } = await supabase
+      const { data: messages, error } = await supabase
         .from('public_chat_messages')
-        .select(`
-          *,
-          user_profiles!public_chat_messages_user_id_fkey (
-            user_id,
-            email,
-            display_name
-          )
-        `)
+        .select('*')
         .eq('is_deleted', false)
         .order('created_at', { ascending: true })
         .limit(100);
 
       if (error) throw error;
-      setPublicMessages(data || []);
+
+      const userIds = [...new Set(messages?.map(m => m.user_id) || [])];
+
+      const { data: profiles } = await supabase
+        .from('user_profiles')
+        .select('user_id, email, display_name')
+        .in('user_id', userIds);
+
+      const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
+
+      const messagesWithProfiles = messages?.map(msg => ({
+        ...msg,
+        user_profiles: profileMap.get(msg.user_id)
+      })) || [];
+
+      setPublicMessages(messagesWithProfiles);
     } catch (error) {
       console.error('Error loading public messages:', error);
     } finally {
@@ -177,23 +185,31 @@ export default function Chat() {
 
   const loadPrivateMessages = async (conversationId: string) => {
     try {
-      const { data, error } = await supabase
+      const { data: messages, error } = await supabase
         .from('private_messages')
-        .select(`
-          *,
-          sender:user_profiles!private_messages_sender_id_fkey (
-            user_id,
-            email,
-            display_name
-          )
-        `)
+        .select('*')
         .eq('conversation_id', conversationId)
         .eq('is_deleted', false)
         .order('created_at', { ascending: true })
         .limit(100);
 
       if (error) throw error;
-      setPrivateMessages(data || []);
+
+      const senderIds = [...new Set(messages?.map(m => m.sender_id) || [])];
+
+      const { data: profiles } = await supabase
+        .from('user_profiles')
+        .select('user_id, email, display_name')
+        .in('user_id', senderIds);
+
+      const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
+
+      const messagesWithProfiles = messages?.map(msg => ({
+        ...msg,
+        sender: profileMap.get(msg.sender_id)
+      })) || [];
+
+      setPrivateMessages(messagesWithProfiles);
     } catch (error) {
       console.error('Error loading private messages:', error);
     }
