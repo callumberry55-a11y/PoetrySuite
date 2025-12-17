@@ -10,6 +10,7 @@ interface PoemEditorProps {
 
 export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) {
   const { user } = useAuth();
+  const [currentPoemId, setCurrentPoemId] = useState<string | null>(selectedPoemId);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [isPublic, setIsPublic] = useState(false);
@@ -23,8 +24,9 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
   const lineCount = content.split('\n').length;
 
   useEffect(() => {
+    setCurrentPoemId(selectedPoemId);
     if (selectedPoemId) {
-      loadPoem();
+      loadPoem(selectedPoemId);
     } else {
       resetEditor();
     }
@@ -46,7 +48,7 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
         clearTimeout(saveTimeoutRef.current);
       }
     };
-  }, [title, content, isPublic, favorited]);
+  }, [title, content, isPublic, favorited, user, currentPoemId, wordCount]);
 
   const resetEditor = () => {
     setTitle('');
@@ -55,16 +57,17 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
     setFavorited(false);
     setLastSaved(null);
     setError(null);
+    setCurrentPoemId(null);
   };
 
-  const loadPoem = async () => {
-    if (!selectedPoemId || !user) return;
+  const loadPoem = async (poemId: string) => {
+    if (!poemId || !user) return;
 
     try {
       const { data, error } = await supabase
         .from('poems')
         .select('*')
-        .eq('id', selectedPoemId)
+        .eq('id', poemId)
         .eq('user_id', user.id)
         .maybeSingle();
 
@@ -100,20 +103,26 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
         updated_at: new Date().toISOString(),
       };
 
-      if (selectedPoemId) {
+      if (currentPoemId) {
         const { error } = await supabase
           .from('poems')
           .update(poemData)
-          .eq('id', selectedPoemId)
+          .eq('id', currentPoemId)
           .eq('user_id', user.id);
 
         if (error) throw error;
       } else {
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('poems')
-          .insert([poemData]);
+          .insert([poemData])
+          .select('id')
+          .single();
 
         if (error) throw error;
+
+        if (data) {
+          setCurrentPoemId(data.id);
+        }
       }
 
       setLastSaved(new Date());
