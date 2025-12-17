@@ -1,5 +1,9 @@
 export function registerServiceWorker() {
-  if ('serviceWorker' in navigator) {
+  if (!('serviceWorker' in navigator)) {
+    return;
+  }
+
+  try {
     window.addEventListener('load', () => {
       navigator.serviceWorker
         .register('/sw.js')
@@ -20,8 +24,10 @@ export function registerServiceWorker() {
           });
         })
         .catch((error) => {
-          console.error('Service Worker registration failed:', error);
+          console.warn('Service Worker registration failed:', error);
         });
     });
+  } catch (error) {
+    console.warn('Service Worker not supported:', error);
   }
 }
