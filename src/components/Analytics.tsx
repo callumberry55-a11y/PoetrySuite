@@ -18,59 +18,54 @@ function Analytics() {
   const [currentStreak, setCurrentStreak] = useState(0);
   const [longestStreak, setLongestStreak] = useState(0);
 
-  const calculateStreaks = useCallback((statsData: WritingStats[]) => {
-    if (statsData.length === 0) {
+  const calculateStreaks = useCallback((poems: any[]) => {
+    if (poems.length === 0) {
       setCurrentStreak(0);
       setLongestStreak(0);
       return;
     }
 
+    const uniqueDates = Array.from(
+      new Set(poems.map(p => new Date(p.created_at).toDateString()))
+    ).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const sortedStats = [...statsData].sort((a, b) =>
-      new Date(b.date).getTime() - new Date(a.date).getTime()
-    );
-
     let current = 0;
-    let longest = 0;
-    let tempStreak = 0;
     let checkDate = new Date(today);
 
-    for (const stat of sortedStats) {
-      const statDate = new Date(stat.date);
-      statDate.setHours(0, 0, 0, 0);
+    for (const dateStr of uniqueDates) {
+      const poemDate = new Date(dateStr);
+      poemDate.setHours(0, 0, 0, 0);
 
-      if (statDate.getTime() === checkDate.getTime()) {
-        tempStreak++;
+      if (poemDate.getTime() === checkDate.getTime()) {
+        current++;
         checkDate.setDate(checkDate.getDate() - 1);
       } else {
         break;
       }
     }
 
-    current = tempStreak;
+    let longest = 0;
+    let tempStreak = 1;
 
-    tempStreak = 1;
-    let prevDate = new Date(sortedStats[0].date);
-    prevDate.setHours(0, 0, 0, 0);
-
-    for (let i = 1; i < sortedStats.length; i++) {
-      const currentDate = new Date(sortedStats[i].date);
+    for (let i = 0; i < uniqueDates.length - 1; i++) {
+      const currentDate = new Date(uniqueDates[i]);
+      const nextDate = new Date(uniqueDates[i + 1]);
       currentDate.setHours(0, 0, 0, 0);
+      nextDate.setHours(0, 0, 0, 0);
 
       const dayDiff = Math.floor(
-        (prevDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24)
+        (currentDate.getTime() - nextDate.getTime()) / (1000 * 60 * 60 * 24)
       );
 
       if (dayDiff === 1) {
         tempStreak++;
-        longest = Math.max(longest, tempStreak);
       } else {
+        longest = Math.max(longest, tempStreak);
         tempStreak = 1;
       }
-
-      prevDate = currentDate;
     }
 
     longest = Math.max(longest, tempStreak, current);
@@ -82,45 +77,55 @@ function Analytics() {
   const loadStats = useCallback(async () => {
     if (!user) return;
 
-    const { data, error } = await supabase
-      .from('writing_stats')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('date', { ascending: false })
-      .limit(30);
-
-    if (error) {
-      console.error('Error loading stats:', error);
-      return;
-    }
-
-    setStats(data || []);
-    calculateStreaks(data || []);
-  }, [user, calculateStreaks]);
-
-  const loadPoemCount = useCallback(async () => {
-    if (!user) return;
-
-    const { data, error } = await supabase
+    const { data: poems, error } = await supabase
       .from('poems')
-      .select('word_count')
-      .eq('user_id', user.id);
+      .select('id, created_at, word_count')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error loading poem count:', error);
+      console.error('Error loading poems:', error);
       return;
     }
 
-    setTotalPoems(data?.length || 0);
-    setTotalWords(data?.reduce((sum, poem) => sum + poem.word_count, 0) || 0);
-  }, [user]);
+    const poemData = poems || [];
+
+    setTotalPoems(poemData.length);
+    setTotalWords(poemData.reduce((sum, poem) => sum + (poem.word_count || 0), 0));
+
+    calculateStreaks(poemData);
+
+    const dailyStats: { [key: string]: WritingStats } = {};
+
+    poemData.forEach(poem => {
+      const dateStr = new Date(poem.created_at).toISOString().split('T')[0];
+
+      if (!dailyStats[dateStr]) {
+        dailyStats[dateStr] = {
+          date: dateStr,
+          poems_written: 0,
+          words_written: 0,
+          minutes_writing: 0,
+        };
+      }
+
+      dailyStats[dateStr].poems_written++;
+      dailyStats[dateStr].words_written += poem.word_count || 0;
+      dailyStats[dateStr].minutes_writing += Math.ceil((poem.word_count || 0) / 50);
+    });
+
+    const statsArray = Object.values(dailyStats)
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .slice(0, 30);
+
+    setStats(statsArray);
+  }, [user, calculateStreaks]);
 
   useEffect(() => {
     if (user) {
       loadStats();
-      loadPoemCount();
     }
-  }, [user, loadStats, loadPoemCount]);
+  }, [user, loadStats]);
 
   const last7Days = useMemo(() => stats.slice(0, 7).reverse(), [stats]);
 
