@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { Moon, Sun, User, Mail, Download, Smartphone, FileText, ChevronDown, ChevronUp, Clock, Trash2, AlertTriangle, Bell, BellOff, RefreshCw, CheckCircle } from 'lucide-react';
+import { Moon, Sun, User, Mail, Download, Smartphone, FileText, ChevronDown, ChevronUp, Clock, Trash2, AlertTriangle, Bell, BellOff, RefreshCw, CheckCircle, Sparkles } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import packageJson from '../../package.json';
 
@@ -26,6 +26,9 @@ export default function Settings() {
   const [updateMessage, setUpdateMessage] = useState<string>('');
   const [swReady, setSwReady] = useState(false);
   const [swChecking, setSwChecking] = useState(true);
+  const [isBetaTester, setIsBetaTester] = useState(false);
+  const [isTogglingBeta, setIsTogglingBeta] = useState(false);
+  const [betaError, setBetaError] = useState<string | null>(null);
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -80,7 +83,51 @@ export default function Settings() {
       setNotificationPermission(Notification.permission);
       checkSubscriptionStatus();
     }
+    checkBetaStatus();
   }, []);
+
+  const checkBetaStatus = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('is_beta_tester')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (error) throw error;
+      setIsBetaTester(data?.is_beta_tester || false);
+    } catch (error) {
+      console.error('Error checking beta status:', error);
+    }
+  };
+
+  const toggleBetaTester = async () => {
+    setIsTogglingBeta(true);
+    setBetaError(null);
+
+    try {
+      const newStatus = !isBetaTester;
+
+      const { error } = await supabase
+        .from('user_profiles')
+        .update({
+          is_beta_tester: newStatus,
+          beta_enrolled_at: newStatus ? new Date().toISOString() : null
+        })
+        .eq('user_id', user?.id);
+
+      if (error) throw error;
+
+      setIsBetaTester(newStatus);
+    } catch (error) {
+      console.error('Error toggling beta status:', error);
+      setBetaError('Failed to update beta status. Please try again.');
+    } finally {
+      setIsTogglingBeta(false);
+    }
+  };
 
   const checkSubscriptionStatus = async () => {
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
@@ -439,6 +486,69 @@ export default function Settings() {
                   </div>
                 )}
               </>
+            )}
+          </div>
+        </div>
+
+        <div className="glass rounded-xl p-6 shadow-sm border-2 border-blue-200 dark:border-blue-900/50">
+          <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+            <Sparkles className="text-blue-600 dark:text-blue-400" size={24} />
+            Beta Testing Program
+          </h3>
+          <div className="space-y-4">
+            <p className="text-slate-600 dark:text-slate-400">
+              Join our beta testing program to get early access to experimental features and help shape the future of Poetry Suite.
+            </p>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                  isBetaTester
+                    ? 'bg-blue-100 dark:bg-blue-900/30'
+                    : 'bg-slate-100 dark:bg-slate-700'
+                }`}>
+                  <Sparkles className={isBetaTester ? 'text-blue-600 dark:text-blue-400' : 'text-slate-600 dark:text-slate-400'} size={20} />
+                </div>
+                <div>
+                  <p className="font-medium text-slate-900 dark:text-white">
+                    {isBetaTester ? 'Beta Tester Active' : 'Join Beta Program'}
+                  </p>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    {isBetaTester
+                      ? 'You have access to experimental features'
+                      : 'Enable to test new features early'}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={toggleBetaTester}
+                disabled={isTogglingBeta}
+                className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${
+                  isBetaTester ? 'bg-blue-500' : 'bg-slate-300'
+                } ${isTogglingBeta ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                <span
+                  className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${
+                    isBetaTester ? 'translate-x-7' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+
+            {isBetaTester && (
+              <div className="flex items-start gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                <Sparkles className="text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" size={16} />
+                <p className="text-sm text-blue-800 dark:text-blue-200">
+                  You're now a beta tester! Visit the Beta page to explore experimental features and provide feedback.
+                </p>
+              </div>
+            )}
+
+            {betaError && (
+              <div className="flex items-start gap-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                <AlertTriangle className="text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" size={16} />
+                <p className="text-sm text-red-800 dark:text-red-200">{betaError}</p>
+              </div>
             )}
           </div>
         </div>

@@ -1,6 +1,7 @@
 import { ReactNode, useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { supabase } from '../lib/supabase';
 import {
   BookHeart,
   PenLine,
@@ -17,10 +18,11 @@ import {
   Lightbulb,
   BookOpen,
   Send,
-  MessageCircle
+  MessageCircle,
+  Sparkles
 } from 'lucide-react';
 
-type ViewType = 'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'submissions' | 'chat';
+type ViewType = 'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'submissions' | 'chat' | 'beta';
 
 interface LayoutProps {
   children: ReactNode;
@@ -29,11 +31,12 @@ interface LayoutProps {
 }
 
 export default function Layout({ children, currentView, onViewChange }: LayoutProps) {
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
   const { isDark, toggleTheme } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isBetaTester, setIsBetaTester] = useState(false);
 
   const navItems = [
     { id: 'write' as const, icon: PenLine, label: 'Write' },
@@ -44,6 +47,7 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
     { id: 'forms' as const, icon: BookOpen, label: 'Forms' },
     { id: 'submissions' as const, icon: Send, label: 'Submissions' },
     { id: 'analytics' as const, icon: BarChart3, label: 'Analytics' },
+    ...(isBetaTester ? [{ id: 'beta' as const, icon: Sparkles, label: 'Beta' }] : []),
     { id: 'settings' as const, icon: Settings, label: 'Settings' },
   ];
 
@@ -65,6 +69,27 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
       window.removeEventListener('beforeinstallprompt', handler);
     };
   }, []);
+
+  useEffect(() => {
+    checkBetaStatus();
+  }, [user]);
+
+  const checkBetaStatus = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('is_beta_tester')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (error) throw error;
+      setIsBetaTester(data?.is_beta_tester || false);
+    } catch (error) {
+      console.error('Error checking beta status:', error);
+    }
+  };
 
   const handleInstallClick = async () => {
     if (!deferredPrompt) return;
@@ -141,9 +166,17 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
               <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center" aria-hidden="true">
                 <BookHeart size={20} className="text-white" />
               </div>
-              <h1 className="text-xl font-bold text-slate-900 dark:text-white">
-                Poetry Suite
-              </h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl font-bold text-slate-900 dark:text-white">
+                  Poetry Suite
+                </h1>
+                {isBetaTester && (
+                  <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-md text-xs font-medium">
+                    <Sparkles size={12} />
+                    Beta
+                  </span>
+                )}
+              </div>
             </div>
 
             <nav className="hidden md:flex items-center gap-1" aria-label="Main navigation">
