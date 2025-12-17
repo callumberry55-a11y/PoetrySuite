@@ -24,6 +24,8 @@ export default function Settings() {
   const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
   const [updateStatus, setUpdateStatus] = useState<'idle' | 'checking' | 'available' | 'up-to-date' | 'error'>('idle');
   const [updateMessage, setUpdateMessage] = useState<string>('');
+  const [swReady, setSwReady] = useState(false);
+  const [swChecking, setSwChecking] = useState(true);
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -45,6 +47,32 @@ export default function Settings() {
     return () => {
       window.removeEventListener('beforeinstallprompt', handler);
     };
+  }, []);
+
+  useEffect(() => {
+    const checkServiceWorker = async () => {
+      if (!('serviceWorker' in navigator)) {
+        setSwReady(false);
+        setSwChecking(false);
+        return;
+      }
+
+      try {
+        const registration = await navigator.serviceWorker.ready;
+        if (registration && registration.active) {
+          setSwReady(true);
+        } else {
+          setSwReady(false);
+        }
+      } catch (error) {
+        console.error('Error checking service worker:', error);
+        setSwReady(false);
+      } finally {
+        setSwChecking(false);
+      }
+    };
+
+    checkServiceWorker();
   }, []);
 
   useEffect(() => {
@@ -207,9 +235,9 @@ export default function Settings() {
   };
 
   const checkForUpdates = async () => {
-    if (!('serviceWorker' in navigator)) {
+    if (!swReady) {
       setUpdateStatus('error');
-      setUpdateMessage('Service Worker is not supported in your browser');
+      setUpdateMessage('Service worker is not ready. Please wait a moment and try again.');
       return;
     }
 
@@ -218,14 +246,7 @@ export default function Settings() {
     setUpdateMessage('Checking for updates...');
 
     try {
-      const registration = await navigator.serviceWorker.getRegistration();
-
-      if (!registration) {
-        setUpdateStatus('error');
-        setUpdateMessage('No service worker registered');
-        setIsCheckingUpdate(false);
-        return;
-      }
+      const registration = await navigator.serviceWorker.ready;
 
       await registration.update();
 
@@ -469,6 +490,39 @@ export default function Settings() {
               Check for the latest version of Poetry Suite and install updates to get new features and improvements.
             </p>
 
+            {swChecking && (
+              <div className="flex items-start gap-3 p-4 rounded-lg border bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+                <RefreshCw className="text-blue-600 dark:text-blue-400 mt-0.5 animate-spin" size={20} />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                    Verifying service worker status...
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {!swChecking && !swReady && (
+              <div className="flex items-start gap-3 p-4 rounded-lg border bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800">
+                <AlertTriangle className="text-amber-600 dark:text-amber-400 mt-0.5" size={20} />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-amber-900 dark:text-amber-100">
+                    Service worker not ready. Updates are not available until the service worker is active.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {!swChecking && swReady && updateStatus === 'idle' && (
+              <div className="flex items-start gap-3 p-4 rounded-lg border bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
+                <CheckCircle className="text-green-600 dark:text-green-400 mt-0.5" size={20} />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-green-900 dark:text-green-100">
+                    Update system ready
+                  </p>
+                </div>
+              </div>
+            )}
+
             {updateStatus !== 'idle' && (
               <div className={`flex items-start gap-3 p-4 rounded-lg border ${
                 updateStatus === 'checking'
@@ -507,7 +561,7 @@ export default function Settings() {
             <div className="flex gap-3">
               <button
                 onClick={checkForUpdates}
-                disabled={isCheckingUpdate}
+                disabled={isCheckingUpdate || swChecking || !swReady}
                 className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-slate-300 disabled:dark:bg-slate-700 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
               >
                 <RefreshCw size={18} className={isCheckingUpdate ? 'animate-spin' : ''} />
