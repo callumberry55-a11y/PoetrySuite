@@ -78,11 +78,17 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex flex-col">
+      <a
+        href="#main-content"
+        className="skip-link bg-blue-600 text-white px-4 py-2 rounded-lg font-medium shadow-lg"
+      >
+        Skip to main content
+      </a>
       {showInstallPrompt && localStorage.getItem('installPromptDismissed') !== 'true' && (
-        <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-3 shadow-lg">
+        <aside className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-3 shadow-lg" role="banner" aria-label="Install app banner">
           <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
             <div className="flex items-center gap-3 flex-1 min-w-0">
-              <Download size={20} className="flex-shrink-0" />
+              <Download size={20} className="flex-shrink-0" aria-hidden="true" />
               <div className="flex-1 min-w-0">
                 <p className="text-sm sm:text-base font-medium">Install Poetry Suite</p>
                 <p className="text-xs sm:text-sm text-blue-100 hidden sm:block">Get quick access and offline support</p>
@@ -92,26 +98,27 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
               <button
                 onClick={handleInstallClick}
                 className="px-3 sm:px-4 py-1.5 sm:py-2 bg-white text-blue-600 rounded-lg font-medium hover:bg-blue-50 transition-colors text-sm whitespace-nowrap"
+                aria-label="Install Poetry Suite app"
               >
                 Install
               </button>
               <button
                 onClick={handleDismissInstall}
                 className="p-1.5 sm:p-2 hover:bg-blue-600/50 rounded-lg transition-colors"
-                aria-label="Dismiss"
+                aria-label="Dismiss install banner"
               >
-                <X size={18} />
+                <X size={18} aria-hidden="true" />
               </button>
             </div>
           </div>
-        </div>
+        </aside>
       )}
 
       <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center" aria-hidden="true">
                 <BookHeart size={20} className="text-white" />
               </div>
               <h1 className="text-xl font-bold text-slate-900 dark:text-white">
@@ -119,7 +126,7 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
               </h1>
             </div>
 
-            <nav className="hidden md:flex items-center gap-2">
+            <nav className="hidden md:flex items-center gap-2" aria-label="Main navigation">
               {navItems.map((item) => (
                 <button
                   key={item.id}
@@ -129,8 +136,10 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
                       ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
                       : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
                   }`}
+                  aria-label={`Navigate to ${item.label}`}
+                  aria-current={currentView === item.id ? 'page' : undefined}
                 >
-                  <item.icon size={18} />
+                  <item.icon size={18} aria-hidden="true" />
                   <span>{item.label}</span>
                 </button>
               ))}
@@ -140,22 +149,25 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
               <button
                 onClick={toggleTheme}
                 className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400"
-                aria-label="Toggle theme"
+                aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
               >
-                {isDark ? <Sun size={20} /> : <Moon size={20} />}
+                {isDark ? <Sun size={20} aria-hidden="true" /> : <Moon size={20} aria-hidden="true" />}
               </button>
               <button
                 onClick={handleSignOut}
                 className="hidden md:flex items-center gap-2 px-4 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700"
+                aria-label="Logout of Poetry Suite"
               >
-                <LogOut size={18} />
+                <LogOut size={18} aria-hidden="true" />
                 <span>Logout</span>
               </button>
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 className="md:hidden p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400"
+                aria-label={mobileMenuOpen ? 'Close mobile menu' : 'Open mobile menu'}
+                aria-expanded={mobileMenuOpen}
               >
-                {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                {mobileMenuOpen ? <X size={24} aria-hidden="true" /> : <Menu size={24} aria-hidden="true" />}
               </button>
             </div>
           </div>
@@ -163,7 +175,7 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
 
         {mobileMenuOpen && (
           <div className="md:hidden border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
-            <nav className="px-4 py-2 space-y-1">
+            <nav className="px-4 py-2 space-y-1" aria-label="Mobile navigation">
               {navItems.map((item) => (
                 <button
                   key={item.id}
@@ -176,16 +188,19 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
                       ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
                       : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
                   }`}
+                  aria-label={`Navigate to ${item.label}`}
+                  aria-current={currentView === item.id ? 'page' : undefined}
                 >
-                  <item.icon size={20} />
+                  <item.icon size={20} aria-hidden="true" />
                   <span>{item.label}</span>
                 </button>
               ))}
               <button
                 onClick={handleSignOut}
                 className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 font-medium"
+                aria-label="Logout of Poetry Suite"
               >
-                <LogOut size={20} />
+                <LogOut size={20} aria-hidden="true" />
                 <span>Logout</span>
               </button>
             </nav>
@@ -193,7 +208,7 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
         )}
       </header>
 
-      <main className="flex-1 bg-slate-50 dark:bg-slate-900">
+      <main className="flex-1 bg-slate-50 dark:bg-slate-900" id="main-content" role="main">
         {children}
       </main>
     </div>

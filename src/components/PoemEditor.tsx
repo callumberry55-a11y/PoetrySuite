@@ -141,13 +141,18 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
           <button
             onClick={onBack}
             className="flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white mb-6 transition-colors"
+            aria-label="Go back to library"
           >
-            <ArrowLeft size={20} />
+            <ArrowLeft size={20} aria-hidden="true" />
             <span>Back to Library</span>
           </button>
 
           {error && (
-            <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-300">
+            <div
+              className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-300"
+              role="alert"
+              aria-live="assertive"
+            >
               {error}
             </div>
           )}
@@ -155,23 +160,29 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
           <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden border border-slate-200/50 dark:border-slate-700/50">
             <div className="p-6 sm:p-8 border-b border-slate-200 dark:border-slate-700">
               <div className="flex items-start justify-between gap-4 mb-6">
+                <label htmlFor="poem-title" className="sr-only">Poem Title</label>
                 <input
+                  id="poem-title"
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   className="text-3xl sm:text-4xl font-bold bg-transparent border-none outline-none text-slate-900 dark:text-white flex-1 placeholder:text-slate-400 dark:placeholder:text-slate-600"
                   placeholder="Untitled Poem"
+                  aria-label="Poem title"
                 />
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3" aria-live="polite" aria-atomic="true">
                   {saving && (
                     <div className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-3 py-1.5 rounded-full">
-                      <Save size={14} className="animate-pulse" />
+                      <Save size={14} className="animate-pulse" aria-hidden="true" />
                       <span className="hidden sm:inline">Saving</span>
+                      <span className="sr-only">Saving poem</span>
                     </div>
                   )}
                   {!saving && lastSaved && (
                     <div className="text-sm text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700/50 px-3 py-1.5 rounded-full hidden sm:block">
-                      Saved {lastSaved.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      <span aria-label={`Poem saved at ${lastSaved.toLocaleTimeString()}`}>
+                        Saved {lastSaved.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -185,8 +196,10 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
                       ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400'
                       : 'bg-slate-100 dark:bg-slate-700/50 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
                   }`}
+                  aria-pressed={favorited}
+                  aria-label={favorited ? 'Remove from favorites' : 'Add to favorites'}
                 >
-                  <Star size={18} fill={favorited ? 'currentColor' : 'none'} />
+                  <Star size={18} fill={favorited ? 'currentColor' : 'none'} aria-hidden="true" />
                   <span className="text-sm">Favorite</span>
                 </button>
 
@@ -197,25 +210,31 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
                       ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400'
                       : 'bg-slate-100 dark:bg-slate-700/50 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
                   }`}
+                  aria-pressed={isPublic}
+                  aria-label={isPublic ? 'Make poem private' : 'Make poem public'}
                 >
-                  {isPublic ? <Globe size={18} /> : <Lock size={18} />}
+                  {isPublic ? <Globe size={18} aria-hidden="true" /> : <Lock size={18} aria-hidden="true" />}
                   <span className="text-sm">{isPublic ? 'Public' : 'Private'}</span>
                 </button>
 
-                <div className="ml-auto flex items-center gap-4 text-sm text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-700/50 px-4 py-2 rounded-xl">
-                  <span className="font-medium">{wordCount} words</span>
-                  <span className="text-slate-400 dark:text-slate-600">·</span>
-                  <span className="font-medium">{lineCount} lines</span>
+                <div className="ml-auto flex items-center gap-4 text-sm text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-700/50 px-4 py-2 rounded-xl" role="status" aria-live="polite">
+                  <span className="font-medium" aria-label={`${wordCount} words`}>{wordCount} words</span>
+                  <span className="text-slate-400 dark:text-slate-600" aria-hidden="true">·</span>
+                  <span className="font-medium" aria-label={`${lineCount} lines`}>{lineCount} lines</span>
                 </div>
               </div>
             </div>
 
             <div className="p-6 sm:p-8">
+              <label htmlFor="poem-content" className="sr-only">Poem Content</label>
               <textarea
+                id="poem-content"
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 className="w-full min-h-[500px] bg-transparent border-none outline-none text-slate-900 dark:text-white text-lg sm:text-xl leading-relaxed resize-none font-serif placeholder:text-slate-400 dark:placeholder:text-slate-600"
                 placeholder="Let your words flow..."
+                aria-label="Poem content"
+                aria-describedby="poem-stats"
               />
             </div>
           </div>

@@ -51,7 +51,7 @@ export default function AuthPage() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 px-4">
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-500 text-white mb-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-500 text-white mb-4" aria-hidden="true">
             <BookHeart size={32} />
           </div>
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
@@ -63,7 +63,7 @@ export default function AuthPage() {
         </div>
 
         <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8">
-          <div className="flex gap-2 mb-6">
+          <div className="flex gap-2 mb-6" role="group" aria-label="Authentication mode">
             <button
               onClick={() => setIsLogin(true)}
               className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${
@@ -71,6 +71,8 @@ export default function AuthPage() {
                   ? 'bg-blue-500 text-white'
                   : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
               }`}
+              aria-pressed={isLogin}
+              aria-label="Switch to login mode"
             >
               Login
             </button>
@@ -81,6 +83,8 @@ export default function AuthPage() {
                   ? 'bg-blue-500 text-white'
                   : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
               }`}
+              aria-pressed={!isLogin}
+              aria-label="Switch to sign up mode"
             >
               Sign Up
             </button>
@@ -91,8 +95,10 @@ export default function AuthPage() {
             disabled={loading}
             type="button"
             className="w-full mb-6 bg-white dark:bg-slate-700 border-2 border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed text-slate-700 dark:text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-3"
+            aria-label="Continue with Google"
           >
-            <svg className="w-5 h-5" viewBox="0 0 24 24">
+            <svg className="w-5 h-5" viewBox="0 0 24 24" aria-hidden="true" role="img">
+              <title>Google logo</title>
               <path
                 fill="#4285F4"
                 d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -113,8 +119,8 @@ export default function AuthPage() {
             {loading ? 'Please wait...' : 'Continue with Google'}
           </button>
 
-          <div className="relative mb-6">
-            <div className="absolute inset-0 flex items-center">
+          <div className="relative mb-6" role="separator" aria-label="Or continue with email">
+            <div className="absolute inset-0 flex items-center" aria-hidden="true">
               <div className="w-full border-t border-slate-300 dark:border-slate-600"></div>
             </div>
             <div className="relative flex justify-center text-sm">
@@ -124,7 +130,7 @@ export default function AuthPage() {
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4" aria-label={isLogin ? 'Login form' : 'Sign up form'}>
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                 Email
@@ -137,6 +143,8 @@ export default function AuthPage() {
                 required
                 className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="you@example.com"
+                aria-required="true"
+                aria-describedby={error ? 'auth-error' : undefined}
               />
             </div>
 
@@ -153,11 +161,21 @@ export default function AuthPage() {
                 minLength={6}
                 className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="••••••••"
+                aria-required="true"
+                aria-describedby={error ? 'auth-error' : 'password-requirements'}
               />
+              <p id="password-requirements" className="sr-only">
+                Password must be at least 6 characters long
+              </p>
             </div>
 
             {error && (
-              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-3 rounded-lg text-sm">
+              <div
+                id="auth-error"
+                className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-3 rounded-lg text-sm"
+                role="alert"
+                aria-live="assertive"
+              >
                 {error}
               </div>
             )}
@@ -166,6 +184,7 @@ export default function AuthPage() {
               type="submit"
               disabled={loading}
               className="w-full bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white font-medium py-3 px-4 rounded-lg transition-colors"
+              aria-label={loading ? 'Processing...' : isLogin ? 'Login to your account' : 'Create your account'}
             >
               {loading ? 'Please wait...' : isLogin ? 'Login' : 'Create Account'}
             </button>

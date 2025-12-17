@@ -230,17 +230,20 @@ function Library({ onNewPoem, onEditPoem }: LibraryProps) {
 
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+            <label htmlFor="poem-search" className="sr-only">Search poems</label>
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} aria-hidden="true" />
             <input
-              type="text"
+              id="poem-search"
+              type="search"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search poems..."
               className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+              aria-label="Search poems by title or content"
             />
           </div>
 
-          <div className="flex gap-2 overflow-x-auto">
+          <div className="flex gap-2 overflow-x-auto" role="group" aria-label="Filter poems">
             <button
               onClick={() => setFilterBy('all')}
               className={`px-3 sm:px-4 py-2 rounded-lg font-medium transition-colors text-sm whitespace-nowrap ${
@@ -248,6 +251,8 @@ function Library({ onNewPoem, onEditPoem }: LibraryProps) {
                   ? 'bg-blue-500 text-white'
                   : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
               }`}
+              aria-pressed={filterBy === 'all'}
+              aria-label="Show all poems"
             >
               All
             </button>
@@ -258,19 +263,22 @@ function Library({ onNewPoem, onEditPoem }: LibraryProps) {
                   ? 'bg-blue-500 text-white'
                   : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
               }`}
+              aria-pressed={filterBy === 'favorites'}
+              aria-label="Show favorite poems only"
             >
-              <Star size={16} />
+              <Star size={16} aria-hidden="true" />
               <span className="hidden xs:inline">Favorites</span>
             </button>
           </div>
         </div>
 
-        <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+        <div className="flex gap-2 mb-6 overflow-x-auto pb-2" role="group" aria-label="Collections">
           <button
             onClick={() => setShowNewCollection(true)}
             className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors whitespace-nowrap"
+            aria-label="Create new collection"
           >
-            <FolderPlus size={18} />
+            <FolderPlus size={18} aria-hidden="true" />
             <span className="text-sm font-medium">New Collection</span>
           </button>
 
@@ -285,27 +293,33 @@ function Library({ onNewPoem, onEditPoem }: LibraryProps) {
                   ? 'bg-blue-500 text-white'
                   : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
               }`}
+              aria-pressed={selectedCollection === collection.id}
+              aria-label={`${selectedCollection === collection.id ? 'Hide' : 'Show'} collection: ${collection.name}`}
             >
-              <Folder size={18} />
+              <Folder size={18} aria-hidden="true" />
               <span className="text-sm font-medium">{collection.name}</span>
             </button>
           ))}
         </div>
 
         {showNewCollection && (
-          <div className="mb-6 p-4 bg-slate-100 dark:bg-slate-800 rounded-lg">
+          <div className="mb-6 p-4 bg-slate-100 dark:bg-slate-800 rounded-lg" role="form" aria-label="Create new collection">
             <div className="flex items-center gap-2">
+              <label htmlFor="new-collection-name" className="sr-only">Collection name</label>
               <input
+                id="new-collection-name"
                 type="text"
                 value={newCollectionName}
                 onChange={(e) => setNewCollectionName(e.target.value)}
                 placeholder="Collection name..."
                 className="flex-1 px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
                 onKeyDown={(e) => e.key === 'Enter' && createCollection()}
+                aria-label="New collection name"
               />
               <button
                 onClick={createCollection}
                 className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium"
+                aria-label="Create collection"
               >
                 Create
               </button>
@@ -315,17 +329,18 @@ function Library({ onNewPoem, onEditPoem }: LibraryProps) {
                   setNewCollectionName('');
                 }}
                 className="px-3 py-2 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400 rounded-lg"
+                aria-label="Cancel creating collection"
               >
-                <X size={20} />
+                <X size={20} aria-hidden="true" />
               </button>
             </div>
           </div>
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" role="list" aria-label="Poem library">
         {filteredPoems.length === 0 ? (
-          <div className="col-span-full text-center py-12">
+          <div className="col-span-full text-center py-12" role="status">
             <p className="text-slate-500 dark:text-slate-400">
               {searchQuery || filterBy !== 'all'
                 ? 'No poems found matching your criteria'
@@ -334,30 +349,32 @@ function Library({ onNewPoem, onEditPoem }: LibraryProps) {
           </div>
         ) : (
           filteredPoems.map((poem) => (
-            <div
+            <article
               key={poem.id}
               className="bg-white dark:bg-slate-800 rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow group relative"
+              role="listitem"
+              aria-label={`Poem: ${poem.title}`}
             >
               <div className="flex items-start justify-between mb-3">
                 <h3 className="text-lg font-semibold text-slate-900 dark:text-white line-clamp-1 flex-1">
                   {poem.title}
                 </h3>
-                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity" role="group" aria-label="Poem actions">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       onEditPoem(poem.id);
                     }}
                     className="text-blue-500 hover:text-blue-600"
-                    aria-label="Edit poem"
+                    aria-label={`Edit ${poem.title}`}
                   >
-                    <Edit3 size={16} />
+                    <Edit3 size={16} aria-hidden="true" />
                   </button>
-                  {poem.favorited && <Star size={16} className="text-yellow-500" fill="currentColor" />}
+                  {poem.favorited && <Star size={16} className="text-yellow-500" fill="currentColor" aria-label="Favorited" />}
                   {poem.is_public ? (
-                    <Globe size={16} className="text-green-500" />
+                    <Globe size={16} className="text-green-500" aria-label="Public poem" />
                   ) : (
-                    <Lock size={16} className="text-slate-400" />
+                    <Lock size={16} className="text-slate-400" aria-label="Private poem" />
                   )}
                   <div className="relative">
                     <button
@@ -366,11 +383,14 @@ function Library({ onNewPoem, onEditPoem }: LibraryProps) {
                         setShowCollectionMenu(showCollectionMenu === poem.id ? null : poem.id);
                       }}
                       className="text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                      aria-label={`${showCollectionMenu === poem.id ? 'Close' : 'Open'} collection menu for ${poem.title}`}
+                      aria-expanded={showCollectionMenu === poem.id}
+                      aria-haspopup="menu"
                     >
-                      <Tag size={16} />
+                      <Tag size={16} aria-hidden="true" />
                     </button>
                     {showCollectionMenu === poem.id && (
-                      <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-700 rounded-lg shadow-lg border border-slate-200 dark:border-slate-600 z-10">
+                      <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-700 rounded-lg shadow-lg border border-slate-200 dark:border-slate-600 z-10" role="menu" aria-label="Collection menu">
                         <div className="p-2">
                           <p className="text-xs font-medium text-slate-500 dark:text-slate-400 px-2 py-1">
                             Add to Collection
@@ -398,9 +418,11 @@ function Library({ onNewPoem, onEditPoem }: LibraryProps) {
                                       ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
                                       : 'hover:bg-slate-100 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300'
                                   }`}
+                                  role="menuitem"
+                                  aria-label={`${isInCollection ? 'Remove from' : 'Add to'} collection: ${collection.name}`}
                                 >
                                   <div className="flex items-center gap-2">
-                                    <Folder size={14} />
+                                    <Folder size={14} aria-hidden="true" />
                                     <span>{collection.name}</span>
                                   </div>
                                 </button>
@@ -417,8 +439,9 @@ function Library({ onNewPoem, onEditPoem }: LibraryProps) {
                       deletePoem(poem.id);
                     }}
                     className="text-red-500 hover:text-red-600"
+                    aria-label={`Delete ${poem.title}`}
                   >
-                    <Trash2 size={16} />
+                    <Trash2 size={16} aria-hidden="true" />
                   </button>
                 </div>
               </div>
@@ -429,7 +452,7 @@ function Library({ onNewPoem, onEditPoem }: LibraryProps) {
                 <span>{poem.word_count} words</span>
                 <span>{formatDate(poem.created_at)}</span>
               </div>
-            </div>
+            </article>
           ))
         )}
       </div>
