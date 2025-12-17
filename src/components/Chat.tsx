@@ -102,7 +102,12 @@ export default function Chat() {
 
       if (error) throw error;
 
-      const userIds = [...new Set(messages?.map(m => m.user_id) || [])];
+      if (!messages || messages.length === 0) {
+        setPublicMessages([]);
+        return;
+      }
+
+      const userIds = [...new Set(messages.map(m => m.user_id))];
 
       const { data: profiles } = await supabase
         .from('user_profiles')
@@ -111,10 +116,10 @@ export default function Chat() {
 
       const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
 
-      const messagesWithProfiles = messages?.map(msg => ({
+      const messagesWithProfiles = messages.map(msg => ({
         ...msg,
         user_profiles: profileMap.get(msg.user_id)
-      })) || [];
+      }));
 
       setPublicMessages(messagesWithProfiles);
     } catch (error) {
@@ -195,7 +200,12 @@ export default function Chat() {
 
       if (error) throw error;
 
-      const senderIds = [...new Set(messages?.map(m => m.sender_id) || [])];
+      if (!messages || messages.length === 0) {
+        setPrivateMessages([]);
+        return;
+      }
+
+      const senderIds = [...new Set(messages.map(m => m.sender_id))];
 
       const { data: profiles } = await supabase
         .from('user_profiles')
@@ -204,10 +214,10 @@ export default function Chat() {
 
       const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
 
-      const messagesWithProfiles = messages?.map(msg => ({
+      const messagesWithProfiles = messages.map(msg => ({
         ...msg,
         sender: profileMap.get(msg.sender_id)
-      })) || [];
+      }));
 
       setPrivateMessages(messagesWithProfiles);
     } catch (error) {

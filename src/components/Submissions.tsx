@@ -188,22 +188,45 @@ export default function Submissions() {
     try {
       let query = supabase
         .from('community_submissions')
-        .select(`
-          *,
-          poems(title, content, user_id),
-          user_profiles(display_name, username)
-        `)
+        .select('*')
         .order('submitted_at', { ascending: false });
 
       if (!isAdmin) {
         query = query.eq('user_id', user.id);
       }
 
-      const { data, error } = await query;
+      const { data: submissions, error } = await query;
 
       if (error) throw error;
 
-      setCommunitySubmissions(data || []);
+      if (!submissions || submissions.length === 0) {
+        setCommunitySubmissions([]);
+        return;
+      }
+
+      const poemIds = [...new Set(submissions.map(s => s.poem_id))];
+      const userIds = [...new Set(submissions.map(s => s.user_id))];
+
+      const { data: poemsData } = await supabase
+        .from('poems')
+        .select('id, title, content, user_id')
+        .in('id', poemIds);
+
+      const { data: profilesData } = await supabase
+        .from('user_profiles')
+        .select('user_id, display_name, username')
+        .in('user_id', userIds);
+
+      const poemsMap = new Map(poemsData?.map(p => [p.id, p]) || []);
+      const profilesMap = new Map(profilesData?.map(p => [p.user_id, p]) || []);
+
+      const enrichedSubmissions = submissions.map(sub => ({
+        ...sub,
+        poems: poemsMap.get(sub.poem_id),
+        user_profiles: profilesMap.get(sub.user_id)
+      }));
+
+      setCommunitySubmissions(enrichedSubmissions);
     } catch (error) {
       console.error('Error loading community submissions:', error);
     } finally {

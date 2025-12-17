@@ -50,21 +50,35 @@ export default function Discover() {
   const loadPoems = async () => {
     setLoading(true);
     try {
-      let query = supabase
+      const { data: poemsData, error } = await supabase
         .from('poems')
-        .select(`
-          *,
-          user_profiles!inner(username, display_name)
-        `)
+        .select('*')
         .eq('is_public', true)
         .order('created_at', { ascending: false })
         .limit(20);
 
-      const { data, error } = await query;
-
       if (error) throw error;
 
-      setPoems(data || []);
+      if (!poemsData || poemsData.length === 0) {
+        setPoems([]);
+        return;
+      }
+
+      const userIds = [...new Set(poemsData.map(p => p.user_id))];
+
+      const { data: profilesData } = await supabase
+        .from('user_profiles')
+        .select('user_id, username, display_name')
+        .in('user_id', userIds);
+
+      const profilesMap = new Map(profilesData?.map(p => [p.user_id, p]) || []);
+
+      const enrichedPoems = poemsData.map(poem => ({
+        ...poem,
+        user_profiles: profilesMap.get(poem.user_id)
+      }));
+
+      setPoems(enrichedPoems);
     } catch (error) {
       console.error('Error loading poems:', error);
     } finally {
