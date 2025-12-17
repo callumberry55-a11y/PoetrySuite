@@ -1095,8 +1095,12 @@ export default function Settings() {
           </p>
           <div className="flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
             <span className="font-medium">Version {packageJson.version}</span>
-            <span className="text-slate-400 dark:text-slate-600">·</span>
-            <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-md font-medium">Beta</span>
+            {isBetaTester && (
+              <>
+                <span className="text-slate-400 dark:text-slate-600">·</span>
+                <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-md font-medium">Beta Tester</span>
+              </>
+            )}
           </div>
         </div>
       </div>
