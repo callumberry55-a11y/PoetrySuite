@@ -1,17 +1,22 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { Moon, Sun, User, Mail, Download, Smartphone, FileText, ChevronDown, ChevronUp, Clock } from 'lucide-react';
+import { Moon, Sun, User, Mail, Download, Smartphone, FileText, ChevronDown, ChevronUp, Clock, Trash2, AlertTriangle } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 import packageJson from '../../package.json';
 
 export default function Settings() {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const { isDark, toggleTheme } = useTheme();
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isInstalled, setIsInstalled] = useState(false);
   const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
   const [showUpdateHistory, setShowUpdateHistory] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -43,6 +48,28 @@ export default function Settings() {
 
     if (outcome === 'accepted') {
       setDeferredPrompt(null);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText !== 'DELETE MY ACCOUNT') {
+      setDeleteError('Please type "DELETE MY ACCOUNT" exactly to confirm');
+      return;
+    }
+
+    setIsDeleting(true);
+    setDeleteError(null);
+
+    try {
+      const { error } = await supabase.rpc('delete_user_account');
+
+      if (error) throw error;
+
+      await signOut();
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      setDeleteError('Failed to delete account. Please try again or contact support.');
+      setIsDeleting(false);
     }
   };
 
@@ -451,6 +478,97 @@ export default function Settings() {
               </div>
             )}
           </div>
+        </div>
+
+        <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border-2 border-red-200 dark:border-red-900/50">
+          <div className="flex items-start gap-3 mb-4">
+            <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center flex-shrink-0">
+              <AlertTriangle className="text-red-600 dark:text-red-400" size={20} />
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold text-red-900 dark:text-red-100 mb-2">
+                Delete Account
+              </h3>
+              <p className="text-sm text-red-700 dark:text-red-300">
+                Permanently delete your account and all associated data. This action cannot be undone.
+              </p>
+            </div>
+          </div>
+
+          {!showDeleteConfirm ? (
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-colors"
+            >
+              <Trash2 size={18} />
+              Delete My Account
+            </button>
+          ) : (
+            <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg space-y-4">
+              <div className="space-y-2">
+                <p className="text-sm font-semibold text-red-900 dark:text-red-100">
+                  Are you absolutely sure?
+                </p>
+                <p className="text-sm text-red-700 dark:text-red-300">
+                  This will permanently delete:
+                </p>
+                <ul className="list-disc list-inside text-sm text-red-700 dark:text-red-300 space-y-1 ml-2">
+                  <li>All your poems and drafts</li>
+                  <li>All your collections</li>
+                  <li>All your comments and reactions</li>
+                  <li>Your community submissions</li>
+                  <li>Your analytics data</li>
+                  <li>Your account information</li>
+                </ul>
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-red-900 dark:text-red-100">
+                  Type "DELETE MY ACCOUNT" to confirm:
+                </label>
+                <input
+                  type="text"
+                  value={deleteConfirmText}
+                  onChange={(e) => {
+                    setDeleteConfirmText(e.target.value);
+                    setDeleteError(null);
+                  }}
+                  placeholder="DELETE MY ACCOUNT"
+                  className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-red-300 dark:border-red-700 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500"
+                  disabled={isDeleting}
+                />
+              </div>
+
+              {deleteError && (
+                <div className="flex items-start gap-2 p-3 bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-lg">
+                  <AlertTriangle className="text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" size={16} />
+                  <p className="text-sm text-red-800 dark:text-red-200">{deleteError}</p>
+                </div>
+              )}
+
+              <div className="flex gap-3">
+                <button
+                  onClick={handleDeleteAccount}
+                  disabled={isDeleting || deleteConfirmText !== 'DELETE MY ACCOUNT'}
+                  className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-slate-300 disabled:dark:bg-slate-700 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
+                >
+                  <Trash2 size={18} />
+                  {isDeleting ? 'Deleting...' : 'Permanently Delete Account'}
+                </button>
+                <button
+                  onClick={() => {
+                    setShowDeleteConfirm(false);
+                    setDeleteConfirmText('');
+                    setDeleteError(null);
+                  }}
+                  disabled={isDeleting}
+                  className="px-4 py-2 bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 disabled:cursor-not-allowed text-slate-900 dark:text-white rounded-lg font-medium transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm">
