@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { Moon, Sun, User, Mail, Download, Smartphone, FileText, ChevronDown, ChevronUp, Clock, Trash2, AlertTriangle, Bell, BellOff } from 'lucide-react';
+import { Moon, Sun, User, Mail, Download, Smartphone, FileText, ChevronDown, ChevronUp, Clock, Trash2, AlertTriangle, Bell, BellOff, RefreshCw, CheckCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import packageJson from '../../package.json';
 
@@ -21,6 +21,9 @@ export default function Settings() {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isSubscribing, setIsSubscribing] = useState(false);
   const [notificationError, setNotificationError] = useState<string | null>(null);
+  const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
+  const [updateStatus, setUpdateStatus] = useState<'idle' | 'checking' | 'available' | 'up-to-date' | 'error'>('idle');
+  const [updateMessage, setUpdateMessage] = useState<string>('');
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -203,12 +206,90 @@ export default function Settings() {
     }
   };
 
+  const checkForUpdates = async () => {
+    if (!('serviceWorker' in navigator)) {
+      setUpdateStatus('error');
+      setUpdateMessage('Service Worker is not supported in your browser');
+      return;
+    }
+
+    setIsCheckingUpdate(true);
+    setUpdateStatus('checking');
+    setUpdateMessage('Checking for updates...');
+
+    try {
+      const registration = await navigator.serviceWorker.getRegistration();
+
+      if (!registration) {
+        setUpdateStatus('error');
+        setUpdateMessage('No service worker registered');
+        setIsCheckingUpdate(false);
+        return;
+      }
+
+      await registration.update();
+
+      const waiting = registration.waiting;
+      const installing = registration.installing;
+
+      if (waiting || installing) {
+        setUpdateStatus('available');
+        setUpdateMessage('Update available! Click "Install Update" to apply.');
+        setIsCheckingUpdate(false);
+      } else {
+        setUpdateStatus('up-to-date');
+        setUpdateMessage('You are running the latest version');
+        setIsCheckingUpdate(false);
+        setTimeout(() => {
+          setUpdateStatus('idle');
+          setUpdateMessage('');
+        }, 5000);
+      }
+    } catch (error) {
+      console.error('Error checking for updates:', error);
+      setUpdateStatus('error');
+      setUpdateMessage('Failed to check for updates. Please try again.');
+      setIsCheckingUpdate(false);
+    }
+  };
+
+  const installUpdate = async () => {
+    if (!('serviceWorker' in navigator)) {
+      return;
+    }
+
+    try {
+      const registration = await navigator.serviceWorker.getRegistration();
+
+      if (!registration) {
+        return;
+      }
+
+      const waiting = registration.waiting;
+
+      if (waiting) {
+        waiting.postMessage({ type: 'SKIP_WAITING' });
+
+        waiting.addEventListener('statechange', (e: Event) => {
+          const target = e.target as ServiceWorker;
+          if (target.state === 'activated') {
+            window.location.reload();
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Error installing update:', error);
+      setUpdateStatus('error');
+      setUpdateMessage('Failed to install update. Please try again.');
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-8">Settings</h2>
 
       <div className="space-y-6">
-        <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm">
+        <div className="glass rounded-xl p-6 shadow-sm">
           <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-4">
             Account Information
           </h3>
@@ -234,7 +315,7 @@ export default function Settings() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm">
+        <div className="glass rounded-xl p-6 shadow-sm">
           <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-4">
             Appearance
           </h3>
@@ -269,7 +350,7 @@ export default function Settings() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm">
+        <div className="glass rounded-xl p-6 shadow-sm">
           <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-4">
             Push Notifications
           </h3>
@@ -341,7 +422,7 @@ export default function Settings() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm">
+        <div className="glass rounded-xl p-6 shadow-sm">
           <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-4">
             Install App
           </h3>
@@ -379,7 +460,74 @@ export default function Settings() {
           )}
         </div>
 
-        <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm">
+        <div className="glass rounded-xl p-6 shadow-sm">
+          <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-4">
+            App Updates
+          </h3>
+          <div className="space-y-4">
+            <p className="text-slate-600 dark:text-slate-400">
+              Check for the latest version of Poetry Suite and install updates to get new features and improvements.
+            </p>
+
+            {updateStatus !== 'idle' && (
+              <div className={`flex items-start gap-3 p-4 rounded-lg border ${
+                updateStatus === 'checking'
+                  ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
+                  : updateStatus === 'available'
+                  ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800'
+                  : updateStatus === 'up-to-date'
+                  ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
+                  : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+              }`}>
+                {updateStatus === 'checking' ? (
+                  <RefreshCw className="text-blue-600 dark:text-blue-400 mt-0.5 animate-spin" size={20} />
+                ) : updateStatus === 'up-to-date' ? (
+                  <CheckCircle className="text-green-600 dark:text-green-400 mt-0.5" size={20} />
+                ) : updateStatus === 'available' ? (
+                  <Download className="text-amber-600 dark:text-amber-400 mt-0.5" size={20} />
+                ) : (
+                  <AlertTriangle className="text-red-600 dark:text-red-400 mt-0.5" size={20} />
+                )}
+                <div className="flex-1">
+                  <p className={`text-sm font-medium ${
+                    updateStatus === 'checking'
+                      ? 'text-blue-900 dark:text-blue-100'
+                      : updateStatus === 'available'
+                      ? 'text-amber-900 dark:text-amber-100'
+                      : updateStatus === 'up-to-date'
+                      ? 'text-green-900 dark:text-green-100'
+                      : 'text-red-900 dark:text-red-100'
+                  }`}>
+                    {updateMessage}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <div className="flex gap-3">
+              <button
+                onClick={checkForUpdates}
+                disabled={isCheckingUpdate}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-slate-300 disabled:dark:bg-slate-700 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
+              >
+                <RefreshCw size={18} className={isCheckingUpdate ? 'animate-spin' : ''} />
+                {isCheckingUpdate ? 'Checking...' : 'Check for Updates'}
+              </button>
+
+              {updateStatus === 'available' && (
+                <button
+                  onClick={installUpdate}
+                  className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-medium transition-colors"
+                >
+                  <Download size={18} />
+                  Install Update
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="glass rounded-xl p-6 shadow-sm">
           <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-4">
             Policies
           </h3>
@@ -682,7 +830,7 @@ export default function Settings() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border-2 border-red-200 dark:border-red-900/50">
+        <div className="glass rounded-xl p-6 shadow-sm border-2 border-red-200 dark:border-red-900/50">
           <div className="flex items-start gap-3 mb-4">
             <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center flex-shrink-0">
               <AlertTriangle className="text-red-600 dark:text-red-400" size={20} />
@@ -773,7 +921,7 @@ export default function Settings() {
           )}
         </div>
 
-        <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm">
+        <div className="glass rounded-xl p-6 shadow-sm">
           <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-4">
             About Poetry Suite
           </h3>
