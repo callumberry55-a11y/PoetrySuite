@@ -86,8 +86,16 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
     await signOut();
   };
 
+  const primaryNavItems = navItems.filter(item =>
+    ['write', 'library', 'discover', 'prompts'].includes(item.id)
+  );
+
+  const secondaryNavItems = navItems.filter(item =>
+    !['write', 'library', 'discover', 'prompts'].includes(item.id)
+  );
+
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex flex-col">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex flex-col pb-16 md:pb-0">
       <a
         href="#main-content"
         className="skip-link bg-blue-600 text-white px-4 py-2 rounded-lg font-medium shadow-lg"
@@ -136,12 +144,12 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
               </h1>
             </div>
 
-            <nav className="hidden md:flex items-center gap-2" aria-label="Main navigation">
+            <nav className="hidden md:flex items-center gap-1" aria-label="Main navigation">
               {navItems.map((item) => (
                 <button
                   key={item.id}
                   onClick={() => onViewChange(item.id)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg font-medium transition-colors text-sm ${
                     currentView === item.id
                       ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
                       : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
@@ -149,8 +157,8 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
                   aria-label={`Navigate to ${item.label}`}
                   aria-current={currentView === item.id ? 'page' : undefined}
                 >
-                  <item.icon size={18} aria-hidden="true" />
-                  <span>{item.label}</span>
+                  <item.icon size={16} aria-hidden="true" />
+                  <span className="hidden lg:inline">{item.label}</span>
                 </button>
               ))}
             </nav>
@@ -184,9 +192,12 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
         </div>
 
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+          <div className="md:hidden border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 max-h-[calc(100vh-4rem)] overflow-y-auto">
             <nav className="px-4 py-2 space-y-1" aria-label="Mobile navigation">
-              {navItems.map((item) => (
+              <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider px-4 py-2">
+                More
+              </div>
+              {secondaryNavItems.map((item) => (
                 <button
                   key={item.id}
                   onClick={() => {
@@ -205,6 +216,7 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
                   <span>{item.label}</span>
                 </button>
               ))}
+              <div className="border-t border-slate-200 dark:border-slate-700 my-2"></div>
               <button
                 onClick={handleSignOut}
                 className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 font-medium"
@@ -221,6 +233,31 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
       <main className="flex-1 bg-slate-50 dark:bg-slate-900" id="main-content" role="main">
         {children}
       </main>
+
+      {/* Mobile Bottom Navigation */}
+      <nav
+        className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 z-50"
+        aria-label="Mobile bottom navigation"
+      >
+        <div className="grid grid-cols-4 gap-1 px-2 py-2">
+          {primaryNavItems.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => onViewChange(item.id)}
+              className={`flex flex-col items-center gap-1 px-2 py-2 rounded-lg transition-colors ${
+                currentView === item.id
+                  ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                  : 'text-slate-600 dark:text-slate-400'
+              }`}
+              aria-label={`Navigate to ${item.label}`}
+              aria-current={currentView === item.id ? 'page' : undefined}
+            >
+              <item.icon size={22} aria-hidden="true" strokeWidth={currentView === item.id ? 2.5 : 2} />
+              <span className="text-xs font-medium">{item.label}</span>
+            </button>
+          ))}
+        </div>
+      </nav>
     </div>
   );
 }
