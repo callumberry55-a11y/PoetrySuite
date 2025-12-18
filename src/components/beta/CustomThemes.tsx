@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { Palette, Plus, Save, Trash2, Eye, ArrowLeft, AlertCircle, Check } from 'lucide-react';
+import { Palette, Plus, Save, Trash2, Eye, ArrowLeft, AlertCircle, Check, Sparkles, Wand2, RefreshCw } from 'lucide-react';
 import BetaGuard from './BetaGuard';
 
 interface CustomTheme {
@@ -51,11 +51,27 @@ const defaultThemes: CustomTheme[] = [
   }
 ];
 
+const themePresets = [
+  { mood: 'cozy', keywords: ['warm', 'comfortable', 'inviting'], baseHue: 25 },
+  { mood: 'energetic', keywords: ['vibrant', 'dynamic', 'bold'], baseHue: 350 },
+  { mood: 'calm', keywords: ['peaceful', 'serene', 'tranquil'], baseHue: 200 },
+  { mood: 'professional', keywords: ['clean', 'modern', 'sleek'], baseHue: 210 },
+  { mood: 'creative', keywords: ['artistic', 'expressive', 'unique'], baseHue: 280 },
+  { mood: 'nature', keywords: ['earthy', 'organic', 'fresh'], baseHue: 120 },
+  { mood: 'sunset', keywords: ['warm', 'romantic', 'golden'], baseHue: 30 },
+  { mood: 'midnight', keywords: ['dark', 'mysterious', 'elegant'], baseHue: 240 },
+  { mood: 'spring', keywords: ['fresh', 'light', 'blooming'], baseHue: 90 },
+  { mood: 'autumn', keywords: ['rich', 'warm', 'cozy'], baseHue: 20 }
+];
+
 export default function CustomThemes() {
   const { user } = useAuth();
   const [themes, setThemes] = useState<CustomTheme[]>(defaultThemes);
   const [selectedTheme, setSelectedTheme] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
+  const [showAIGenerator, setShowAIGenerator] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
   const [newTheme, setNewTheme] = useState<Omit<CustomTheme, 'id' | 'isActive'>>({
     name: '',
     primary: '#3b82f6',
@@ -69,6 +85,123 @@ export default function CustomThemes() {
   const [success, setSuccess] = useState<string | null>(null);
 
   const previewTheme = themes.find(t => t.id === selectedTheme) || newTheme;
+
+  const hslToHex = (h: number, s: number, l: number): string => {
+    l /= 100;
+    const a = s * Math.min(l, 1 - l) / 100;
+    const f = (n: number) => {
+      const k = (n + h / 30) % 12;
+      const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+      return Math.round(255 * color).toString(16).padStart(2, '0');
+    };
+    return `#${f(0)}${f(8)}${f(4)}`;
+  };
+
+  const generateColorPalette = (baseHue: number, saturation: number, isDark: boolean = false) => {
+    const primary = hslToHex(baseHue, saturation, isDark ? 45 : 55);
+    const secondary = hslToHex((baseHue + 30) % 360, saturation - 10, isDark ? 50 : 60);
+    const accent = hslToHex((baseHue + 180) % 360, saturation - 5, isDark ? 55 : 65);
+    const background = isDark ? hslToHex(baseHue, 15, 10) : hslToHex(baseHue, 30, 97);
+    const surface = isDark ? hslToHex(baseHue, 15, 15) : '#ffffff';
+    const text = isDark ? hslToHex(baseHue, 10, 90) : hslToHex(baseHue, 30, 15);
+
+    return { primary, secondary, accent, background, surface, text };
+  };
+
+  const analyzeMood = (prompt: string): { mood: string; baseHue: number; saturation: number; isDark: boolean } => {
+    const lowerPrompt = prompt.toLowerCase();
+
+    for (const preset of themePresets) {
+      if (lowerPrompt.includes(preset.mood) || preset.keywords.some(k => lowerPrompt.includes(k))) {
+        const saturation = lowerPrompt.includes('vibrant') || lowerPrompt.includes('bold') ? 75 :
+                          lowerPrompt.includes('muted') || lowerPrompt.includes('soft') ? 45 : 60;
+        const isDark = lowerPrompt.includes('dark') || lowerPrompt.includes('night') || lowerPrompt.includes('midnight');
+        return { mood: preset.mood, baseHue: preset.baseHue, saturation, isDark };
+      }
+    }
+
+    const colorMap: Record<string, number> = {
+      red: 0, orange: 30, yellow: 60, green: 120, blue: 210,
+      purple: 280, pink: 330, brown: 25, grey: 0, gray: 0
+    };
+
+    for (const [color, hue] of Object.entries(colorMap)) {
+      if (lowerPrompt.includes(color)) {
+        const saturation = 60;
+        const isDark = lowerPrompt.includes('dark') || lowerPrompt.includes('deep');
+        return { mood: color, baseHue: hue, saturation, isDark };
+      }
+    }
+
+    const randomHue = Math.floor(Math.random() * 360);
+    return { mood: 'custom', baseHue: randomHue, saturation: 60, isDark: false };
+  };
+
+  const generateThemeName = (mood: string, prompt: string): string => {
+    const adjectives = ['Vibrant', 'Soft', 'Bold', 'Gentle', 'Modern', 'Classic', 'Fresh', 'Deep'];
+    const nouns = ['Dream', 'Breeze', 'Glow', 'Wave', 'Essence', 'Harmony', 'Spirit', 'Vision'];
+
+    if (prompt.length > 2) {
+      const words = prompt.split(' ').filter(w => w.length > 3);
+      if (words.length > 0) {
+        const word = words[0].charAt(0).toUpperCase() + words[0].slice(1);
+        return `${word} ${nouns[Math.floor(Math.random() * nouns.length)]}`;
+      }
+    }
+
+    const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
+    const noun = nouns[Math.floor(Math.random() * nouns.length)];
+    return `${adj} ${noun}`;
+  };
+
+  const generateAITheme = async () => {
+    if (!aiPrompt.trim()) {
+      setError('Please describe the theme you want to create');
+      return;
+    }
+
+    setIsGenerating(true);
+    setError(null);
+
+    setTimeout(() => {
+      const analysis = analyzeMood(aiPrompt);
+      const colors = generateColorPalette(analysis.baseHue, analysis.saturation, analysis.isDark);
+      const themeName = generateThemeName(analysis.mood, aiPrompt);
+
+      setNewTheme({
+        name: themeName,
+        ...colors
+      });
+
+      setIsGenerating(false);
+      setShowAIGenerator(false);
+      setIsCreating(true);
+      setAiPrompt('');
+      setSuccess(`Generated "${themeName}" theme from your description!`);
+      setTimeout(() => setSuccess(null), 3000);
+    }, 1500);
+  };
+
+  const generateRandomTheme = () => {
+    const randomMood = themePresets[Math.floor(Math.random() * themePresets.length)];
+    const saturation = 50 + Math.floor(Math.random() * 30);
+    const isDark = Math.random() > 0.7;
+    const colors = generateColorPalette(randomMood.baseHue, saturation, isDark);
+
+    const adjectives = ['Mystical', 'Ethereal', 'Radiant', 'Serene', 'Dynamic', 'Elegant'];
+    const nouns = ['Aurora', 'Cascade', 'Horizon', 'Nebula', 'Zenith', 'Prisma'];
+    const name = `${adjectives[Math.floor(Math.random() * adjectives.length)]} ${nouns[Math.floor(Math.random() * nouns.length)]}`;
+
+    setNewTheme({
+      name,
+      ...colors
+    });
+
+    setIsCreating(true);
+    setShowAIGenerator(false);
+    setSuccess(`Generated random theme: "${name}"!`);
+    setTimeout(() => setSuccess(null), 3000);
+  };
 
   const createTheme = () => {
     if (!newTheme.name.trim()) {
@@ -135,7 +268,20 @@ export default function CustomThemes() {
           </div>
           <div>
             <h2 className="text-3xl font-bold text-slate-900 dark:text-white">Custom Themes</h2>
-            <p className="text-slate-600 dark:text-slate-400">Create and customize your own color themes</p>
+            <p className="text-slate-600 dark:text-slate-400">Create themes manually or let AI generate them for you</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="mb-6 glass rounded-xl p-4 shadow-sm bg-gradient-to-r from-violet-50 to-fuchsia-50 dark:from-violet-900/20 dark:to-fuchsia-900/20 border border-violet-100 dark:border-violet-800">
+        <div className="flex items-start gap-3">
+          <Sparkles className="text-violet-600 dark:text-violet-400 flex-shrink-0 mt-0.5" size={20} />
+          <div>
+            <h3 className="font-semibold text-slate-900 dark:text-white mb-1">AI-Powered Theme Generation</h3>
+            <p className="text-sm text-slate-600 dark:text-slate-400">
+              Describe your ideal theme and let AI create harmonious color palettes based on color theory and mood analysis.
+              Try descriptions like "warm autumn evening" or "calm ocean morning" for best results.
+            </p>
           </div>
         </div>
       </div>
@@ -159,24 +305,114 @@ export default function CustomThemes() {
           <div className="glass rounded-xl p-6 shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-semibold text-slate-900 dark:text-white">Your Themes</h3>
-              <button
-                onClick={() => {
-                  setIsCreating(!isCreating);
-                  setError(null);
-                }}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors"
-              >
-                <Plus size={18} />
-                {isCreating ? 'Cancel' : 'New Theme'}
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    setShowAIGenerator(!showAIGenerator);
+                    setIsCreating(false);
+                    setError(null);
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 text-white rounded-lg font-medium transition-colors"
+                >
+                  <Sparkles size={18} />
+                  AI Generate
+                </button>
+                <button
+                  onClick={() => {
+                    setIsCreating(!isCreating);
+                    setShowAIGenerator(false);
+                    setError(null);
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors"
+                >
+                  <Plus size={18} />
+                  {isCreating ? 'Cancel' : 'Manual'}
+                </button>
+              </div>
             </div>
+
+            {showAIGenerator && (
+              <div className="mb-6 p-6 bg-gradient-to-br from-violet-50 to-fuchsia-50 dark:from-violet-900/20 dark:to-fuchsia-900/20 rounded-xl border-2 border-violet-200 dark:border-violet-800 space-y-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Wand2 className="text-violet-600 dark:text-violet-400" size={24} />
+                  <h4 className="text-lg font-semibold text-slate-900 dark:text-white">AI Theme Generator</h4>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    Describe your ideal theme
+                  </label>
+                  <textarea
+                    value={aiPrompt}
+                    onChange={(e) => setAiPrompt(e.target.value)}
+                    placeholder="e.g., 'cozy autumn evening', 'vibrant ocean waves', 'calm forest morning', 'professional dark mode'"
+                    rows={3}
+                    className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent text-slate-900 dark:text-white resize-none"
+                  />
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    Try words like: cozy, vibrant, calm, dark, professional, nature, sunset, midnight
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={generateAITheme}
+                    disabled={isGenerating}
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isGenerating ? (
+                      <>
+                        <RefreshCw size={18} className="animate-spin" />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles size={18} />
+                        Generate Theme
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={generateRandomTheme}
+                    className="px-4 py-2 bg-slate-500 hover:bg-slate-600 text-white rounded-lg font-medium transition-colors"
+                    title="Generate Random Theme"
+                  >
+                    <RefreshCw size={18} />
+                  </button>
+                </div>
+
+                <div className="pt-3 border-t border-violet-200 dark:border-violet-800">
+                  <p className="text-xs text-slate-600 dark:text-slate-400 mb-2 font-medium">Quick Suggestions:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {['Cozy Autumn', 'Ocean Breeze', 'Midnight Sky', 'Spring Garden', 'Sunset Glow', 'Forest Trail'].map((suggestion) => (
+                      <button
+                        key={suggestion}
+                        onClick={() => setAiPrompt(suggestion)}
+                        className="px-3 py-1 bg-white dark:bg-slate-700 border border-violet-200 dark:border-violet-700 text-slate-700 dark:text-slate-300 rounded-full text-xs hover:bg-violet-100 dark:hover:bg-violet-900/30 transition-colors"
+                      >
+                        {suggestion}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
 
             {isCreating && (
               <div className="mb-6 p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg border border-slate-200 dark:border-slate-600 space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                     Theme Name
                   </label>
+                  <button
+                    onClick={generateRandomTheme}
+                    className="text-xs text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
+                  >
+                    <RefreshCw size={12} />
+                    Randomize Colors
+                  </button>
+                </div>
+                <div>
                   <input
                     type="text"
                     value={newTheme.name}
