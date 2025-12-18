@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { Sparkles, AlertTriangle, Send, Star, Bug, Lightbulb, MessageCircle, Mic, Palette, BarChart3, Users, Lock, ArrowRight, Brain } from 'lucide-react';
+import { Sparkles, AlertTriangle, Send, Star, Bug, Lightbulb, MessageCircle, Mic, Palette, BarChart3, Users, Lock, ArrowRight, Brain, Image } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 interface BetaFeature {
@@ -147,6 +147,7 @@ export default function Beta() {
     if (name.includes('ai') || name.includes('analysis')) return Brain;
     if (name.includes('collaborative') || name.includes('writing')) return Users;
     if (name.includes('voice') || name.includes('recording')) return Mic;
+    if (name.includes('wallpaper')) return Image;
     if (name.includes('theme') || name.includes('custom')) return Palette;
     if (name.includes('metric') || name.includes('analytics')) return BarChart3;
     return Sparkles;
@@ -158,6 +159,7 @@ export default function Beta() {
     if (name.includes('voice_recording')) return '#voice-recording';
     if (name.includes('advanced_metrics')) return '#metrics';
     if (name.includes('custom_themes')) return '#themes';
+    if (name.includes('ai_wallpapers')) return '#wallpapers';
     return null;
   };
 

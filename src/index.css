@@ -8,6 +8,9 @@
     --bg-secondary: 220 248 255;
     --glass-bg: 255 255 255;
     --glass-border: 190 240 255;
+    --wallpaper-url: none;
+    --wallpaper-blur: 0px;
+    --wallpaper-opacity: 0.2;
   }
 
   .dark {
@@ -15,6 +18,23 @@
     --bg-secondary: 30 41 59;
     --glass-bg: 30 41 59;
     --glass-border: 51 65 85;
+  }
+
+  #root.has-wallpaper::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: var(--wallpaper-url);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    filter: blur(var(--wallpaper-blur));
+    opacity: var(--wallpaper-opacity);
+    z-index: -1;
+    pointer-events: none;
   }
 }
 
