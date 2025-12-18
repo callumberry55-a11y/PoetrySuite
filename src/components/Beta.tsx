@@ -154,6 +154,7 @@ export default function Beta() {
 
   const getFeatureLink = (name: string): string | null => {
     if (name.includes('advanced_ai_analysis')) return '#ai-analysis';
+    if (name.includes('collaborative_writing')) return '#collaborative';
     if (name.includes('voice_recording')) return '#voice-recording';
     if (name.includes('advanced_metrics')) return '#metrics';
     if (name.includes('custom_themes')) return '#themes';

@@ -18,8 +18,9 @@ const AdvancedAIAnalysis = lazy(() => import('./components/beta/AdvancedAIAnalys
 const VoiceRecording = lazy(() => import('./components/beta/VoiceRecording'));
 const AdvancedMetrics = lazy(() => import('./components/beta/AdvancedMetrics'));
 const CustomThemes = lazy(() => import('./components/beta/CustomThemes'));
+const CollaborativeWriting = lazy(() => import('./components/beta/CollaborativeWriting'));
 
-type ViewType = 'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'submissions' | 'chat' | 'beta' | 'beta-ai-analysis' | 'beta-voice-recording' | 'beta-metrics' | 'beta-themes';
+type ViewType = 'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'submissions' | 'chat' | 'beta' | 'beta-ai-analysis' | 'beta-voice-recording' | 'beta-metrics' | 'beta-themes' | 'beta-collab';
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -48,7 +49,8 @@ function AppContent() {
         'ai-analysis': 'beta-ai-analysis',
         'voice-recording': 'beta-voice-recording',
         'metrics': 'beta-metrics',
-        'themes': 'beta-themes'
+        'themes': 'beta-themes',
+        'collaborative': 'beta-collab'
       };
 
       if (viewMap[hash]) {
@@ -121,6 +123,7 @@ function AppContent() {
         {currentView === 'beta-voice-recording' && <VoiceRecording />}
         {currentView === 'beta-metrics' && <AdvancedMetrics />}
         {currentView === 'beta-themes' && <CustomThemes />}
+        {currentView === 'beta-collab' && <CollaborativeWriting />}
         {currentView === 'settings' && <Settings />}
       </Suspense>
     </Layout>
