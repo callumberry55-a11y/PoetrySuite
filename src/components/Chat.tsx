@@ -403,7 +403,7 @@ export default function Chat() {
   };
 
   const filteredUsers = users.filter(u =>
-    u.email.toLowerCase().includes(searchQuery.toLowerCase())
+    u.email?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const formatTime = (timestamp: string) => {
@@ -476,7 +476,7 @@ export default function Chat() {
                         <p className="font-medium text-slate-900 dark:text-white truncate">
                           {getDisplayName(conv.other_user)}
                         </p>
-                        {conv.unread_count! > 0 && (
+                        {(conv.unread_count || 0) > 0 && (
                           <span className="ml-2 px-2 py-1 bg-blue-500 text-white text-xs rounded-full">
                             {conv.unread_count}
                           </span>

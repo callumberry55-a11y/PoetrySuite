@@ -48,7 +48,7 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
         clearTimeout(saveTimeoutRef.current);
       }
     };
-  }, [title, content, isPublic, favorited, user, currentPoemId, wordCount]);
+  }, [title, content, isPublic, favorited, user, currentPoemId]);
 
   const resetEditor = () => {
     setTitle('');
