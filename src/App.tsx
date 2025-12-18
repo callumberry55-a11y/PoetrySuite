@@ -1,4 +1,4 @@
-import { useState, useCallback, lazy, Suspense } from 'react';
+import { useState, useCallback, useEffect, lazy, Suspense } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import AuthPage from './components/AuthPage';
@@ -14,8 +14,12 @@ const Forms = lazy(() => import('./components/Forms'));
 const Submissions = lazy(() => import('./components/Submissions'));
 const Chat = lazy(() => import('./components/Chat'));
 const Beta = lazy(() => import('./components/Beta'));
+const AdvancedAIAnalysis = lazy(() => import('./components/beta/AdvancedAIAnalysis'));
+const VoiceRecording = lazy(() => import('./components/beta/VoiceRecording'));
+const AdvancedMetrics = lazy(() => import('./components/beta/AdvancedMetrics'));
+const CustomThemes = lazy(() => import('./components/beta/CustomThemes'));
 
-type ViewType = 'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'submissions' | 'chat' | 'beta';
+type ViewType = 'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'submissions' | 'chat' | 'beta' | 'beta-ai-analysis' | 'beta-voice-recording' | 'beta-metrics' | 'beta-themes';
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -35,6 +39,27 @@ function AppContent() {
   const handleBackToLibrary = useCallback(() => {
     setSelectedPoemId(null);
     setCurrentView('library');
+  }, []);
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.slice(1);
+      const viewMap: Record<string, ViewType> = {
+        'ai-analysis': 'beta-ai-analysis',
+        'voice-recording': 'beta-voice-recording',
+        'metrics': 'beta-metrics',
+        'themes': 'beta-themes'
+      };
+
+      if (viewMap[hash]) {
+        setCurrentView(viewMap[hash]);
+      }
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    handleHashChange();
+
+    return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
   if (loading) {
@@ -92,6 +117,10 @@ function AppContent() {
         {currentView === 'submissions' && <Submissions />}
         {currentView === 'analytics' && <Analytics />}
         {currentView === 'beta' && <Beta />}
+        {currentView === 'beta-ai-analysis' && <AdvancedAIAnalysis />}
+        {currentView === 'beta-voice-recording' && <VoiceRecording />}
+        {currentView === 'beta-metrics' && <AdvancedMetrics />}
+        {currentView === 'beta-themes' && <CustomThemes />}
         {currentView === 'settings' && <Settings />}
       </Suspense>
     </Layout>

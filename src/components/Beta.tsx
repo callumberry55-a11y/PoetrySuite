@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { Sparkles, AlertTriangle, Send, Star, Bug, Lightbulb, MessageCircle, Mic, Palette, BarChart3, Users, Lock } from 'lucide-react';
+import { Sparkles, AlertTriangle, Send, Star, Bug, Lightbulb, MessageCircle, Mic, Palette, BarChart3, Users, Lock, ArrowRight, Brain } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 interface BetaFeature {
@@ -144,12 +144,20 @@ export default function Beta() {
   };
 
   const getFeatureIcon = (name: string) => {
-    if (name.includes('ai') || name.includes('analysis')) return BarChart3;
+    if (name.includes('ai') || name.includes('analysis')) return Brain;
     if (name.includes('collaborative') || name.includes('writing')) return Users;
     if (name.includes('voice') || name.includes('recording')) return Mic;
     if (name.includes('theme') || name.includes('custom')) return Palette;
     if (name.includes('metric') || name.includes('analytics')) return BarChart3;
     return Sparkles;
+  };
+
+  const getFeatureLink = (name: string): string | null => {
+    if (name.includes('advanced_ai_analysis')) return '#ai-analysis';
+    if (name.includes('voice_recording')) return '#voice-recording';
+    if (name.includes('advanced_metrics')) return '#metrics';
+    if (name.includes('custom_themes')) return '#themes';
+    return null;
   };
 
   const getFeedbackIcon = (type: string) => {
@@ -184,12 +192,12 @@ export default function Beta() {
           <p className="text-slate-600 dark:text-slate-400 mb-6">
             This page is only available to beta testers. Join our beta program in Settings to access experimental features and help shape Poetry Suite.
           </p>
-          <a
-            href="/settings"
+          <button
+            onClick={() => window.location.hash = ''}
             className="inline-flex items-center gap-2 px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors"
           >
             Go to Settings
-          </a>
+          </button>
         </div>
       </div>
     );
@@ -224,6 +232,9 @@ export default function Beta() {
           <div className="grid gap-4 md:grid-cols-2">
             {features.map((feature) => {
               const Icon = getFeatureIcon(feature.name);
+              const link = getFeatureLink(feature.name);
+              const isEnabled = feature.is_enabled && link;
+
               return (
                 <div
                   key={feature.id}
@@ -237,13 +248,23 @@ export default function Beta() {
                       <h4 className="font-semibold text-slate-900 dark:text-white mb-1">
                         {feature.name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                       </h4>
-                      <p className="text-sm text-slate-600 dark:text-slate-400">
+                      <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">
                         {feature.description}
                       </p>
                       <div className="mt-2">
-                        <span className="inline-flex items-center px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded text-xs font-medium">
-                          Coming Soon
-                        </span>
+                        {isEnabled ? (
+                          <a
+                            href={link}
+                            className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors"
+                          >
+                            Try It Now
+                            <ArrowRight size={14} />
+                          </a>
+                        ) : (
+                          <span className="inline-flex items-center px-2 py-1 bg-slate-200 dark:bg-slate-600 text-slate-700 dark:text-slate-300 rounded text-xs font-medium">
+                            Coming Soon
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
