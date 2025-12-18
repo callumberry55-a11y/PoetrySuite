@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { Palette, Plus, Save, Trash2, Eye, ArrowLeft, AlertCircle, Check, Sparkles, Wand2, RefreshCw } from 'lucide-react';
+import { Palette, Plus, Save, Trash2, Eye, ArrowLeft, AlertCircle, Check, Sparkles, Wand2, RefreshCw, X } from 'lucide-react';
 import BetaGuard from './BetaGuard';
+import { supabase } from '../../lib/supabase';
 
 interface CustomTheme {
   id: string;
@@ -66,7 +67,8 @@ const themePresets = [
 
 export default function CustomThemes() {
   const { user } = useAuth();
-  const [themes, setThemes] = useState<CustomTheme[]>(defaultThemes);
+  const [themes, setThemes] = useState<CustomTheme[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedTheme, setSelectedTheme] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [showAIGenerator, setShowAIGenerator] = useState(false);
@@ -85,6 +87,70 @@ export default function CustomThemes() {
   const [success, setSuccess] = useState<string | null>(null);
 
   const previewTheme = themes.find(t => t.id === selectedTheme) || newTheme;
+
+  useEffect(() => {
+    if (user) {
+      loadThemes();
+    }
+  }, [user]);
+
+  const loadThemes = async () => {
+    try {
+      setIsLoading(true);
+      const { data, error: fetchError } = await supabase
+        .from('custom_themes')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (fetchError) throw fetchError;
+
+      const loadedThemes = data?.map(theme => ({
+        id: theme.id,
+        name: theme.name,
+        primary: theme.primary_color,
+        secondary: theme.secondary_color,
+        accent: theme.accent_color,
+        background: theme.background_color,
+        surface: theme.surface_color,
+        text: theme.text_color,
+        isActive: theme.is_active
+      })) || [];
+
+      setThemes([...defaultThemes, ...loadedThemes]);
+
+      const activeTheme = loadedThemes.find(t => t.isActive);
+      if (activeTheme) {
+        applyThemeToApp(activeTheme);
+      }
+    } catch (err) {
+      console.error('Error loading themes:', err);
+      setThemes(defaultThemes);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const applyThemeToApp = (theme: CustomTheme) => {
+    const root = document.documentElement;
+    root.style.setProperty('--theme-primary', theme.primary);
+    root.style.setProperty('--theme-secondary', theme.secondary);
+    root.style.setProperty('--theme-accent', theme.accent);
+    root.style.setProperty('--theme-background', theme.background);
+    root.style.setProperty('--theme-surface', theme.surface);
+    root.style.setProperty('--theme-text', theme.text);
+    localStorage.setItem('activeTheme', JSON.stringify(theme));
+  };
+
+  const clearThemeFromApp = () => {
+    const root = document.documentElement;
+    root.style.removeProperty('--theme-primary');
+    root.style.removeProperty('--theme-secondary');
+    root.style.removeProperty('--theme-accent');
+    root.style.removeProperty('--theme-background');
+    root.style.removeProperty('--theme-surface');
+    root.style.removeProperty('--theme-text');
+    localStorage.removeItem('activeTheme');
+  };
 
   const hslToHex = (h: number, s: number, l: number): string => {
     l /= 100;
@@ -203,52 +269,160 @@ export default function CustomThemes() {
     setTimeout(() => setSuccess(null), 3000);
   };
 
-  const createTheme = () => {
+  const createTheme = async () => {
     if (!newTheme.name.trim()) {
       setError('Please enter a theme name');
       return;
     }
 
-    const theme: CustomTheme = {
-      id: Date.now().toString(),
-      ...newTheme,
-      isActive: false
-    };
+    if (!user) {
+      setError('You must be logged in to create themes');
+      return;
+    }
 
-    setThemes([...themes, theme]);
-    setSuccess('Theme created successfully!');
-    setIsCreating(false);
-    setNewTheme({
-      name: '',
-      primary: '#3b82f6',
-      secondary: '#06b6d4',
-      accent: '#8b5cf6',
-      background: '#ffffff',
-      surface: '#f8fafc',
-      text: '#0f172a'
-    });
+    try {
+      const { data, error: insertError } = await supabase
+        .from('custom_themes')
+        .insert([{
+          user_id: user.id,
+          name: newTheme.name,
+          primary_color: newTheme.primary,
+          secondary_color: newTheme.secondary,
+          accent_color: newTheme.accent,
+          background_color: newTheme.background,
+          surface_color: newTheme.surface,
+          text_color: newTheme.text,
+          is_active: false
+        }])
+        .select()
+        .single();
 
-    setTimeout(() => setSuccess(null), 3000);
+      if (insertError) throw insertError;
+
+      const theme: CustomTheme = {
+        id: data.id,
+        name: data.name,
+        primary: data.primary_color,
+        secondary: data.secondary_color,
+        accent: data.accent_color,
+        background: data.background_color,
+        surface: data.surface_color,
+        text: data.text_color,
+        isActive: data.is_active
+      };
+
+      setThemes([...themes, theme]);
+      setSuccess('Theme created successfully!');
+      setIsCreating(false);
+      setNewTheme({
+        name: '',
+        primary: '#3b82f6',
+        secondary: '#06b6d4',
+        accent: '#8b5cf6',
+        background: '#ffffff',
+        surface: '#f8fafc',
+        text: '#0f172a'
+      });
+
+      setTimeout(() => setSuccess(null), 3000);
+    } catch (err) {
+      console.error('Error creating theme:', err);
+      setError('Failed to create theme. Please try again.');
+      setTimeout(() => setError(null), 3000);
+    }
   };
 
-  const deleteTheme = (id: string) => {
-    if (confirm('Delete this theme?')) {
+  const deleteTheme = async (id: string) => {
+    if (!confirm('Delete this theme?')) return;
+
+    if (defaultThemes.some(t => t.id === id)) {
+      setError('Cannot delete default themes');
+      setTimeout(() => setError(null), 3000);
+      return;
+    }
+
+    try {
+      const { error: deleteError } = await supabase
+        .from('custom_themes')
+        .delete()
+        .eq('id', id);
+
+      if (deleteError) throw deleteError;
+
+      const deletedTheme = themes.find(t => t.id === id);
+      if (deletedTheme?.isActive) {
+        clearThemeFromApp();
+      }
+
       setThemes(themes.filter(t => t.id !== id));
       if (selectedTheme === id) {
         setSelectedTheme(null);
       }
       setSuccess('Theme deleted');
       setTimeout(() => setSuccess(null), 3000);
+    } catch (err) {
+      console.error('Error deleting theme:', err);
+      setError('Failed to delete theme. Please try again.');
+      setTimeout(() => setError(null), 3000);
     }
   };
 
-  const activateTheme = (id: string) => {
-    setThemes(themes.map(t => ({
-      ...t,
-      isActive: t.id === id
-    })));
-    setSuccess('Theme activated! (Note: This is a preview feature)');
-    setTimeout(() => setSuccess(null), 3000);
+  const activateTheme = async (id: string) => {
+    const theme = themes.find(t => t.id === id);
+    if (!theme) return;
+
+    const isDefaultTheme = defaultThemes.some(t => t.id === id);
+
+    try {
+      if (!isDefaultTheme && user) {
+        await supabase
+          .from('custom_themes')
+          .update({ is_active: false })
+          .eq('user_id', user.id);
+
+        const { error: updateError } = await supabase
+          .from('custom_themes')
+          .update({ is_active: true })
+          .eq('id', id);
+
+        if (updateError) throw updateError;
+      }
+
+      setThemes(themes.map(t => ({
+        ...t,
+        isActive: t.id === id
+      })));
+
+      applyThemeToApp(theme);
+      setSuccess('Theme activated and will persist across sessions!');
+      setTimeout(() => setSuccess(null), 3000);
+    } catch (err) {
+      console.error('Error activating theme:', err);
+      setError('Failed to activate theme. Please try again.');
+      setTimeout(() => setError(null), 3000);
+    }
+  };
+
+  const deactivateAllThemes = async () => {
+    if (!confirm('Deactivate the current theme and revert to default?')) return;
+
+    try {
+      if (user) {
+        await supabase
+          .from('custom_themes')
+          .update({ is_active: false })
+          .eq('user_id', user.id);
+      }
+
+      setThemes(themes.map(t => ({ ...t, isActive: false })));
+      clearThemeFromApp();
+      setSuccess('All themes deactivated. Using default app theme.');
+      setTimeout(() => setSuccess(null), 3000);
+    } catch (err) {
+      console.error('Error deactivating themes:', err);
+      setError('Failed to deactivate themes. Please try again.');
+      setTimeout(() => setError(null), 3000);
+    }
   };
 
   return (
@@ -306,6 +480,16 @@ export default function CustomThemes() {
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-semibold text-slate-900 dark:text-white">Your Themes</h3>
               <div className="flex items-center gap-2">
+                {themes.some(t => t.isActive) && (
+                  <button
+                    onClick={deactivateAllThemes}
+                    className="flex items-center gap-2 px-3 py-2 bg-slate-500 hover:bg-slate-600 text-white rounded-lg font-medium transition-colors"
+                    title="Deactivate Theme"
+                  >
+                    <X size={18} />
+                    Deactivate
+                  </button>
+                )}
                 <button
                   onClick={() => {
                     setShowAIGenerator(!showAIGenerator);
@@ -506,8 +690,13 @@ export default function CustomThemes() {
               </div>
             )}
 
-            <div className="space-y-3">
-              {themes.map((theme) => (
+            {isLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <RefreshCw className="animate-spin text-blue-500" size={32} />
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {themes.map((theme) => (
                 <div
                   key={theme.id}
                   className={`p-4 rounded-lg border-2 transition-all cursor-pointer ${
@@ -560,7 +749,8 @@ export default function CustomThemes() {
                   </div>
                 </div>
               ))}
-            </div>
+              </div>
+            )}
           </div>
         </div>
 

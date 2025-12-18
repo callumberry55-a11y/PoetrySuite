@@ -32,6 +32,24 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     }
   }, [isDark]);
 
+  useEffect(() => {
+    try {
+      const activeThemeStr = localStorage.getItem('activeTheme');
+      if (activeThemeStr) {
+        const activeTheme = JSON.parse(activeThemeStr);
+        const root = document.documentElement;
+        root.style.setProperty('--theme-primary', activeTheme.primary);
+        root.style.setProperty('--theme-secondary', activeTheme.secondary);
+        root.style.setProperty('--theme-accent', activeTheme.accent);
+        root.style.setProperty('--theme-background', activeTheme.background);
+        root.style.setProperty('--theme-surface', activeTheme.surface);
+        root.style.setProperty('--theme-text', activeTheme.text);
+      }
+    } catch (error) {
+      console.warn('Error loading custom theme:', error);
+    }
+  }, []);
+
   const toggleTheme = () => setIsDark(!isDark);
 
   return (
