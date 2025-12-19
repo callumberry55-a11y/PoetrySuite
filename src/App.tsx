@@ -17,7 +17,7 @@ const Submissions = lazy(() => import('./components/Submissions'));
 type ViewType = 'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'submissions';
 
 function AppContent() {
-  const { user, loading } = useAuth();
+  const { user, userProfile, loading } = useAuth();
   const [currentView, setCurrentView] = useState<ViewType>('library');
   const [selectedPoemId, setSelectedPoemId] = useState<string | null>(null);
 
@@ -51,7 +51,7 @@ function AppContent() {
     return <AuthPage />;
   }
 
-  const isDeveloper = user.email?.includes('dev@') || user.user_metadata?.is_developer;
+  const isDeveloper = userProfile?.is_developer === true;
 
   if (isDeveloper) {
     return <DeveloperDashboard />;
