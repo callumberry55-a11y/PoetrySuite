@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { Moon, Sun, User, Mail, Download, Smartphone, FileText, ChevronDown, ChevronUp, Clock, Trash2, AlertTriangle } from 'lucide-react';
+import { Moon, Sun, User, Mail, Download, Smartphone, FileText, ChevronDown, ChevronUp, Clock, Trash2, AlertTriangle, Bell, BellOff } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { subscribeToNotifications, unsubscribeFromNotifications, isSubscribed } from '../utils/notifications';
 import packageJson from '../../package.json';
 
 export default function Settings() {
@@ -16,6 +17,9 @@ export default function Settings() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [isTogglingNotifications, setIsTogglingNotifications] = useState(false);
+  const [notificationError, setNotificationError] = useState<string | null>(null);
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -33,6 +37,8 @@ export default function Settings() {
       setIsInstalled(true);
       setDeferredPrompt(null);
     });
+
+    isSubscribed().then(setNotificationsEnabled);
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handler);
@@ -86,6 +92,28 @@ export default function Settings() {
       setIsDeleting(false);
       setShowDeleteConfirm(false);
       setDeleteConfirmText('');
+    }
+  };
+
+  const handleToggleNotifications = async () => {
+    setIsTogglingNotifications(true);
+    setNotificationError(null);
+
+    try {
+      if (notificationsEnabled) {
+        await unsubscribeFromNotifications();
+        setNotificationsEnabled(false);
+      } else {
+        await subscribeToNotifications();
+        setNotificationsEnabled(true);
+      }
+    } catch (error) {
+      console.error('Error toggling notifications:', error);
+      setNotificationError(
+        error instanceof Error ? error.message : 'Failed to update notification settings'
+      );
+    } finally {
+      setIsTogglingNotifications(false);
     }
   };
 
@@ -152,6 +180,56 @@ export default function Settings() {
                 }`}
               />
             </button>
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm">
+          <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-4">
+            Push Notifications
+          </h3>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                  {notificationsEnabled ? (
+                    <Bell className="text-purple-600 dark:text-purple-400" size={20} />
+                  ) : (
+                    <BellOff className="text-slate-600 dark:text-slate-400" size={20} />
+                  )}
+                </div>
+                <div>
+                  <p className="font-medium text-slate-900 dark:text-white">Enable Notifications</p>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    Get notified about comments, reactions, and updates
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={handleToggleNotifications}
+                disabled={isTogglingNotifications}
+                className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors disabled:opacity-50 ${
+                  notificationsEnabled ? 'bg-purple-500' : 'bg-slate-300'
+                }`}
+              >
+                <span
+                  className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${
+                    notificationsEnabled ? 'translate-x-7' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+            {notificationError && (
+              <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                <p className="text-sm text-red-800 dark:text-red-200">{notificationError}</p>
+              </div>
+            )}
+            {notificationsEnabled && (
+              <div className="p-3 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg">
+                <p className="text-sm text-purple-800 dark:text-purple-200">
+                  You'll receive notifications for comments, reactions, and submission updates.
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
