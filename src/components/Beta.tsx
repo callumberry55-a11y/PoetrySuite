@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { Sparkles, AlertTriangle, Send, Star, Bug, Lightbulb, MessageCircle, Mic, Palette, BarChart3, Users, Lock, ArrowRight, Brain, Image } from 'lucide-react';
+import { Sparkles, AlertTriangle, Send, Star, Bug, Lightbulb, MessageCircle, Mic, Palette, BarChart3, Users, Lock, ArrowRight, Brain, Image, Languages, BookOpen, Cloud, Clock, Target, Trophy, RefreshCw } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 interface BetaFeature {
@@ -150,6 +150,16 @@ export default function Beta() {
     if (name.includes('wallpaper')) return Image;
     if (name.includes('theme') || name.includes('custom')) return Palette;
     if (name.includes('metric') || name.includes('analytics')) return BarChart3;
+    if (name.includes('translation')) return Languages;
+    if (name.includes('rhyme') || name.includes('dictionary')) return BookOpen;
+    if (name.includes('mood') || name.includes('board')) return Palette;
+    if (name.includes('reading') || name.includes('time')) return Clock;
+    if (name.includes('verse') || name.includes('variation')) return RefreshCw;
+    if (name.includes('performance') || name.includes('mode')) return Mic;
+    if (name.includes('challenge')) return Target;
+    if (name.includes('word') || name.includes('cloud')) return Cloud;
+    if (name.includes('contest')) return Trophy;
+    if (name.includes('historical') || name.includes('forms') || name.includes('explorer')) return BookOpen;
     return Sparkles;
   };
 
@@ -160,6 +170,16 @@ export default function Beta() {
     if (name.includes('advanced_metrics')) return '#metrics';
     if (name.includes('custom_themes')) return '#themes';
     if (name.includes('ai_wallpapers')) return '#wallpapers';
+    if (name.includes('poetry_translation')) return '#translation';
+    if (name.includes('rhyme_dictionary')) return '#rhyme-dictionary';
+    if (name.includes('mood_board_generator')) return '#mood-board';
+    if (name.includes('reading_time_estimator')) return '#reading-time';
+    if (name.includes('verse_variations')) return '#verse-variations';
+    if (name.includes('performance_mode')) return '#performance';
+    if (name.includes('poetry_challenges')) return '#challenges';
+    if (name.includes('word_cloud_visualizer')) return '#word-cloud';
+    if (name.includes('poetry_contests')) return '#contests';
+    if (name.includes('historical_forms_explorer')) return '#historical-forms';
     return null;
   };
 

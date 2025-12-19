@@ -20,8 +20,18 @@ const AdvancedMetrics = lazy(() => import('./components/beta/AdvancedMetrics'));
 const CustomThemes = lazy(() => import('./components/beta/CustomThemes'));
 const CollaborativeWriting = lazy(() => import('./components/beta/CollaborativeWriting'));
 const AIWallpapers = lazy(() => import('./components/beta/AIWallpapers'));
+const PoetryTranslation = lazy(() => import('./components/beta/PoetryTranslation'));
+const RhymeDictionary = lazy(() => import('./components/beta/RhymeDictionary'));
+const MoodBoardGenerator = lazy(() => import('./components/beta/MoodBoardGenerator'));
+const ReadingTimeEstimator = lazy(() => import('./components/beta/ReadingTimeEstimator'));
+const VerseVariations = lazy(() => import('./components/beta/VerseVariations'));
+const PerformanceMode = lazy(() => import('./components/beta/PerformanceMode'));
+const PoetryChallenges = lazy(() => import('./components/beta/PoetryChallenges'));
+const WordCloudVisualizer = lazy(() => import('./components/beta/WordCloudVisualizer'));
+const PoetryContests = lazy(() => import('./components/beta/PoetryContests'));
+const HistoricalFormsExplorer = lazy(() => import('./components/beta/HistoricalFormsExplorer'));
 
-type ViewType = 'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'submissions' | 'chat' | 'beta' | 'beta-ai-analysis' | 'beta-voice-recording' | 'beta-metrics' | 'beta-themes' | 'beta-collab' | 'beta-wallpapers';
+type ViewType = 'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'submissions' | 'chat' | 'beta' | 'beta-ai-analysis' | 'beta-voice-recording' | 'beta-metrics' | 'beta-themes' | 'beta-collab' | 'beta-wallpapers' | 'beta-translation' | 'beta-rhyme-dictionary' | 'beta-mood-board' | 'beta-reading-time' | 'beta-verse-variations' | 'beta-performance' | 'beta-challenges' | 'beta-word-cloud' | 'beta-contests' | 'beta-historical-forms';
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -52,7 +62,17 @@ function AppContent() {
         'metrics': 'beta-metrics',
         'themes': 'beta-themes',
         'collaborative': 'beta-collab',
-        'wallpapers': 'beta-wallpapers'
+        'wallpapers': 'beta-wallpapers',
+        'translation': 'beta-translation',
+        'rhyme-dictionary': 'beta-rhyme-dictionary',
+        'mood-board': 'beta-mood-board',
+        'reading-time': 'beta-reading-time',
+        'verse-variations': 'beta-verse-variations',
+        'performance': 'beta-performance',
+        'challenges': 'beta-challenges',
+        'word-cloud': 'beta-word-cloud',
+        'contests': 'beta-contests',
+        'historical-forms': 'beta-historical-forms'
       };
 
       if (viewMap[hash]) {
@@ -127,6 +147,16 @@ function AppContent() {
         {currentView === 'beta-themes' && <CustomThemes />}
         {currentView === 'beta-collab' && <CollaborativeWriting />}
         {currentView === 'beta-wallpapers' && <AIWallpapers />}
+        {currentView === 'beta-translation' && <PoetryTranslation />}
+        {currentView === 'beta-rhyme-dictionary' && <RhymeDictionary />}
+        {currentView === 'beta-mood-board' && <MoodBoardGenerator />}
+        {currentView === 'beta-reading-time' && <ReadingTimeEstimator />}
+        {currentView === 'beta-verse-variations' && <VerseVariations />}
+        {currentView === 'beta-performance' && <PerformanceMode />}
+        {currentView === 'beta-challenges' && <PoetryChallenges />}
+        {currentView === 'beta-word-cloud' && <WordCloudVisualizer />}
+        {currentView === 'beta-contests' && <PoetryContests />}
+        {currentView === 'beta-historical-forms' && <HistoricalFormsExplorer />}
         {currentView === 'settings' && <Settings />}
       </Suspense>
     </Layout>
