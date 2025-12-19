@@ -49,18 +49,56 @@ export default function DeveloperDashboard() {
 
   useEffect(() => {
     loadStats();
+
+    const profilesChannel = supabase
+      .channel('user-profiles-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_profiles' }, () => {
+        loadStats();
+      })
+      .subscribe();
+
+    const poemsChannel = supabase
+      .channel('poems-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'poems' }, () => {
+        loadStats();
+      })
+      .subscribe();
+
+    const submissionsChannel = supabase
+      .channel('submissions-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'community_submissions' }, () => {
+        loadStats();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(profilesChannel);
+      supabase.removeChannel(poemsChannel);
+      supabase.removeChannel(submissionsChannel);
+    };
   }, []);
 
   useEffect(() => {
     if (activeTab === 'feedback') {
       loadFeedback();
+
+      const feedbackChannel = supabase
+        .channel('feedback-changes')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'feedback' }, () => {
+          loadFeedback();
+        })
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(feedbackChannel);
+      };
     }
   }, [activeTab]);
 
   const loadStats = async () => {
     try {
       const [usersResult, poemsResult, submissionsResult] = await Promise.all([
-        supabase.from('profiles').select('id', { count: 'exact', head: true }),
+        supabase.from('user_profiles').select('user_id', { count: 'exact', head: true }),
         supabase.from('poems').select('id', { count: 'exact', head: true }),
         supabase.from('community_submissions').select('id', { count: 'exact', head: true }),
       ]);
