@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import AuthPage from './components/AuthPage';
 import Layout from './components/Layout';
+import DeveloperDashboard from './components/DeveloperDashboard';
 
 const PoemEditor = lazy(() => import('./components/PoemEditor'));
 const Library = lazy(() => import('./components/Library'));
@@ -48,6 +49,12 @@ function AppContent() {
 
   if (!user) {
     return <AuthPage />;
+  }
+
+  const isDeveloper = user.email?.includes('dev@') || user.user_metadata?.is_developer;
+
+  if (isDeveloper) {
+    return <DeveloperDashboard />;
   }
 
   return (
