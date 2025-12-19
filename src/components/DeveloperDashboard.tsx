@@ -313,7 +313,7 @@ export default function DeveloperDashboard() {
   const processAIRequest = async () => {
     if (!aiPrompt.trim()) {
       setAiResponse(JSON.stringify({
-        explanation: 'Please enter a configuration request to get AI recommendations.',
+        explanation: 'Please enter a configuration request to get recommendations.',
         changes: [],
         warnings: ['No prompt provided']
       }, null, 2));
@@ -324,66 +324,146 @@ export default function DeveloperDashboard() {
     setAiResponse('');
 
     try {
-      const configContext = configList.map(c =>
-        `${c.key}: ${JSON.stringify(c.value)} (${c.description})`
-      ).join('\n');
+      // Simulate processing delay for better UX
+      await new Promise(resolve => setTimeout(resolve, 500));
 
-      const prompt = `You are a system configuration assistant for a poetry writing application. Based on this request: "${aiPrompt}"
+      const prompt = aiPrompt.toLowerCase();
+      const changes: Array<{ key: string; newValue: any; reason: string }> = [];
+      const warnings: string[] = [];
+      let explanation = '';
 
-Current system configuration:
-${configContext}
+      // Rule-based analysis of the prompt
+      if (prompt.includes('notification') || prompt.includes('notify')) {
+        if (prompt.includes('enable') || prompt.includes('turn on') || prompt.includes('activate')) {
+          changes.push({
+            key: 'notifications_enabled',
+            newValue: true,
+            reason: 'Enable notifications as requested'
+          });
+          explanation = 'Enabling notifications will allow users to receive updates about their poems, submissions, and community activity.';
+        } else if (prompt.includes('disable') || prompt.includes('turn off') || prompt.includes('deactivate')) {
+          changes.push({
+            key: 'notifications_enabled',
+            newValue: false,
+            reason: 'Disable notifications as requested'
+          });
+          explanation = 'Disabling notifications will prevent users from receiving any push notifications.';
+          warnings.push('Users will not receive important updates when notifications are disabled');
+        }
+      }
 
-Provide a clear, actionable response explaining:
-1. What configuration changes are needed
-2. The specific values to update
-3. Any potential impacts or considerations
+      if (prompt.includes('maintenance') || prompt.includes('down')) {
+        if (prompt.includes('enable') || prompt.includes('turn on') || prompt.includes('activate')) {
+          changes.push({
+            key: 'maintenance_mode',
+            newValue: true,
+            reason: 'Enable maintenance mode as requested'
+          });
+          explanation = 'Maintenance mode will prevent users from accessing the application while you perform updates or fixes.';
+          warnings.push('All users will be locked out during maintenance mode');
+        } else if (prompt.includes('disable') || prompt.includes('turn off') || prompt.includes('deactivate')) {
+          changes.push({
+            key: 'maintenance_mode',
+            newValue: false,
+            reason: 'Disable maintenance mode as requested'
+          });
+          explanation = 'Disabling maintenance mode will restore normal user access to the application.';
+        }
+      }
 
-Format your response as a JSON object with:
-- "explanation": Brief explanation of what needs to be done
-- "changes": Array of objects with "key", "newValue", and "reason"
-- "warnings": Array of any warnings or considerations
+      if (prompt.includes('submission') || prompt.includes('submit')) {
+        if (prompt.includes('enable') || prompt.includes('turn on') || prompt.includes('allow')) {
+          changes.push({
+            key: 'allow_submissions',
+            newValue: true,
+            reason: 'Enable submissions as requested'
+          });
+          explanation = 'Enabling submissions will allow users to submit their poems to the community for feedback and publication.';
+        } else if (prompt.includes('disable') || prompt.includes('turn off') || prompt.includes('block')) {
+          changes.push({
+            key: 'allow_submissions',
+            newValue: false,
+            reason: 'Disable submissions as requested'
+          });
+          explanation = 'Disabling submissions will prevent users from submitting new poems to the community.';
+          warnings.push('Users with pending submissions will not be affected');
+        }
+      }
 
-Respond only with valid JSON.`;
-
-      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: prompt
-            }]
-          }],
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 2048,
+      if (prompt.includes('max') && (prompt.includes('poem') || prompt.includes('submission'))) {
+        const numberMatch = prompt.match(/\d+/);
+        if (numberMatch) {
+          const value = parseInt(numberMatch[0]);
+          changes.push({
+            key: 'max_poems_per_user',
+            newValue: value,
+            reason: `Set maximum poems per user to ${value}`
+          });
+          explanation = `Setting the maximum poems per user to ${value} will help manage storage and ensure quality over quantity.`;
+          if (value < 10) {
+            warnings.push('Low limit may frustrate active users');
+          } else if (value > 1000) {
+            warnings.push('High limit may lead to storage issues');
           }
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error(`API request failed: ${response.status}`);
+        }
       }
 
-      const data = await response.json();
-      const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response generated';
-
-      const jsonMatch = aiText.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        const parsedResponse = JSON.parse(jsonMatch[0]);
-        setAiResponse(JSON.stringify(parsedResponse, null, 2));
-      } else {
-        setAiResponse(JSON.stringify({
-          explanation: aiText,
-          changes: [],
-          warnings: ['Could not parse structured response from AI']
-        }, null, 2));
+      if (prompt.includes('rate') || prompt.includes('limit')) {
+        const numberMatch = prompt.match(/\d+/);
+        if (numberMatch) {
+          const value = parseInt(numberMatch[0]);
+          if (prompt.includes('hour')) {
+            changes.push({
+              key: 'rate_limit_per_hour',
+              newValue: value,
+              reason: `Set rate limit to ${value} requests per hour`
+            });
+            explanation = `Rate limiting to ${value} requests per hour will help prevent abuse and ensure fair resource usage.`;
+          } else if (prompt.includes('minute')) {
+            changes.push({
+              key: 'rate_limit_per_minute',
+              newValue: value,
+              reason: `Set rate limit to ${value} requests per minute`
+            });
+            explanation = `Rate limiting to ${value} requests per minute will help prevent spam and API abuse.`;
+          }
+        }
       }
+
+      if (prompt.includes('feature') || prompt.includes('flag')) {
+        if (prompt.includes('community') || prompt.includes('social')) {
+          const enable = prompt.includes('enable') || prompt.includes('turn on');
+          changes.push({
+            key: 'feature_community_enabled',
+            newValue: enable,
+            reason: `${enable ? 'Enable' : 'Disable'} community features`
+          });
+          explanation = `${enable ? 'Enabling' : 'Disabling'} community features will ${enable ? 'allow' : 'prevent'} users from interacting with other poets and sharing their work.`;
+        }
+        if (prompt.includes('analytics') || prompt.includes('metric')) {
+          const enable = prompt.includes('enable') || prompt.includes('turn on');
+          changes.push({
+            key: 'feature_analytics_enabled',
+            newValue: enable,
+            reason: `${enable ? 'Enable' : 'Disable'} analytics`
+          });
+          explanation = `${enable ? 'Enabling' : 'Disabling'} analytics will ${enable ? 'start' : 'stop'} tracking user behavior and application usage.`;
+        }
+      }
+
+      // If no specific changes detected, provide helpful guidance
+      if (changes.length === 0) {
+        explanation = 'I analyzed your request but couldn\'t identify specific configuration changes. Try being more specific with keywords like "enable notifications", "set max poems to 100", "disable maintenance mode", etc.';
+        warnings.push('No matching configuration found. Try rephrasing your request.');
+      }
+
+      setAiResponse(JSON.stringify({
+        explanation,
+        changes,
+        warnings
+      }, null, 2));
     } catch (error) {
-      console.error('Error processing AI request:', error);
+      console.error('Error processing request:', error);
       setAiResponse(JSON.stringify({
         explanation: 'Error processing request',
         changes: [],
@@ -757,7 +837,7 @@ Respond only with valid JSON.`;
                       <Sparkles size={24} />
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold">AI Configuration Assistant</h3>
+                      <h3 className="text-xl font-bold">Configuration Assistant</h3>
                       <p className="text-sm text-white/80">Describe what you want to configure in natural language</p>
                     </div>
                   </div>
@@ -787,7 +867,7 @@ Respond only with valid JSON.`;
                       ) : (
                         <>
                           <Send size={18} />
-                          Get AI Recommendations
+                          Get Recommendations
                         </>
                       )}
                     </button>
@@ -796,7 +876,7 @@ Respond only with valid JSON.`;
                     <div className="mt-4 p-4 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20">
                       <h4 className="font-semibold mb-2 flex items-center gap-2">
                         <Sparkles size={16} />
-                        AI Response
+                        Recommendations
                       </h4>
                       <pre className="text-sm text-white/90 whitespace-pre-wrap font-mono overflow-x-auto">
                         {aiResponse}
