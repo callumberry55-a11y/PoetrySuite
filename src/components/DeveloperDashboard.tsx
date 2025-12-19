@@ -10,7 +10,11 @@ import {
   LogOut,
   Shield,
   BarChart3,
-  Settings as SettingsIcon
+  Settings as SettingsIcon,
+  Search,
+  Mail,
+  Calendar,
+  Award
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
@@ -34,6 +38,20 @@ interface Feedback {
   };
 }
 
+interface UserProfile {
+  user_id: string;
+  username: string | null;
+  display_name: string | null;
+  email: string | null;
+  bio: string | null;
+  created_at: string;
+  is_developer: boolean;
+  is_beta_tester: boolean;
+  phone: string | null;
+  poem_count?: number;
+  submission_count?: number;
+}
+
 export default function DeveloperDashboard() {
   const { user, signOut } = useAuth();
   const [stats, setStats] = useState<Stats>({
@@ -46,6 +64,9 @@ export default function DeveloperDashboard() {
   const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'data' | 'system' | 'feedback'>('overview');
   const [feedbackList, setFeedbackList] = useState<Feedback[]>([]);
   const [feedbackLoading, setFeedbackLoading] = useState(false);
+  const [usersList, setUsersList] = useState<UserProfile[]>([]);
+  const [usersLoading, setUsersLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     loadStats();
@@ -91,6 +112,21 @@ export default function DeveloperDashboard() {
 
       return () => {
         supabase.removeChannel(feedbackChannel);
+      };
+    }
+
+    if (activeTab === 'users') {
+      loadUsers();
+
+      const usersChannel = supabase
+        .channel('user-profiles-management')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'user_profiles' }, () => {
+          loadUsers();
+        })
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(usersChannel);
       };
     }
   }, [activeTab]);
@@ -150,6 +186,42 @@ export default function DeveloperDashboard() {
       setFeedbackList([]);
     } finally {
       setFeedbackLoading(false);
+    }
+  };
+
+  const loadUsers = async () => {
+    setUsersLoading(true);
+    try {
+      const { data: profiles, error: profilesError } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (profilesError) throw profilesError;
+
+      const usersWithStats = await Promise.all(
+        (profiles || []).map(async (profile) => {
+          const [{ data: userData }, { count: poemCount }, { count: submissionCount }] = await Promise.all([
+            supabase.auth.admin.getUserById(profile.user_id),
+            supabase.from('poems').select('*', { count: 'exact', head: true }).eq('user_id', profile.user_id),
+            supabase.from('community_submissions').select('*', { count: 'exact', head: true }).eq('user_id', profile.user_id),
+          ]);
+
+          return {
+            ...profile,
+            email: userData?.user?.email || null,
+            poem_count: poemCount || 0,
+            submission_count: submissionCount || 0,
+          };
+        })
+      );
+
+      setUsersList(usersWithStats);
+    } catch (error) {
+      console.error('Error loading users:', error);
+      setUsersList([]);
+    } finally {
+      setUsersLoading(false);
     }
   };
 
@@ -347,9 +419,127 @@ export default function DeveloperDashboard() {
             )}
 
             {activeTab === 'users' && (
-              <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700">
-                <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">User Management</h3>
-                <p className="text-slate-600 dark:text-slate-400">User management features coming soon...</p>
+              <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+                <div className="p-6 border-b border-slate-200 dark:border-slate-700">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-slate-900 dark:text-white">User Management</h3>
+                    <div className="text-sm text-slate-600 dark:text-slate-400">
+                      {usersList.length} total users
+                    </div>
+                  </div>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                    <input
+                      type="text"
+                      placeholder="Search by email, username, or display name..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
+                {usersLoading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                ) : usersList.length === 0 ? (
+                  <div className="text-center py-12 px-6">
+                    <p className="text-slate-600 dark:text-slate-400">No users found.</p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-slate-50 dark:bg-slate-700/50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wider">
+                            User
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wider">
+                            Email
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wider">
+                            Stats
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wider">
+                            Roles
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wider">
+                            Joined
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+                        {usersList
+                          .filter(user => {
+                            if (!searchQuery) return true;
+                            const query = searchQuery.toLowerCase();
+                            return (
+                              user.email?.toLowerCase().includes(query) ||
+                              user.username?.toLowerCase().includes(query) ||
+                              user.display_name?.toLowerCase().includes(query)
+                            );
+                          })
+                          .map((user) => (
+                            <tr key={user.user_id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50">
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div>
+                                  <div className="text-sm font-medium text-slate-900 dark:text-white">
+                                    {user.display_name || user.username || 'Unnamed User'}
+                                  </div>
+                                  {user.username && user.display_name && (
+                                    <div className="text-xs text-slate-500 dark:text-slate-400">
+                                      @{user.username}
+                                    </div>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                                  <Mail size={14} />
+                                  {user.email || 'No email'}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="text-sm text-slate-900 dark:text-white">
+                                  <div className="flex items-center gap-3">
+                                    <span title="Poems">{user.poem_count} poems</span>
+                                    <span className="text-slate-400">•</span>
+                                    <span title="Submissions">{user.submission_count} submissions</span>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="flex gap-1">
+                                  {user.is_developer && (
+                                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-amber-100 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 text-xs font-medium">
+                                      <Shield size={12} />
+                                      Dev
+                                    </span>
+                                  )}
+                                  {user.is_beta_tester && (
+                                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 text-xs font-medium">
+                                      <Award size={12} />
+                                      Beta
+                                    </span>
+                                  )}
+                                  {!user.is_developer && !user.is_beta_tester && (
+                                    <span className="text-xs text-slate-400">Regular</span>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                                  <Calendar size={14} />
+                                  {new Date(user.created_at).toLocaleDateString()}
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
             )}
 
