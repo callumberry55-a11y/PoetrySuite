@@ -313,9 +313,9 @@ export default function DeveloperDashboard() {
   const processAIRequest = async () => {
     if (!aiPrompt.trim()) {
       setAiResponse(JSON.stringify({
-        explanation: 'Please enter a configuration request to get recommendations.',
+        explanation: 'Tell me what you\'d like to configure and I\'ll analyze your request to suggest the right settings.',
         changes: [],
-        warnings: ['No prompt provided']
+        warnings: ['Try describing your goal, like "enable notifications" or "set user limit to 50"']
       }, null, 2));
       return;
     }
