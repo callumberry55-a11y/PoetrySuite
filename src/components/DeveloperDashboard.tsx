@@ -14,7 +14,12 @@ import {
   Search,
   Mail,
   Calendar,
-  Award
+  Award,
+  Sparkles,
+  Send,
+  Filter,
+  Edit3,
+  History
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
@@ -52,6 +57,27 @@ interface UserProfile {
   submission_count?: number;
 }
 
+interface SystemConfig {
+  id: string;
+  key: string;
+  value: any;
+  category: string;
+  description: string;
+  data_type: string;
+  updated_at: string;
+  updated_by: string | null;
+}
+
+interface ConfigHistory {
+  id: string;
+  config_id: string;
+  old_value: any;
+  new_value: any;
+  changed_by: string;
+  change_reason: string;
+  created_at: string;
+}
+
 export default function DeveloperDashboard() {
   const { user, signOut } = useAuth();
   const [stats, setStats] = useState<Stats>({
@@ -67,6 +93,12 @@ export default function DeveloperDashboard() {
   const [usersList, setUsersList] = useState<UserProfile[]>([]);
   const [usersLoading, setUsersLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [configList, setConfigList] = useState<SystemConfig[]>([]);
+  const [configLoading, setConfigLoading] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [aiResponse, setAiResponse] = useState('');
+  const [aiProcessing, setAiProcessing] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
   useEffect(() => {
     loadStats();
@@ -127,6 +159,21 @@ export default function DeveloperDashboard() {
 
       return () => {
         supabase.removeChannel(usersChannel);
+      };
+    }
+
+    if (activeTab === 'system') {
+      loadConfig();
+
+      const configChannel = supabase
+        .channel('system-config-changes')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'system_config' }, () => {
+          loadConfig();
+        })
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(configChannel);
       };
     }
   }, [activeTab]);
@@ -225,6 +272,26 @@ export default function DeveloperDashboard() {
     }
   };
 
+  const loadConfig = async () => {
+    setConfigLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('system_config')
+        .select('*')
+        .order('category', { ascending: true })
+        .order('key', { ascending: true });
+
+      if (error) throw error;
+
+      setConfigList(data || []);
+    } catch (error) {
+      console.error('Error loading config:', error);
+      setConfigList([]);
+    } finally {
+      setConfigLoading(false);
+    }
+  };
+
   const updateFeedbackStatus = async (feedbackId: string, newStatus: string) => {
     try {
       const { error } = await supabase
@@ -240,6 +307,95 @@ export default function DeveloperDashboard() {
     } catch (error) {
       console.error('Error updating feedback status:', error);
       alert('Failed to update feedback status');
+    }
+  };
+
+  const processAIRequest = async () => {
+    if (!aiPrompt.trim()) return;
+
+    setAiProcessing(true);
+    setAiResponse('');
+
+    try {
+      const configContext = configList.map(c =>
+        `${c.key}: ${JSON.stringify(c.value)} (${c.description})`
+      ).join('\n');
+
+      const prompt = `You are a system configuration assistant. Based on this request: "${aiPrompt}"
+
+Current system configuration:
+${configContext}
+
+Provide a clear, actionable response explaining:
+1. What configuration changes are needed
+2. The specific values to update
+3. Any potential impacts or considerations
+
+Format your response as a JSON object with:
+- "explanation": Brief explanation of what needs to be done
+- "changes": Array of objects with "key", "newValue", and "reason"
+- "warnings": Array of any warnings or considerations
+
+Respond only with valid JSON.`;
+
+      const mockResponse = {
+        explanation: `I understand you want to: ${aiPrompt}. Here's what I recommend based on your current configuration.`,
+        changes: [
+          {
+            key: 'Example: This is a simulated response',
+            newValue: 'AI integration would require an actual LLM API',
+            reason: 'This is a demonstration of the AI assistant interface'
+          }
+        ],
+        warnings: [
+          'This is a mock response. To enable real AI capabilities, integrate with an LLM API.',
+          'The UI demonstrates how natural language configuration would work.'
+        ]
+      };
+
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      setAiResponse(JSON.stringify(mockResponse, null, 2));
+    } catch (error) {
+      console.error('Error processing AI request:', error);
+      setAiResponse('Error processing request. Please try again.');
+    } finally {
+      setAiProcessing(false);
+    }
+  };
+
+  const updateConfig = async (configId: string, newValue: any, reason: string) => {
+    try {
+      const config = configList.find(c => c.id === configId);
+      if (!config) return;
+
+      const { error: historyError } = await supabase
+        .from('config_history')
+        .insert({
+          config_id: configId,
+          old_value: config.value,
+          new_value: newValue,
+          changed_by: user?.id,
+          change_reason: reason
+        });
+
+      if (historyError) throw historyError;
+
+      const { error: updateError } = await supabase
+        .from('system_config')
+        .update({
+          value: newValue,
+          updated_by: user?.id,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', configId);
+
+      if (updateError) throw updateError;
+
+      await loadConfig();
+    } catch (error) {
+      console.error('Error updating config:', error);
+      alert('Failed to update configuration');
     }
   };
 
@@ -564,9 +720,141 @@ export default function DeveloperDashboard() {
             )}
 
             {activeTab === 'system' && (
-              <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700">
-                <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">System Configuration</h3>
-                <p className="text-slate-600 dark:text-slate-400">System settings and configuration options coming soon...</p>
+              <div className="space-y-6">
+                <div className="bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl p-6 shadow-lg text-white">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
+                      <Sparkles size={24} />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold">AI Configuration Assistant</h3>
+                      <p className="text-sm text-white/80">Describe what you want to configure in natural language</p>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <textarea
+                      value={aiPrompt}
+                      onChange={(e) => setAiPrompt(e.target.value)}
+                      placeholder="Example: Enable maintenance mode with a custom message, increase API rate limits to 100 requests per minute, disable community submissions..."
+                      className="w-full px-4 py-3 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20 text-white placeholder-white/60 focus:ring-2 focus:ring-white/40 focus:border-transparent resize-none"
+                      rows={3}
+                      disabled={aiProcessing}
+                    />
+                    <button
+                      onClick={processAIRequest}
+                      disabled={aiProcessing || !aiPrompt.trim()}
+                      className="w-full px-4 py-3 bg-white text-amber-600 rounded-lg font-medium hover:bg-white/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+                    >
+                      {aiProcessing ? (
+                        <>
+                          <div className="w-5 h-5 border-2 border-amber-600 border-t-transparent rounded-full animate-spin" />
+                          Processing...
+                        </>
+                      ) : (
+                        <>
+                          <Send size={18} />
+                          Get AI Recommendations
+                        </>
+                      )}
+                    </button>
+                  </div>
+                  {aiResponse && (
+                    <div className="mt-4 p-4 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20">
+                      <h4 className="font-semibold mb-2 flex items-center gap-2">
+                        <Sparkles size={16} />
+                        AI Response
+                      </h4>
+                      <pre className="text-sm text-white/90 whitespace-pre-wrap font-mono overflow-x-auto">
+                        {aiResponse}
+                      </pre>
+                    </div>
+                  )}
+                </div>
+
+                <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+                  <div className="p-6 border-b border-slate-200 dark:border-slate-700">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold text-slate-900 dark:text-white">System Configuration</h3>
+                      <div className="flex items-center gap-3">
+                        <Filter size={18} className="text-slate-400" />
+                        <select
+                          value={selectedCategory}
+                          onChange={(e) => setSelectedCategory(e.target.value)}
+                          className="px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:border-transparent text-sm"
+                        >
+                          <option value="all">All Categories</option>
+                          <option value="features">Features</option>
+                          <option value="limits">Limits</option>
+                          <option value="system">System</option>
+                          <option value="notifications">Notifications</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {configLoading ? (
+                    <div className="flex items-center justify-center py-12">
+                      <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                  ) : configList.length === 0 ? (
+                    <div className="text-center py-12 px-6">
+                      <p className="text-slate-600 dark:text-slate-400">No configuration found.</p>
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-slate-200 dark:divide-slate-700">
+                      {configList
+                        .filter(config => selectedCategory === 'all' || config.category === selectedCategory)
+                        .map((config) => (
+                          <div key={config.id} className="p-6 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <h4 className="font-semibold text-slate-900 dark:text-white">
+                                    {config.key}
+                                  </h4>
+                                  <span className="px-2 py-1 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 text-xs font-medium">
+                                    {config.category}
+                                  </span>
+                                </div>
+                                <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">
+                                  {config.description}
+                                </p>
+                                <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-3 font-mono text-sm">
+                                  <pre className="text-slate-900 dark:text-white overflow-x-auto">
+                                    {JSON.stringify(config.value, null, 2)}
+                                  </pre>
+                                </div>
+                                {config.updated_at && (
+                                  <div className="flex items-center gap-2 mt-2 text-xs text-slate-500 dark:text-slate-500">
+                                    <History size={12} />
+                                    Last updated: {new Date(config.updated_at).toLocaleString()}
+                                  </div>
+                                )}
+                              </div>
+                              <button
+                                onClick={() => {
+                                  const newValue = prompt('Enter new value (JSON format):', JSON.stringify(config.value, null, 2));
+                                  if (newValue) {
+                                    try {
+                                      const parsed = JSON.parse(newValue);
+                                      const reason = prompt('Reason for change:') || 'Manual update';
+                                      updateConfig(config.id, parsed, reason);
+                                    } catch (e) {
+                                      alert('Invalid JSON format');
+                                    }
+                                  }
+                                }}
+                                className="p-2 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg transition-colors flex-shrink-0"
+                                title="Edit configuration"
+                              >
+                                <Edit3 size={18} className="text-slate-600 dark:text-slate-400" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
