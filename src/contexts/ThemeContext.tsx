@@ -32,6 +32,42 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     }
   }, [isDark]);
 
+  useEffect(() => {
+    try {
+      const activeThemeStr = localStorage.getItem('activeTheme');
+      if (activeThemeStr) {
+        const activeTheme = JSON.parse(activeThemeStr);
+        const root = document.documentElement;
+        root.style.setProperty('--theme-primary', activeTheme.primary);
+        root.style.setProperty('--theme-secondary', activeTheme.secondary);
+        root.style.setProperty('--theme-accent', activeTheme.accent);
+        root.style.setProperty('--theme-background', activeTheme.background);
+        root.style.setProperty('--theme-surface', activeTheme.surface);
+        root.style.setProperty('--theme-text', activeTheme.text);
+      }
+    } catch (error) {
+      console.warn('Error loading custom theme:', error);
+    }
+
+    try {
+      const activeWallpaperStr = localStorage.getItem('activeWallpaper');
+      if (activeWallpaperStr) {
+        const activeWallpaper = JSON.parse(activeWallpaperStr);
+        const root = document.documentElement;
+        root.style.setProperty('--wallpaper-url', `url(${activeWallpaper.imageUrl})`);
+        root.style.setProperty('--wallpaper-blur', `${activeWallpaper.blurAmount}px`);
+        root.style.setProperty('--wallpaper-opacity', `${activeWallpaper.opacity / 100}`);
+
+        const appElement = document.querySelector('#root');
+        if (appElement) {
+          appElement.classList.add('has-wallpaper');
+        }
+      }
+    } catch (error) {
+      console.warn('Error loading wallpaper:', error);
+    }
+  }, []);
+
   const toggleTheme = () => setIsDark(!isDark);
 
   return (

@@ -48,7 +48,7 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[rgb(var(--bg-primary))] to-[rgb(var(--bg-secondary))] px-4">
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-500 text-white mb-4" aria-hidden="true">
@@ -62,7 +62,7 @@ export default function AuthPage() {
           </p>
         </div>
 
-        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8">
+        <div className="glass-strong rounded-2xl shadow-xl p-8">
           <div className="flex gap-2 mb-6" role="group" aria-label="Authentication mode">
             <button
               onClick={() => setIsLogin(true)}

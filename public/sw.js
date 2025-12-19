@@ -1,4 +1,5 @@
-const CACHE_NAME = 'poetry-suite-v1';
+const CACHE_VERSION = '64.0.0';
+const CACHE_NAME = `poetry-suite-v${CACHE_VERSION}`;
 const urlsToCache = [
   '/',
   '/index.html',
@@ -25,35 +26,106 @@ self.addEventListener('activate', (event) => {
       );
     })
   );
-  self.clients.claim();
+  return self.clients.claim();
 });
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
-  event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        if (response) {
-          return response;
-        }
+  const url = new URL(event.request.url);
+  const isHTMLRequest = event.request.headers.get('accept')?.includes('text/html');
 
-        return fetch(event.request).then((response) => {
-          if (!response || response.status !== 200 || response.type !== 'basic') {
+  if (isHTMLRequest || url.pathname === '/' || url.pathname.endsWith('.html')) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          if (!response || response.status !== 200) {
+            return caches.match(event.request);
+          }
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
+          return response;
+        })
+        .catch(() => {
+          return caches.match(event.request).then((response) => {
+            return response || caches.match('/index.html');
+          });
+        })
+    );
+  } else {
+    event.respondWith(
+      caches.match(event.request)
+        .then((response) => {
+          if (response) {
             return response;
           }
 
-          const responseToCache = response.clone();
-          caches.open(CACHE_NAME)
-            .then((cache) => {
-              cache.put(event.request, responseToCache);
-            });
+          return fetch(event.request).then((response) => {
+            if (!response || response.status !== 200 || response.type !== 'basic') {
+              return response;
+            }
 
-          return response;
-        });
-      })
-      .catch(() => {
-        return caches.match('/index.html');
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME)
+              .then((cache) => {
+                cache.put(event.request, responseToCache);
+              });
+
+            return response;
+          });
+        })
+        .catch(() => {
+          return caches.match('/index.html');
+        })
+    );
+  }
+});
+
+self.addEventListener('push', (event) => {
+  const data = event.data ? event.data.json() : {};
+
+  const options = {
+    body: data.body || 'You have a new notification',
+    icon: '/icon-192.svg',
+    badge: '/icon-192.svg',
+    data: data.data || {},
+    tag: data.tag || 'default',
+    requireInteraction: data.requireInteraction || false,
+    actions: data.actions || []
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(data.title || 'Poetry Suite', options)
+  );
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true })
+      .then((clientList) => {
+        const data = event.notification.data;
+        const urlToOpen = data.url || '/';
+
+        for (let i = 0; i < clientList.length; i++) {
+          const client = clientList[i];
+          if (client.url === urlToOpen && 'focus' in client) {
+            return client.focus();
+          }
+        }
+
+        if (clients.openWindow) {
+          return clients.openWindow(urlToOpen);
+        }
       })
   );
+});
+
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });

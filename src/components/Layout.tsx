@@ -1,6 +1,7 @@
 import { ReactNode, useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { supabase } from '../lib/supabase';
 import {
   BookHeart,
   PenLine,
@@ -16,10 +17,12 @@ import {
   Compass,
   Lightbulb,
   BookOpen,
-  Send
+  Send,
+  MessageCircle,
+  Sparkles
 } from 'lucide-react';
 
-type ViewType = 'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'submissions';
+type ViewType = 'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'submissions' | 'chat' | 'beta';
 
 interface LayoutProps {
   children: ReactNode;
@@ -28,20 +31,23 @@ interface LayoutProps {
 }
 
 export default function Layout({ children, currentView, onViewChange }: LayoutProps) {
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
   const { isDark, toggleTheme } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isBetaTester, setIsBetaTester] = useState(false);
 
   const navItems = [
     { id: 'write' as const, icon: PenLine, label: 'Write' },
     { id: 'library' as const, icon: Library, label: 'Library' },
     { id: 'discover' as const, icon: Compass, label: 'Discover' },
+    { id: 'chat' as const, icon: MessageCircle, label: 'Chat' },
     { id: 'prompts' as const, icon: Lightbulb, label: 'Prompts' },
     { id: 'forms' as const, icon: BookOpen, label: 'Forms' },
     { id: 'submissions' as const, icon: Send, label: 'Submissions' },
     { id: 'analytics' as const, icon: BarChart3, label: 'Analytics' },
+    ...(isBetaTester ? [{ id: 'beta' as const, icon: Sparkles, label: 'Beta' }] : []),
     { id: 'settings' as const, icon: Settings, label: 'Settings' },
   ];
 
@@ -63,6 +69,27 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
       window.removeEventListener('beforeinstallprompt', handler);
     };
   }, []);
+
+  useEffect(() => {
+    checkBetaStatus();
+  }, [user]);
+
+  const checkBetaStatus = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('is_beta_tester')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (error) throw error;
+      setIsBetaTester(data?.is_beta_tester || false);
+    } catch (error) {
+      console.error('Error checking beta status:', error);
+    }
+  };
 
   const handleInstallClick = async () => {
     if (!deferredPrompt) return;
@@ -87,15 +114,15 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
   };
 
   const primaryNavItems = navItems.filter(item =>
-    ['write', 'library', 'discover', 'prompts'].includes(item.id)
+    ['write', 'library', 'discover', 'chat'].includes(item.id)
   );
 
   const secondaryNavItems = navItems.filter(item =>
-    !['write', 'library', 'discover', 'prompts'].includes(item.id)
+    !['write', 'library', 'discover', 'chat'].includes(item.id)
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex flex-col pb-16 md:pb-0">
+    <div className="min-h-screen bg-gradient-to-br from-[rgb(var(--bg-primary))] to-[rgb(var(--bg-secondary))] flex flex-col pb-16 md:pb-0">
       <a
         href="#main-content"
         className="skip-link bg-blue-600 text-white px-4 py-2 rounded-lg font-medium shadow-lg"
@@ -103,13 +130,13 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
         Skip to main content
       </a>
       {showInstallPrompt && localStorage.getItem('installPromptDismissed') !== 'true' && (
-        <aside className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-3 shadow-lg" role="banner" aria-label="Install app banner">
+        <aside className="glass-strong text-slate-900 dark:text-white px-4 py-3 shadow-lg" role="banner" aria-label="Install app banner">
           <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
             <div className="flex items-center gap-3 flex-1 min-w-0">
               <Download size={20} className="flex-shrink-0" aria-hidden="true" />
               <div className="flex-1 min-w-0">
                 <p className="text-sm sm:text-base font-medium">Install Poetry Suite</p>
-                <p className="text-xs sm:text-sm text-blue-100 hidden sm:block">Get quick access and offline support</p>
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 hidden sm:block">Get quick access and offline support</p>
               </div>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
@@ -132,16 +159,24 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
         </aside>
       )}
 
-      <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-50">
+      <header className="glass-strong sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center" aria-hidden="true">
                 <BookHeart size={20} className="text-white" />
               </div>
-              <h1 className="text-xl font-bold text-slate-900 dark:text-white">
-                Poetry Suite
-              </h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl font-bold text-slate-900 dark:text-white">
+                  Poetry Suite
+                </h1>
+                {isBetaTester && (
+                  <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-md text-xs font-medium">
+                    <Sparkles size={12} />
+                    Beta
+                  </span>
+                )}
+              </div>
             </div>
 
             <nav className="hidden md:flex items-center gap-1" aria-label="Main navigation">
@@ -192,7 +227,7 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
         </div>
 
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 max-h-[calc(100vh-4rem)] overflow-y-auto">
+          <div className="md:hidden glass-strong max-h-[calc(100vh-4rem)] overflow-y-auto">
             <nav className="px-4 py-2 space-y-1" aria-label="Mobile navigation">
               <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider px-4 py-2">
                 More
@@ -230,13 +265,13 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
         )}
       </header>
 
-      <main className="flex-1 bg-slate-50 dark:bg-slate-900" id="main-content" role="main">
+      <main className="flex-1" id="main-content" role="main">
         {children}
       </main>
 
       {/* Mobile Bottom Navigation */}
       <nav
-        className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 z-50"
+        className="md:hidden fixed bottom-0 left-0 right-0 glass-strong shadow-lg z-50"
         aria-label="Mobile bottom navigation"
       >
         <div className="grid grid-cols-4 gap-1 px-2 py-2">
