@@ -21,6 +21,19 @@ interface Stats {
   recentActivity: number;
 }
 
+interface Feedback {
+  id: string;
+  user_id: string;
+  category: string;
+  title: string;
+  message: string;
+  status: string;
+  created_at: string;
+  profiles?: {
+    email: string;
+  };
+}
+
 export default function DeveloperDashboard() {
   const { user, signOut } = useAuth();
   const [stats, setStats] = useState<Stats>({
@@ -30,11 +43,19 @@ export default function DeveloperDashboard() {
     recentActivity: 0,
   });
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'data' | 'system'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'data' | 'system' | 'feedback'>('overview');
+  const [feedbackList, setFeedbackList] = useState<Feedback[]>([]);
+  const [feedbackLoading, setFeedbackLoading] = useState(false);
 
   useEffect(() => {
     loadStats();
   }, []);
+
+  useEffect(() => {
+    if (activeTab === 'feedback') {
+      loadFeedback();
+    }
+  }, [activeTab]);
 
   const loadStats = async () => {
     try {
@@ -54,6 +75,61 @@ export default function DeveloperDashboard() {
       console.error('Error loading stats:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadFeedback = async () => {
+    setFeedbackLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('feedback')
+        .select(`
+          *,
+          profiles:user_id (
+            email:id
+          )
+        `)
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+
+      const feedbackWithEmails = await Promise.all(
+        (data || []).map(async (fb) => {
+          const { data: userData } = await supabase.auth.admin.getUserById(fb.user_id);
+          return {
+            ...fb,
+            profiles: {
+              email: userData?.user?.email || 'Unknown'
+            }
+          };
+        })
+      );
+
+      setFeedbackList(feedbackWithEmails);
+    } catch (error) {
+      console.error('Error loading feedback:', error);
+      setFeedbackList([]);
+    } finally {
+      setFeedbackLoading(false);
+    }
+  };
+
+  const updateFeedbackStatus = async (feedbackId: string, newStatus: string) => {
+    try {
+      const { error } = await supabase
+        .from('feedback')
+        .update({ status: newStatus })
+        .eq('id', feedbackId);
+
+      if (error) throw error;
+
+      setFeedbackList(prev =>
+        prev.map(fb => fb.id === feedbackId ? { ...fb, status: newStatus } : fb)
+      );
+    } catch (error) {
+      console.error('Error updating feedback status:', error);
+      alert('Failed to update feedback status');
     }
   };
 
@@ -159,6 +235,19 @@ export default function DeveloperDashboard() {
               System
             </div>
           </button>
+          <button
+            onClick={() => setActiveTab('feedback')}
+            className={`px-4 py-2 font-medium transition-colors border-b-2 ${
+              activeTab === 'feedback'
+                ? 'border-amber-500 text-amber-600 dark:text-amber-400'
+                : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <Activity size={18} />
+              Feedback
+            </div>
+          </button>
         </div>
 
         {loading ? (
@@ -250,6 +339,73 @@ export default function DeveloperDashboard() {
               <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700">
                 <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">System Configuration</h3>
                 <p className="text-slate-600 dark:text-slate-400">System settings and configuration options coming soon...</p>
+              </div>
+            )}
+
+            {activeTab === 'feedback' && (
+              <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700">
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">User Feedback</h3>
+
+                {feedbackLoading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                ) : feedbackList.length === 0 ? (
+                  <div className="text-center py-12">
+                    <p className="text-slate-600 dark:text-slate-400">No feedback submitted yet.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {feedbackList.map((feedback) => (
+                      <div
+                        key={feedback.id}
+                        className="border border-slate-200 dark:border-slate-700 rounded-lg p-4 space-y-3"
+                      >
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h4 className="font-semibold text-slate-900 dark:text-white">
+                                {feedback.title}
+                              </h4>
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                feedback.category === 'bug'
+                                  ? 'bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400'
+                                  : feedback.category === 'feature'
+                                  ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400'
+                                  : feedback.category === 'improvement'
+                                  ? 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400'
+                                  : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-400'
+                              }`}>
+                                {feedback.category}
+                              </span>
+                            </div>
+                            <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">
+                              {feedback.message}
+                            </p>
+                            <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-500">
+                              <span>{feedback.profiles?.email}</span>
+                              <span>•</span>
+                              <span>{new Date(feedback.created_at).toLocaleString()}</span>
+                            </div>
+                          </div>
+                          <div className="flex-shrink-0">
+                            <select
+                              value={feedback.status}
+                              onChange={(e) => updateFeedbackStatus(feedback.id, e.target.value)}
+                              className="px-3 py-1 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                            >
+                              <option value="new">New</option>
+                              <option value="reviewed">Reviewed</option>
+                              <option value="in_progress">In Progress</option>
+                              <option value="resolved">Resolved</option>
+                              <option value="closed">Closed</option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </>

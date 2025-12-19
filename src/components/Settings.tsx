@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { Moon, Sun, User, Mail, Download, Smartphone, FileText, ChevronDown, ChevronUp, Clock, Trash2, AlertTriangle, Bell, BellOff } from 'lucide-react';
+import { Moon, Sun, User, Mail, Download, Smartphone, FileText, ChevronDown, ChevronUp, Clock, Trash2, AlertTriangle, Bell, BellOff, MessageSquare, Send } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { subscribeToNotifications, unsubscribeFromNotifications, isSubscribed } from '../utils/notifications';
 import packageJson from '../../package.json';
@@ -20,6 +20,11 @@ export default function Settings() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [isTogglingNotifications, setIsTogglingNotifications] = useState(false);
   const [notificationError, setNotificationError] = useState<string | null>(null);
+  const [feedbackCategory, setFeedbackCategory] = useState<'bug' | 'feature' | 'improvement' | 'other'>('improvement');
+  const [feedbackTitle, setFeedbackTitle] = useState('');
+  const [feedbackMessage, setFeedbackMessage] = useState('');
+  const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
+  const [feedbackSuccess, setFeedbackSuccess] = useState(false);
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -114,6 +119,40 @@ export default function Settings() {
       );
     } finally {
       setIsTogglingNotifications(false);
+    }
+  };
+
+  const handleSubmitFeedback = async () => {
+    if (!feedbackTitle.trim() || !feedbackMessage.trim()) {
+      return;
+    }
+
+    setIsSubmittingFeedback(true);
+    setFeedbackSuccess(false);
+
+    try {
+      const { error } = await supabase
+        .from('feedback')
+        .insert({
+          user_id: user?.id,
+          category: feedbackCategory,
+          title: feedbackTitle.trim(),
+          message: feedbackMessage.trim(),
+        });
+
+      if (error) throw error;
+
+      setFeedbackSuccess(true);
+      setFeedbackTitle('');
+      setFeedbackMessage('');
+      setFeedbackCategory('improvement');
+
+      setTimeout(() => setFeedbackSuccess(false), 5000);
+    } catch (error) {
+      console.error('Error submitting feedback:', error);
+      alert('Failed to submit feedback. Please try again.');
+    } finally {
+      setIsSubmittingFeedback(false);
     }
   };
 
@@ -571,6 +610,85 @@ export default function Settings() {
                 </div>
               </div>
             )}
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm">
+          <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+            <MessageSquare size={24} />
+            Send Feedback
+          </h3>
+          <p className="text-slate-600 dark:text-slate-400 mb-4">
+            Help us improve Poetry Suite by sharing your thoughts, reporting bugs, or suggesting new features.
+          </p>
+
+          {feedbackSuccess && (
+            <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+              <p className="text-sm text-green-800 dark:text-green-200">
+                Thank you for your feedback! We'll review it shortly.
+              </p>
+            </div>
+          )}
+
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
+                Category
+              </label>
+              <select
+                value={feedbackCategory}
+                onChange={(e) => setFeedbackCategory(e.target.value as any)}
+                className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                disabled={isSubmittingFeedback}
+              >
+                <option value="bug">Bug Report</option>
+                <option value="feature">Feature Request</option>
+                <option value="improvement">Improvement Suggestion</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
+                Title
+              </label>
+              <input
+                type="text"
+                value={feedbackTitle}
+                onChange={(e) => setFeedbackTitle(e.target.value)}
+                placeholder="Brief summary of your feedback"
+                className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                disabled={isSubmittingFeedback}
+                maxLength={100}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
+                Message
+              </label>
+              <textarea
+                value={feedbackMessage}
+                onChange={(e) => setFeedbackMessage(e.target.value)}
+                placeholder="Provide details about your feedback..."
+                rows={4}
+                className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                disabled={isSubmittingFeedback}
+                maxLength={1000}
+              />
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                {feedbackMessage.length}/1000 characters
+              </p>
+            </div>
+
+            <button
+              onClick={handleSubmitFeedback}
+              disabled={!feedbackTitle.trim() || !feedbackMessage.trim() || isSubmittingFeedback}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
+            >
+              <Send size={18} />
+              {isSubmittingFeedback ? 'Submitting...' : 'Submit Feedback'}
+            </button>
           </div>
         </div>
 
