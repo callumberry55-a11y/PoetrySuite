@@ -311,7 +311,14 @@ export default function DeveloperDashboard() {
   };
 
   const processAIRequest = async () => {
-    if (!aiPrompt.trim()) return;
+    if (!aiPrompt.trim()) {
+      setAiResponse(JSON.stringify({
+        explanation: 'Please enter a configuration request to get AI recommendations.',
+        changes: [],
+        warnings: ['No prompt provided']
+      }, null, 2));
+      return;
+    }
 
     setAiProcessing(true);
     setAiResponse('');
@@ -742,8 +749,12 @@ Respond only with valid JSON.`;
                     />
                     <button
                       onClick={processAIRequest}
-                      disabled={aiProcessing || !aiPrompt.trim()}
-                      className="w-full px-4 py-3 bg-white text-amber-600 rounded-lg font-medium hover:bg-white/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+                      disabled={aiProcessing}
+                      className={`w-full px-4 py-3 rounded-lg font-medium transition-all flex items-center justify-center gap-2 ${
+                        aiProcessing
+                          ? 'bg-white/50 text-amber-600/50 cursor-not-allowed'
+                          : 'bg-white text-amber-600 hover:bg-white/90 hover:shadow-lg active:scale-[0.98]'
+                      }`}
                     >
                       {aiProcessing ? (
                         <>
