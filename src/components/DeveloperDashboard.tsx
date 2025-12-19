@@ -328,7 +328,7 @@ export default function DeveloperDashboard() {
         `${c.key}: ${JSON.stringify(c.value)} (${c.description})`
       ).join('\n');
 
-      const prompt = `You are a system configuration assistant. Based on this request: "${aiPrompt}"
+      const prompt = `You are a system configuration assistant for a poetry writing application. Based on this request: "${aiPrompt}"
 
 Current system configuration:
 ${configContext}
@@ -345,27 +345,50 @@ Format your response as a JSON object with:
 
 Respond only with valid JSON.`;
 
-      const mockResponse = {
-        explanation: `I understand you want to: ${aiPrompt}. Here's what I recommend based on your current configuration.`,
-        changes: [
-          {
-            key: 'Example: This is a simulated response',
-            newValue: 'AI integration would require an actual LLM API',
-            reason: 'This is a demonstration of the AI assistant interface'
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: prompt
+            }]
+          }],
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 2048,
           }
-        ],
-        warnings: [
-          'This is a mock response. To enable real AI capabilities, integrate with an LLM API.',
-          'The UI demonstrates how natural language configuration would work.'
-        ]
-      };
+        })
+      });
 
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      if (!response.ok) {
+        throw new Error(`API request failed: ${response.status}`);
+      }
 
-      setAiResponse(JSON.stringify(mockResponse, null, 2));
+      const data = await response.json();
+      const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response generated';
+
+      const jsonMatch = aiText.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const parsedResponse = JSON.parse(jsonMatch[0]);
+        setAiResponse(JSON.stringify(parsedResponse, null, 2));
+      } else {
+        setAiResponse(JSON.stringify({
+          explanation: aiText,
+          changes: [],
+          warnings: ['Could not parse structured response from AI']
+        }, null, 2));
+      }
     } catch (error) {
       console.error('Error processing AI request:', error);
-      setAiResponse('Error processing request. Please try again.');
+      setAiResponse(JSON.stringify({
+        explanation: 'Error processing request',
+        changes: [],
+        warnings: [error instanceof Error ? error.message : 'Unknown error occurred']
+      }, null, 2));
     } finally {
       setAiProcessing(false);
     }
