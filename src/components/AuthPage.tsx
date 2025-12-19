@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { BookHeart } from 'lucide-react';
+import { BookHeart, Code } from 'lucide-react';
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -9,6 +9,10 @@ export default function AuthPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { signIn, signUp, signInWithGoogle } = useAuth();
+
+  const devEmail = import.meta.env.VITE_DEV_EMAIL;
+  const devPassword = import.meta.env.VITE_DEV_PASSWORD;
+  const showDevLogin = import.meta.env.DEV && devEmail && devPassword;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,6 +51,30 @@ export default function AuthPage() {
     }
   };
 
+  const handleDevLogin = async () => {
+    setError('');
+    setLoading(true);
+
+    try {
+      const { error: authError } = await signIn(devEmail, devPassword);
+
+      if (authError) {
+        if (authError.message.includes('Invalid login credentials')) {
+          const { error: signUpError } = await signUp(devEmail, devPassword);
+          if (signUpError) {
+            setError(signUpError.message);
+          }
+        } else {
+          setError(authError.message);
+        }
+      }
+    } catch (err) {
+      setError('An unexpected error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 px-4">
       <div className="max-w-md w-full">
@@ -63,6 +91,23 @@ export default function AuthPage() {
         </div>
 
         <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8">
+          {showDevLogin && (
+            <div className="mb-6 p-4 bg-amber-50 dark:bg-amber-900/20 border-2 border-amber-200 dark:border-amber-800 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <Code className="text-amber-600 dark:text-amber-400" size={20} />
+                <span className="font-semibold text-amber-900 dark:text-amber-100">Developer Mode</span>
+              </div>
+              <button
+                onClick={handleDevLogin}
+                disabled={loading}
+                className="w-full bg-amber-500 hover:bg-amber-600 disabled:bg-amber-300 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+              >
+                <Code size={18} />
+                Quick Login (Dev)
+              </button>
+            </div>
+          )}
+
           <div className="flex gap-2 mb-6" role="group" aria-label="Authentication mode">
             <button
               onClick={() => setIsLogin(true)}
