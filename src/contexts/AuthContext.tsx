@@ -10,10 +10,13 @@ interface AuthContextType {
   user: User | null;
   userProfile: UserProfile | null;
   loading: boolean;
+  betaModeEnabled: boolean;
+  toggleBetaMode: () => void;
   signUp: (email: string, password: string) => Promise<{ error: any }>;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signIn: (email: string, password: string, phone?: string) => Promise<{ error: any }>;
   signInWithGoogle: () => Promise<{ error: any }>;
   signOut: () => Promise<void>;
+  promoteToDeveloper: (targetUserId: string) => Promise<{ error: any }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -22,6 +25,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [betaModeEnabled, setBetaModeEnabled] = useState(false);
 
   const fetchUserProfile = async (userId: string) => {
     try {
@@ -33,40 +37,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (error) {
         console.error('Error fetching user profile:', error);
+        setUserProfile(null); // Clear profile on error
         return;
       }
 
-      setUserProfile(data);
+      setUserProfile(data); // data will be null if no profile is found
     } catch (error) {
       console.error('Error fetching user profile:', error);
+      setUserProfile(null); // Clear profile on error
     }
   };
 
   useEffect(() => {
-    supabase.auth.getSession()
-      .then(({ data: { session } }) => {
-        setUser(session?.user ?? null);
-        if (session?.user) {
-          fetchUserProfile(session.user.id).finally(() => setLoading(false));
-        } else {
-          setLoading(false);
-        }
-      })
-      .catch((error) => {
-        console.error('Error getting session:', error);
-        setLoading(false);
-      });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    setLoading(true);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchUserProfile(session.user.id);
+        await fetchUserProfile(session.user.id);
       } else {
         setUserProfile(null);
       }
+      setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signUp = async (email: string, password: string) => {
@@ -77,12 +73,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error };
   };
 
-  const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
+  const signIn = async (email: string, password: string, phone?: string) => {
+    const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
     });
-    return { error };
+
+    if (error) {
+        return { error };
+    }
+
+    if (phone && data.user) {
+        const { data: profile, error: profileError } = await supabase
+            .from('user_profiles')
+            .select('is_developer, phone')
+            .eq('user_id', data.user.id)
+            .single();
+
+        if (profileError) {
+            await supabase.auth.signOut();
+            return { error: profileError };
+        }
+
+        if (!profile || !profile.is_developer || profile.phone !== `+44${phone}`) {
+            await supabase.auth.signOut();
+            return { error: { message: 'Invalid developer credentials' } };
+        }
+    } else if (phone) {
+        await supabase.auth.signOut();
+        return { error: { message: 'Invalid developer credentials' } };
+    }
+
+    return { error: null };
   };
 
   const signInWithGoogle = async () => {
@@ -99,8 +121,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signOut();
   };
 
+  const promoteToDeveloper = async (targetUserId: string) => {
+    const { error } = await supabase.rpc('promote_to_developer', {
+      target_user_id: targetUserId,
+    });
+    return { error };
+  };
+
+  const toggleBetaMode = () => {
+    setBetaModeEnabled(prev => !prev);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, userProfile, loading, signUp, signIn, signInWithGoogle, signOut }}>
+    <AuthContext.Provider value={{ user, userProfile, loading, betaModeEnabled, toggleBetaMode, signUp, signIn, signInWithGoogle, signOut, promoteToDeveloper }}>
       {children}
     </AuthContext.Provider>
   );
