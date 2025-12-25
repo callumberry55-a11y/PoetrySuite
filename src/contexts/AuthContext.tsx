@@ -111,7 +111,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: 'https://www.poetrysuite.net',
+        redirectTo: window.location.origin,
       },
     });
     return { error };
