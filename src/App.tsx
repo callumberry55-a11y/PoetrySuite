@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useState, useCallback } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -30,6 +30,69 @@ const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
     return children;
 };
 
+function MainApp() {
+  const [currentView, setCurrentView] = useState<'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'submissions'>('library');
+  const [selectedPoemId, setSelectedPoemId] = useState<string | null>(null);
+
+  const handleNewPoem = useCallback(() => {
+    setSelectedPoemId(null);
+    setCurrentView('write');
+  }, []);
+
+  const handleEditPoem = useCallback((poemId: string) => {
+    setSelectedPoemId(poemId);
+    setCurrentView('write');
+  }, []);
+
+  const handleBackToLibrary = useCallback(() => {
+    setSelectedPoemId(null);
+    setCurrentView('library');
+  }, []);
+
+  return (
+      <Layout currentView={currentView} onViewChange={setCurrentView}>
+      <Suspense fallback={
+        <div className="flex items-center justify-center h-full">
+          <div className="text-slate-600 dark:text-slate-400">Loading...</div>
+        </div>
+      }>
+        {currentView === 'write' && (
+          <PoemEditor
+            selectedPoemId={selectedPoemId}
+            onBack={handleBackToLibrary}
+          />
+        )}
+        {currentView === 'library' && (
+          <Library
+            onNewPoem={handleNewPoem}
+            onEditPoem={handleEditPoem}
+          />
+        )}
+        {currentView === 'discover' && <Discover />}
+        {currentView === 'prompts' && (
+          <Prompts
+            onUsePrompt={(prompt) => {
+              setCurrentView('write');
+              setSelectedPoemId(null);
+            }}
+          />
+        )}
+        {currentView === 'forms' && (
+          <Forms
+            onSelectForm={(form) => {
+              setCurrentView('write');
+              setSelectedPoemId(null);
+            }}
+          />
+        )}
+        {currentView === 'submissions' && <Submissions />}
+        {currentView === 'analytics' && <Analytics />}
+        {currentView === 'settings' && <Settings />}
+      </Suspense>
+    </Layout>
+  )
+}
+
 function AppContent() {
   const { user, loading } = useAuth();
 
@@ -51,69 +114,6 @@ function AppContent() {
       <Route path="/*" element={user ? <MainApp /> : <AuthPage />} />
     </Routes>
   );
-}
-
-function MainApp() {
-    const [currentView, setCurrentView] = useState<'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'submissions'>('library');
-    const [selectedPoemId, setSelectedPoemId] = useState<string | null>(null);
-  
-    const handleNewPoem = useCallback(() => {
-      setSelectedPoemId(null);
-      setCurrentView('write');
-    }, []);
-  
-    const handleEditPoem = useCallback((poemId: string) => {
-      setSelectedPoemId(poemId);
-      setCurrentView('write');
-    }, []);
-  
-    const handleBackToLibrary = useCallback(() => {
-      setSelectedPoemId(null);
-      setCurrentView('library');
-    }, []);
-
-    return (
-        <Layout currentView={currentView} onViewChange={setCurrentView}>
-        <Suspense fallback={
-          <div className="flex items-center justify-center h-full">
-            <div className="text-slate-600 dark:text-slate-400">Loading...</div>
-          </div>
-        }>
-          {currentView === 'write' && (
-            <PoemEditor
-              selectedPoemId={selectedPoemId}
-              onBack={handleBackToLibrary}
-            />
-          )}
-          {currentView === 'library' && (
-            <Library
-              onNewPoem={handleNewPoem}
-              onEditPoem={handleEditPoem}
-            />
-          )}
-          {currentView === 'discover' && <Discover />}
-          {currentView === 'prompts' && (
-            <Prompts
-              onUsePrompt={(prompt) => {
-                setCurrentView('write');
-                setSelectedPoemId(null);
-              }}
-            />
-          )}
-          {currentView === 'forms' && (
-            <Forms
-              onSelectForm={(form) => {
-                setCurrentView('write');
-                setSelectedPoemId(null);
-              }}
-            />
-          )}
-          {currentView === 'submissions' && <Submissions />}
-          {currentView === 'analytics' && <Analytics />}
-          {currentView === 'settings' && <Settings />}
-        </Suspense>
-      </Layout>
-    )
 }
 
 function App() {

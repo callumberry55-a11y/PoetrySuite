@@ -1,4 +1,3 @@
-
 -- Create the user_profiles table
 CREATE TABLE public.user_profiles (
     user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -47,8 +46,13 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 AS $function$
 BEGIN
-  INSERT INTO public.user_profiles (user_id, username)
-  VALUES (new.id, new.email);
+  INSERT INTO public.user_profiles (user_id, username, phone, is_developer)
+  VALUES (
+    new.id, 
+    new.email,
+    new.raw_user_meta_data->>'phone',
+    COALESCE((new.raw_user_meta_data->>'is_developer')::boolean, FALSE)
+  );
   RETURN new;
 END;
 $function$;
@@ -57,4 +61,3 @@ $function$;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
-
