@@ -38,9 +38,10 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
     }
 
     if (content.trim() || title.trim()) {
+      // Faster debounce for better UX - 1.5 seconds instead of 2
       saveTimeoutRef.current = setTimeout(() => {
         savePoem();
-      }, 2000);
+      }, 1500);
     }
 
     return () => {
@@ -71,7 +72,11 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
         .eq('user_id', user.id)
         .maybeSingle();
 
-      if (error) throw error;
+      if (error) {
+        console.debug('Failed to load poem');
+        setError('Failed to load poem');
+        return;
+      }
 
       if (data) {
         setTitle(data.title);
@@ -81,7 +86,7 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
         setError(null);
       }
     } catch (err) {
-      console.error('Error loading poem:', err);
+      console.debug('Failed to load poem');
       setError('Failed to load poem');
     }
   };
@@ -110,7 +115,11 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
           .eq('id', currentPoemId)
           .eq('user_id', user.id);
 
-        if (error) throw error;
+        if (error) {
+          console.debug('Failed to save poem');
+          setError('Failed to save poem');
+          return;
+        }
       } else {
         const { data, error } = await supabase
           .from('poems')
@@ -118,7 +127,11 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
           .select('id')
           .single();
 
-        if (error) throw error;
+        if (error) {
+          console.debug('Failed to save poem');
+          setError('Failed to save poem');
+          return;
+        }
 
         if (data) {
           setCurrentPoemId(data.id);
@@ -127,7 +140,7 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
 
       setLastSaved(new Date());
     } catch (err) {
-      console.error('Error saving poem:', err);
+      console.debug('Failed to save poem');
       setError('Failed to save poem');
     } finally {
       setSaving(false);

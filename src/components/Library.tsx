@@ -11,7 +11,6 @@ import {
   Folder,
   Globe,
   Lock,
-  MoreVertical,
   Plus,
   Edit3,
   Download,

@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useState, useCallback } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -94,7 +94,7 @@ function MainApp() {
           {currentView === 'discover' && <Discover />}
           {currentView === 'prompts' && (
             <Prompts
-              onUsePrompt={(prompt) => {
+              onUsePrompt={(_prompt) => {
                 setCurrentView('write');
                 setSelectedPoemId(null);
               }}
@@ -102,7 +102,7 @@ function MainApp() {
           )}
           {currentView === 'forms' && (
             <Forms
-              onSelectForm={(form) => {
+              onSelectForm={(_form) => {
                 setCurrentView('write');
                 setSelectedPoemId(null);
               }}

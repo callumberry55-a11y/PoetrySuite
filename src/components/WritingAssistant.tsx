@@ -7,7 +7,7 @@ interface WritingAssistantProps {
   onInsert: (text: string) => void;
 }
 
-export default function WritingAssistant({ selectedText, poemContent, onInsert }: WritingAssistantProps) {
+export default function WritingAssistant({ selectedText: _selectedText, poemContent: _poemContent, onInsert }: WritingAssistantProps) {
   const [activeTab, setActiveTab] = useState<'tips' | 'devices' | 'meters' | 'rhyme' | 'imagery' | 'structure'>('tips');
 
   const writingTips = [

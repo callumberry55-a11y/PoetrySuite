@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Search, Heart, MessageCircle, Trophy, BookOpen, TrendingUp, Users } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
+import { Search, MessageCircle, Trophy, BookOpen, TrendingUp, Users, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import CommentsSection from './CommentsSection';
 
 interface Poem {
   id: string;
@@ -9,14 +9,7 @@ interface Poem {
   content: string;
   user_id: string;
   created_at: string;
-  views_count: number;
-  shares_count: number;
-  user_profiles?: {
-    username: string;
-    display_name: string;
-  };
-  reactions_count?: number;
-  comments_count?: number;
+  user_profiles?: any;
 }
 
 interface Contest {
@@ -32,12 +25,12 @@ interface Contest {
 }
 
 export default function Discover() {
-  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'feed' | 'contests' | 'trending' | 'following'>('feed');
   const [poems, setPoems] = useState<Poem[]>([]);
   const [contests, setContests] = useState<Contest[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedPoem, setSelectedPoem] = useState<Poem | null>(null);
 
   useEffect(() => {
     if (activeTab === 'contests') {
@@ -53,8 +46,12 @@ export default function Discover() {
       let query = supabase
         .from('poems')
         .select(`
-          *,
-          user_profiles!inner(username, display_name)
+          id,
+          title,
+          content,
+          user_id,
+          created_at,
+          user_profiles(username, display_name)
         `)
         .eq('is_public', true)
         .order('created_at', { ascending: false })
@@ -64,9 +61,9 @@ export default function Discover() {
 
       if (error) throw error;
 
-      setPoems(data || []);
+      setPoems((data || []) as Poem[]);
     } catch (error) {
-      console.error('Error loading poems:', error);
+      console.debug('Failed to load poems');
     } finally {
       setLoading(false);
     }
@@ -84,29 +81,9 @@ export default function Discover() {
 
       setContests(data || []);
     } catch (error) {
-      console.error('Error loading contests:', error);
+      console.debug('Failed to load contests');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleReact = async (poemId: string) => {
-    if (!user) return;
-
-    try {
-      const { error } = await supabase
-        .from('reactions')
-        .insert({
-          poem_id: poemId,
-          user_id: user.id,
-          reaction_type: 'like',
-        });
-
-      if (error) throw error;
-
-      loadPoems();
-    } catch (error) {
-      console.error('Error adding reaction:', error);
     }
   };
 
@@ -256,7 +233,8 @@ export default function Discover() {
             {filteredPoems.map(poem => (
               <div
                 key={poem.id}
-                className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden hover:shadow-md transition-shadow"
+                onClick={() => setSelectedPoem(poem)}
+                className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden hover:shadow-md transition-all cursor-pointer"
               >
                 <div className="p-6">
                   <div className="flex items-start justify-between mb-4">
@@ -274,15 +252,14 @@ export default function Discover() {
 
                   <div className="flex items-center gap-4 pt-4 border-t border-slate-200 dark:border-slate-700">
                     <button
-                      onClick={() => handleReact(poem.id)}
-                      className="flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedPoem(poem);
+                      }}
+                      className="flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                     >
-                      <Heart size={18} />
-                      <span className="text-sm">{poem.reactions_count || 0}</span>
-                    </button>
-                    <button className="flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                       <MessageCircle size={18} />
-                      <span className="text-sm">{poem.comments_count || 0}</span>
+                      <span className="text-sm">Comment</span>
                     </button>
                   </div>
                 </div>
@@ -294,6 +271,39 @@ export default function Discover() {
                 <p className="text-slate-600 dark:text-slate-400">No poems found</p>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Poem Detail Modal */}
+        {selectedPoem && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-2xl w-full my-8">
+              <div className="flex items-start justify-between p-6 border-b border-slate-200 dark:border-slate-700">
+                <div>
+                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white">{selectedPoem.title}</h2>
+                  <p className="text-slate-600 dark:text-slate-400 mt-1">
+                    by {selectedPoem.user_profiles?.display_name || selectedPoem.user_profiles?.username || 'Anonymous'}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setSelectedPoem(null)}
+                  className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                  aria-label="Close"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+
+              <div className="p-6 max-h-96 overflow-y-auto">
+                <div className="prose dark:prose-invert max-w-none mb-6">
+                  <p className="whitespace-pre-wrap">{selectedPoem.content}</p>
+                </div>
+              </div>
+
+              <div className="border-t border-slate-200 dark:border-slate-700">
+                <CommentsSection poemId={selectedPoem.id} />
+              </div>
+            </div>
           </div>
         )}
       </div>

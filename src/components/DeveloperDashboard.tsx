@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { Bar, Pie } from 'react-chartjs-2';
+import { Pie } from 'react-chartjs-2';
 import { Chart, ArcElement, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from 'chart.js';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -37,7 +37,7 @@ export default function DeveloperDashboard() {
             return;
         }
 
-        const counts = data.reduce((acc, { category }) => {
+        const counts = data.reduce((acc: Record<string, number>, { category }) => {
             acc[category] = (acc[category] || 0) + 1;
             return acc;
         }, {});
@@ -49,7 +49,7 @@ export default function DeveloperDashboard() {
 
     const subscription = supabase
       .channel('developer-dashboard')
-      .on('postgres_changes', { event: '*', schema: 'public' }, (payload) => {
+      .on('postgres_changes', { event: '*', schema: 'public' }, (_payload) => {
         fetchStats();
         fetchFeedbackByCategory();
       })

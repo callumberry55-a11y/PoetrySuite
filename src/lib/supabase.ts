@@ -4,11 +4,9 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Missing Supabase environment variables:', {
-    hasUrl: !!supabaseUrl,
-    hasKey: !!supabaseAnonKey
-  });
-  throw new Error('Missing Supabase environment variables. Please check your .env file.');
+  // Don't expose environment variable names in error messages
+  console.error('Failed to initialize authentication service');
+  throw new Error('Authentication service is not properly configured. Please try again later.');
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);

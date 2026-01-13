@@ -87,7 +87,20 @@ export async function sendPushNotification(params: {
     throw new Error('Not authenticated');
   }
 
-  const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-push-notification`;
+  // Validate input to prevent injection attacks
+  if (!params.title || typeof params.title !== 'string' || params.title.length > 255) {
+    throw new Error('Invalid notification title');
+  }
+  if (!params.body || typeof params.body !== 'string' || params.body.length > 1000) {
+    throw new Error('Invalid notification body');
+  }
+
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  if (!supabaseUrl) {
+    throw new Error('Supabase URL not configured');
+  }
+
+  const apiUrl = `${supabaseUrl}/functions/v1/send-push-notification`;
   const response = await fetch(apiUrl, {
     method: 'POST',
     headers: {
@@ -98,8 +111,13 @@ export async function sendPushNotification(params: {
   });
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || 'Failed to send notification');
+    try {
+      await response.json();
+      // Don't expose detailed error information
+      throw new Error('Failed to send notification');
+    } catch {
+      throw new Error('Failed to send notification');
+    }
   }
 }
 

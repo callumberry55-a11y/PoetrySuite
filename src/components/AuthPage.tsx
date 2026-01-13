@@ -124,7 +124,7 @@ export default function AuthPage() {
                     value={devFormPassword}
                     onChange={(e) => setDevFormPassword(e.target.value)}
                     required
-                    minLength={6}
+                    minLength={8}
                     className="w-full px-3 py-2 rounded-lg border border-amber-300 dark:border-amber-700 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:border-transparent text-sm"
                     placeholder="••••••••"
                   />
