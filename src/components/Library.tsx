@@ -125,9 +125,7 @@ function Library({ onNewPoem, onEditPoem }: LibraryProps) {
 
   useEffect(() => {
     if (user) {
-      loadPoems();
-      loadCollections();
-      loadPoemCollections();
+      Promise.all([loadPoems(), loadCollections(), loadPoemCollections()]);
     }
   }, [user, loadPoems, loadCollections, loadPoemCollections]);
 
@@ -202,10 +200,13 @@ function Library({ onNewPoem, onEditPoem }: LibraryProps) {
   }, [user, loadPoems]);
 
   useEffect(() => {
-    if (activeTab === 'discover' && internetPoems.length === 0) {
-      loadRandomPoems();
+    if (activeTab === 'discover' && internetPoems.length === 0 && !loadingInternet) {
+      const timer = setTimeout(() => {
+        loadRandomPoems();
+      }, 0);
+      return () => clearTimeout(timer);
     }
-  }, [activeTab, internetPoems.length, loadRandomPoems]);
+  }, [activeTab, internetPoems.length, loadingInternet, loadRandomPoems]);
 
   const addPoemToCollection = useCallback(async (poemId: string, collectionId: string) => {
     const { error } = await supabase

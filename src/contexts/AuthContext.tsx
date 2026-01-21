@@ -62,7 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     setLoading(true);
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       // Handle token refresh and session events
       if (event === 'TOKEN_REFRESHED') {
         setSessionExpired(false);
@@ -72,8 +72,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       setUser(session?.user ?? null);
       if (session?.user) {
-        await fetchUserProfile(session.user.id);
-        setSessionExpired(false);
+        (async () => {
+          await fetchUserProfile(session.user.id);
+          setSessionExpired(false);
+        })();
       } else {
         setUserProfile(null);
       }
