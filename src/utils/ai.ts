@@ -1,5 +1,3 @@
-import { supabase } from '../lib/supabase';
-
 export type SuggestionType = 'line' | 'stanza' | 'rhyme' | 'haiku' | 'metaphor' | 'general' | 'suggestion';
 
 export interface SuggestionParams {

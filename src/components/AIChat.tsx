@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Send, Loader, Sparkles, Volume2 } from 'lucide-react';
-import { getAISuggestion, SuggestionType } from '../utils/ai';
+import { getAISuggestion } from '../utils/ai';
 
 interface Message {
   text: string;
