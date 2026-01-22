@@ -1,108 +1,98 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Sparkles } from 'lucide-react';
+import { Send, Loader, Sparkles } from 'lucide-react';
+import { getAISuggestion, SuggestionType } from '../utils/ai';
 
-const AIChat = () => {
-  const [messages, setMessages] = useState<{ text: string; from: 'user' | 'bot' }[]>([]);
+interface Message {
+  text: string;
+  isUser: boolean;
+}
+
+export default function AIChat() {
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
   useEffect(() => {
-    scrollToBottom();
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleSend = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim() || isLoading) return;
+  const handleSend = async (suggestionType: SuggestionType = 'line') => {
+    if (!input.trim() && messages.length === 0) return;
 
-    const userMessage = { text: input, from: 'user' as const };
+    const userMessage: Message = { text: input, isUser: true };
     setMessages(prev => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
 
-    // Simulate AI response
-    setTimeout(() => {
-      const botMessage = { text: "This is a placeholder response from the AI bot.", from: 'bot' as const };
+    try {
+      const aiResponse = await getAISuggestion({ type: suggestionType, prompt: input });
+      const botMessage: Message = { text: aiResponse, isUser: false };
       setMessages(prev => [...prev, botMessage]);
+    } catch {
+      const errorMessage = 'Sorry, I had trouble generating a suggestion. Please try again.';
+      const botMessage: Message = { text: errorMessage, isUser: false };
+      setMessages(prev => [...prev, botMessage]);
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   return (
-    <div className="h-full flex flex-col bg-slate-50 dark:bg-slate-900">
-      <div className="p-4 border-b border-slate-200 dark:border-slate-700">
-        <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-          <Sparkles className="text-blue-500" />
-          AI Poetry Assistant
-        </h2>
-        <p className="text-sm text-slate-600 dark:text-slate-400">Your creative partner for poetic inspiration</p>
+    <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-900">
+      <header className="p-4 border-b border-slate-200 dark:border-slate-700 flex items-center gap-3 bg-white dark:bg-slate-800">
+        <Sparkles className="text-blue-500" size={24} />
+        <h1 className="text-xl font-bold text-slate-900 dark:text-white">AI Chat</h1>
+      </header>
+
+      <div className="flex-1 p-4 overflow-y-auto">
+        <div className="space-y-4 max-w-4xl mx-auto">
+          {messages.map((msg, i) => (
+            <div key={i} className={`flex ${msg.isUser ? 'justify-end' : 'justify-start'}`}>
+              <div className={`p-3 rounded-lg max-w-xl ${msg.isUser ? 'bg-blue-600 text-white' : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm'}`}>
+                {msg.text}
+              </div>
+            </div>
+          ))}
+          {isLoading && (
+            <div className="flex justify-start">
+              <div className="p-3 rounded-lg bg-white dark:bg-slate-800 shadow-sm">
+                <Loader className="animate-spin text-slate-500" size={20} />
+              </div>
+            </div>
+          )}
+          <div ref={messagesEndRef} />
+        </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map((msg, index) => (
-          <div key={index} className={`flex items-start gap-3 ${msg.from === 'bot' ? '' : 'justify-end'}`}>
-            {msg.from === 'bot' && (
-              <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0">
-                <Bot size={20} className="text-white" />
-              </div>
-            )}
-            <div className={`p-3 rounded-lg max-w-lg ${msg.from === 'bot' ? 'bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white' : 'bg-blue-500 text-white'}`}>
-              <p>{msg.text}</p>
-            </div>
-            {msg.from === 'user' && (
-              <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center flex-shrink-0">
-                <User size={20} className="text-slate-600 dark:text-slate-300" />
-              </div>
-            )}
+      <div className="p-4 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+              placeholder="Ask for a rhyme, a metaphor, or anything else..."
+              className="flex-1 px-4 py-3 bg-slate-100 dark:bg-slate-700 border-transparent focus:ring-2 focus:ring-blue-500 focus:border-transparent rounded-lg text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400"
+            />
+            <button
+              onClick={() => handleSend()}
+              className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg p-3 disabled:bg-slate-400 disabled:cursor-not-allowed transition-colors"
+              disabled={isLoading || !input.trim()}
+              aria-label="Send message"
+            >
+              <Send size={20} />
+            </button>
           </div>
-        ))}
-        {isLoading && (
-          <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0">
-              <Bot size={20} className="text-white" />
-            </div>
-            <div className="p-3 rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-slate-400 rounded-full animate-pulse [animation-delay:-0.3s]"></div>
-                <div className="w-2 h-2 bg-slate-400 rounded-full animate-pulse [animation-delay:-0.15s]"></div>
-                <div className="w-2 h-2 bg-slate-400 rounded-full animate-pulse"></div>
-              </div>
-            </div>
+          <div className="flex gap-4 text-sm text-slate-600 dark:text-slate-400 mt-3">
+            <span className="font-medium">Suggestions:</span>
+            <button onClick={() => handleSend('rhyme')} className="hover:text-blue-500 transition-colors">Find a rhyme</button>
+            <button onClick={() => handleSend('metaphor')} className="hover:text-blue-500 transition-colors">Create a metaphor</button>
+            <button onClick={() => handleSend('haiku')} className="hover:text-blue-500 transition-colors">Write a haiku</button>
           </div>
-        )}
-        <div ref={messagesEndRef} />
-      </div>
-
-      <div className="p-4 border-t border-slate-200 dark:border-slate-700">
-        <form onSubmit={handleSend} className="relative">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask for inspiration, feedback, or ideas..."
-            className="w-full pl-4 pr-12 py-3 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow"
-            disabled={isLoading}
-          />
-          <button
-            type="submit"
-            disabled={isLoading || !input.trim()}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 disabled:bg-slate-300 dark:disabled:bg-slate-600 disabled:cursor-not-allowed transition-colors"
-            aria-label="Send message"
-          >
-            {isLoading ? (
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-            ) : (
-                <Send size={20} />
-            )}
-          </button>
-        </form>
+        </div>
       </div>
     </div>
   );
-};
-
-export default AIChat;
+}

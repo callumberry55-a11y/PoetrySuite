@@ -87,7 +87,7 @@ export default function Prompts({ onUsePrompt }: PromptsProps) {
 
   useEffect(() => {
     loadPrompts();
-  }, []);
+  }, [loadPrompts]);
 
   const loadPrompts = async () => {
     setLoading(true);

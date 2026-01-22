@@ -83,7 +83,7 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
     } else {
       resetEditor();
     }
-  }, [selectedPoemId]);
+  }, [selectedPoemId, loadPoem]);
 
   useEffect(() => {
     if (saveTimeoutRef.current) {

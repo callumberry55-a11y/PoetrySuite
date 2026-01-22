@@ -1,7 +1,6 @@
 import { ReactNode, useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
-import AIAssistant from './AIAssistant';
 import {
   BookHeart,
   PenLine,
@@ -29,9 +28,16 @@ interface LayoutProps {
   onViewChange: (view: ViewType) => void;
 }
 
-interface InstallPrompt {
-    prompt: () => void;
-    userChoice: Promise<{outcome: string}>
+interface BeforeInstallPromptEvent extends Event {
+  readonly platforms: string[];
+  readonly userChoice: Promise<{ outcome: 'accepted' | 'dismissed', platform: string }>;
+  prompt(): Promise<void>;
+}
+
+declare global {
+  interface Window {
+    BeforeInstallPromptEvent: BeforeInstallPromptEvent;
+  }
 }
 
 export default function Layout({ children, currentView, onViewChange }: LayoutProps) {
@@ -39,7 +45,7 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
   const { isDark, toggleTheme } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
-  const [deferredPrompt, setDeferredPrompt] = useState<InstallPrompt | null>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
 
   const navItems = [
     { id: 'write' as const, icon: PenLine, label: 'Write' },
@@ -54,13 +60,13 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
   ];
 
   useEffect(() => {
-    const handler = (e: any) => {
+    const handler = (e: BeforeInstallPromptEvent) => {
       e.preventDefault();
       setDeferredPrompt(e);
       setShowInstallPrompt(true);
     };
 
-    window.addEventListener('beforeinstallprompt', handler);
+    window.addEventListener('beforeinstallprompt', handler as any);
 
     window.addEventListener('appinstalled', () => {
       setShowInstallPrompt(false);
@@ -68,7 +74,7 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
     });
 
     return () => {
-      window.removeEventListener('beforeinstallprompt', handler);
+      window.removeEventListener('beforeinstallprompt', handler as any);
     };
   }, []);
 
@@ -241,7 +247,6 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
       <main className="flex-1 bg-slate-50 dark:bg-slate-900" id="main-content" role="main">
         {children}
       </main>
-      <AIAssistant />
 
       {/* Mobile Bottom Navigation */}
       <nav
