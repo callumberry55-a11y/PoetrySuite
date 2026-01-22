@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Search, MessageCircle, Trophy, BookOpen, TrendingUp, Users, X } from 'lucide-react';
+import { Search, Trophy, BookOpen, TrendingUp, Users, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import CommentsSection from './CommentsSection';
 
 interface Poem {
   id: string;
@@ -257,19 +256,6 @@ export default function Discover() {
                   <div className="prose dark:prose-invert max-w-none mb-4">
                     <p className="whitespace-pre-wrap line-clamp-6">{poem.content}</p>
                   </div>
-
-                  <div className="flex items-center gap-4 pt-4 border-t border-slate-200 dark:border-slate-700">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedPoem(poem);
-                      }}
-                      className="flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                    >
-                      <MessageCircle size={18} />
-                      <span className="text-sm">Comment</span>
-                    </button>
-                  </div>
                 </div>
               </div>
             ))}
@@ -306,10 +292,6 @@ export default function Discover() {
                 <div className="prose dark:prose-invert max-w-none mb-6">
                   <p className="whitespace-pre-wrap">{selectedPoem.content}</p>
                 </div>
-              </div>
-
-              <div className="border-t border-slate-200 dark:border-slate-700">
-                <CommentsSection poemId={selectedPoem.id} />
               </div>
             </div>
           </div>

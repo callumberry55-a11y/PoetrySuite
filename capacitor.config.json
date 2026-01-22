@@ -1,6 +1,6 @@
 {
   "appId": "com.poetrysuite.app",
-  "appName": "Poetry Suite",
+  "appName": "poetry-suite",
   "webDir": "dist",
   "server": {
     "androidScheme": "https"

@@ -1,11 +1,17 @@
 import { useState, useRef, useEffect } from 'react';
 import { Send, Loader, Sparkles, Volume2 } from 'lucide-react';
-import { getAISuggestion } from '../utils/ai';
 
 interface Message {
   text: string;
   isUser: boolean;
 }
+
+// Mock AI function
+const getAISuggestion = async (options: { type: string, prompt: string }): Promise<string> => {
+    console.log("AI suggestion requested with options:", options)
+    await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
+    return `This is a mock AI response to your prompt: "${options.prompt}"`;
+};
 
 export default function AIChat() {
   const [messages, setMessages] = useState<Message[]>([]);

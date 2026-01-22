@@ -1,15 +1,10 @@
 import { useEffect, useState } from 'react';
 
 import { supabase } from '../lib/supabase';
-import { Pie } from 'react-chartjs-2';
-import { Chart, ArcElement, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from 'chart.js';
 import { useAuth } from '../contexts/AuthContext';
-
-Chart.register(ArcElement, BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
 export default function DeveloperDashboard() {
   const [stats, setStats] = useState({ users: 0, poems: 0, submissions: 0, feedback: 0 });
-  const [feedbackByCategory, setFeedbackByCategory] = useState({});
   const [newDeveloperId, setNewDeveloperId] = useState('');
   const [promotionStatus, setPromotionStatus] = useState('');
   const { promoteToDeveloper } = useAuth();
@@ -31,28 +26,12 @@ export default function DeveloperDashboard() {
       setStats({ users: users?.length || 0, poems: poems?.length || 0, submissions: submissions?.length || 0, feedback: feedback?.length || 0 });
     };
 
-    const fetchFeedbackByCategory = async () => {
-        const { data, error } = await supabase.from('feedback').select('category');
-        if (error) {
-            console.error('Error fetching feedback by category', error);
-            return;
-        }
-
-        const counts = data.reduce((acc: Record<string, number>, { category }) => {
-            acc[category] = (acc[category] || 0) + 1;
-            return acc;
-        }, {});
-        setFeedbackByCategory(counts);
-    };
-
     fetchStats();
-    fetchFeedbackByCategory();
 
     const subscription = supabase
       .channel('developer-dashboard')
       .on('postgres_changes', { event: '*', schema: 'public' }, () => {
         fetchStats();
-        fetchFeedbackByCategory();
       })
       .subscribe();
 
@@ -94,16 +73,6 @@ export default function DeveloperDashboard() {
         </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="bg-white p-4 rounded shadow">
-            <h3 className="text-lg font-semibold">Feedback by Category</h3>
-            <Pie data={{
-                labels: Object.keys(feedbackByCategory),
-                datasets: [{
-                    data: Object.values(feedbackByCategory),
-                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0']
-                }]
-            }} />
-        </div>
         <div className="bg-white p-4 rounded shadow">
           <h3 className="text-lg font-semibold">Promote User to Developer</h3>
           <div className="flex flex-col space-y-2">
