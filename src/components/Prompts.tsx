@@ -16,7 +16,7 @@ interface PromptsProps {
   onUsePrompt: (prompt: Prompt) => void;
 }
 
-const predefinedPrompts = [
+const predefinedPrompts: Omit<Prompt, 'id' | 'active_date'>[] = [
   {
     title: 'Morning Ritual',
     content: 'Write about the first hour of your day. Focus on sensory details and small moments of awareness.',

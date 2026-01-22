@@ -1,4 +1,6 @@
 import { useState } from 'react';
+
+
 import { useAuth } from '../contexts/AuthContext';
 import { BookHeart, Code } from 'lucide-react';
 
@@ -28,7 +30,7 @@ export default function AuthPage() {
       if (authError) {
         setError(authError.message);
       }
-    } catch (err) {
+    } catch {
       setError('An unexpected error occurred');
     } finally {
       setLoading(false);
@@ -46,7 +48,7 @@ export default function AuthPage() {
         setError(authError.message);
         setLoading(false);
       }
-    } catch (err) {
+    } catch {
       setError('An unexpected error occurred');
       setLoading(false);
     }
@@ -70,7 +72,7 @@ export default function AuthPage() {
           setError(authError.message);
         }
       }
-    } catch (err) {
+    } catch {
       setError('An unexpected error occurred');
     } finally {
       setLoading(false);

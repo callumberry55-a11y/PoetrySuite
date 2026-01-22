@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Heart, MessageCircle, Trash2, Send } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -26,12 +26,8 @@ export default function CommentsSection({ poemId }: CommentsSectionProps) {
   const [loading, setLoading] = useState(false);
   const [newComment, setNewComment] = useState('');
   const [submittingComment, setSubmittingComment] = useState(false);
-
-  useEffect(() => {
-    loadCommentsAndLikes();
-  }, [poemId]);
-
-  const loadCommentsAndLikes = async () => {
+  
+  const loadCommentsAndLikes = useCallback(async () => {
     if (!poemId) return;
     setLoading(true);
     try {
@@ -70,12 +66,16 @@ export default function CommentsSection({ poemId }: CommentsSectionProps) {
 
         setUserLiked(!!userLikeData);
       }
-    } catch (error) {
+    } catch {
       console.debug('Failed to load comments and likes');
     } finally {
       setLoading(false);
     }
-  };
+  }, [poemId, user]);
+
+  useEffect(() => {
+    loadCommentsAndLikes();
+  }, [poemId, loadCommentsAndLikes]);
 
   const handleLike = async () => {
     if (!user) {
@@ -110,7 +110,7 @@ export default function CommentsSection({ poemId }: CommentsSectionProps) {
         setUserLiked(true);
         setLikes(likes + 1);
       }
-    } catch (error) {
+    } catch {
       console.debug('Failed to update like');
       alert('Failed to update like');
     }
@@ -134,7 +134,7 @@ export default function CommentsSection({ poemId }: CommentsSectionProps) {
 
       setNewComment('');
       await loadCommentsAndLikes();
-    } catch (error) {
+    } catch {
       console.debug('Failed to add comment');
       alert('Failed to add comment');
     } finally {
@@ -154,7 +154,7 @@ export default function CommentsSection({ poemId }: CommentsSectionProps) {
 
       if (error) throw error;
       setComments(comments.filter(c => c.id !== commentId));
-    } catch (error) {
+    } catch {
       console.debug('Failed to delete comment');
       alert('Failed to delete comment');
     }

@@ -15,6 +15,7 @@ const Discover = lazy(() => import('./components/Discover'));
 const Prompts = lazy(() => import('./components/Prompts'));
 const Forms = lazy(() => import('./components/Forms'));
 const Submissions = lazy(() => import('./components/Submissions'));
+const AIChat = lazy(() => import('./components/AIChat'));
 
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
     const { user, userProfile, loading } = useAuth();
@@ -54,19 +55,19 @@ function AppContent() {
 }
 
 function MainApp() {
-    const [currentView, setCurrentView] = useState<'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'submissions'>('library');
+    const [currentView, setCurrentView] = useState<'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'submissions' | 'ai-chat'>('library');
     const [selectedPoemId, setSelectedPoemId] = useState<string | null>(null);
-  
+
     const handleNewPoem = useCallback(() => {
       setSelectedPoemId(null);
       setCurrentView('write');
     }, []);
-  
+
     const handleEditPoem = useCallback((poemId: string) => {
       setSelectedPoemId(poemId);
       setCurrentView('write');
     }, []);
-  
+
     const handleBackToLibrary = useCallback(() => {
       setSelectedPoemId(null);
       setCurrentView('library');
@@ -94,7 +95,7 @@ function MainApp() {
           {currentView === 'discover' && <Discover />}
           {currentView === 'prompts' && (
             <Prompts
-              onUsePrompt={(_prompt) => {
+              onUsePrompt={() => {
                 setCurrentView('write');
                 setSelectedPoemId(null);
               }}
@@ -102,7 +103,7 @@ function MainApp() {
           )}
           {currentView === 'forms' && (
             <Forms
-              onSelectForm={(_form) => {
+              onSelectForm={() => {
                 setCurrentView('write');
                 setSelectedPoemId(null);
               }}
@@ -110,6 +111,7 @@ function MainApp() {
           )}
           {currentView === 'submissions' && <Submissions />}
           {currentView === 'analytics' && <Analytics />}
+          {currentView === 'ai-chat' && <AIChat />}
           {currentView === 'settings' && <Settings />}
         </Suspense>
       </Layout>

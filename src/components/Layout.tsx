@@ -1,6 +1,7 @@
 import { ReactNode, useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
+import AIAssistant from './AIAssistant';
 import {
   BookHeart,
   PenLine,
@@ -16,10 +17,11 @@ import {
   Compass,
   Lightbulb,
   BookOpen,
-  Send
+  Send,
+  Sparkles
 } from 'lucide-react';
 
-type ViewType = 'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'submissions';
+type ViewType = 'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'submissions' | 'ai-chat';
 
 interface LayoutProps {
   children: ReactNode;
@@ -27,16 +29,22 @@ interface LayoutProps {
   onViewChange: (view: ViewType) => void;
 }
 
+interface InstallPrompt {
+    prompt: () => void;
+    userChoice: Promise<{outcome: string}>
+}
+
 export default function Layout({ children, currentView, onViewChange }: LayoutProps) {
   const { signOut } = useAuth();
   const { isDark, toggleTheme } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<InstallPrompt | null>(null);
 
   const navItems = [
     { id: 'write' as const, icon: PenLine, label: 'Write' },
     { id: 'library' as const, icon: Library, label: 'Library' },
+    { id: 'ai-chat' as const, icon: Sparkles, label: 'AI Chat' },
     { id: 'discover' as const, icon: Compass, label: 'Discover' },
     { id: 'prompts' as const, icon: Lightbulb, label: 'Prompts' },
     { id: 'forms' as const, icon: BookOpen, label: 'Forms' },
@@ -46,7 +54,7 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
   ];
 
   useEffect(() => {
-    const handler = (e: Event) => {
+    const handler = (e: any) => {
       e.preventDefault();
       setDeferredPrompt(e);
       setShowInstallPrompt(true);
@@ -87,11 +95,11 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
   };
 
   const primaryNavItems = navItems.filter(item =>
-    ['write', 'library', 'discover', 'prompts'].includes(item.id)
+    ['write', 'library', 'ai-chat', 'discover', 'prompts'].includes(item.id)
   );
 
   const secondaryNavItems = navItems.filter(item =>
-    !['write', 'library', 'discover', 'prompts'].includes(item.id)
+    !['write', 'library', 'ai-chat', 'discover', 'prompts'].includes(item.id)
   );
 
   return (
@@ -233,13 +241,14 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
       <main className="flex-1 bg-slate-50 dark:bg-slate-900" id="main-content" role="main">
         {children}
       </main>
+      <AIAssistant />
 
       {/* Mobile Bottom Navigation */}
       <nav
         className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 z-50"
         aria-label="Mobile bottom navigation"
       >
-        <div className="grid grid-cols-4 gap-1 px-2 py-2">
+        <div className="grid grid-cols-5 gap-1 px-2 py-2">
           {primaryNavItems.map((item) => (
             <button
               key={item.id}

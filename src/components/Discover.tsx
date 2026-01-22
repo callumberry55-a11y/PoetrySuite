@@ -9,7 +9,10 @@ interface Poem {
   content: string;
   user_id: string;
   created_at: string;
-  user_profiles?: any;
+  user_profiles?: {
+      username: string;
+      display_name: string;
+  };
 }
 
 interface Contest {
@@ -43,7 +46,7 @@ export default function Discover() {
   const loadPoems = async () => {
     setLoading(true);
     try {
-      let query = supabase
+      const query = supabase
         .from('poems')
         .select(`
           id,
@@ -61,8 +64,13 @@ export default function Discover() {
 
       if (error) throw error;
 
-      setPoems((data || []) as Poem[]);
-    } catch (error) {
+      const poemsData = data?.map(p => ({
+          ...p,
+          user_profiles: Array.isArray(p.user_profiles) ? p.user_profiles[0] : p.user_profiles
+      })) || [];
+
+      setPoems(poemsData as unknown as Poem[]);
+    } catch {
       console.debug('Failed to load poems');
     } finally {
       setLoading(false);
@@ -80,7 +88,7 @@ export default function Discover() {
       if (error) throw error;
 
       setContests(data || []);
-    } catch (error) {
+    } catch {
       console.debug('Failed to load contests');
     } finally {
       setLoading(false);

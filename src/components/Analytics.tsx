@@ -10,6 +10,10 @@ interface WritingStats {
   minutes_writing: number;
 }
 
+interface Poem {
+    created_at: string;
+}
+
 function Analytics() {
   const { user } = useAuth();
   const [stats, setStats] = useState<WritingStats[]>([]);
@@ -18,7 +22,7 @@ function Analytics() {
   const [currentStreak, setCurrentStreak] = useState(0);
   const [longestStreak, setLongestStreak] = useState(0);
 
-  const calculateStreaks = useCallback((poems: any[]) => {
+  const calculateStreaks = useCallback((poems: Poem[]) => {
     if (poems.length === 0) {
       setCurrentStreak(0);
       setLongestStreak(0);
@@ -33,7 +37,7 @@ function Analytics() {
     today.setHours(0, 0, 0, 0);
 
     let current = 0;
-    let checkDate = new Date(today);
+    const checkDate = new Date(today);
 
     for (const dateStr of uniqueDates) {
       const poemDate = new Date(dateStr);

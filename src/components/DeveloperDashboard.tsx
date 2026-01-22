@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+
 import { supabase } from '../lib/supabase';
 import { Pie } from 'react-chartjs-2';
 import { Chart, ArcElement, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from 'chart.js';
@@ -49,7 +50,7 @@ export default function DeveloperDashboard() {
 
     const subscription = supabase
       .channel('developer-dashboard')
-      .on('postgres_changes', { event: '*', schema: 'public' }, (_payload) => {
+      .on('postgres_changes', { event: '*', schema: 'public' }, () => {
         fetchStats();
         fetchFeedbackByCategory();
       })

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { Save, Star, Globe, Lock, ArrowLeft } from 'lucide-react';
@@ -22,6 +22,59 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
 
   const wordCount = content.trim() ? content.trim().split(/\s+/).length : 0;
   const lineCount = content.split('\n').length;
+  
+  const savePoem = useCallback(async () => {
+    if (!user || (!content.trim() && !title.trim())) return;
+
+    setSaving(true);
+    setError(null);
+
+    try {
+      const poemData = {
+        user_id: user.id,
+        title: title.trim() || 'Untitled',
+        content,
+        is_public: isPublic,
+        favorited,
+        word_count: wordCount,
+        updated_at: new Date().toISOString(),
+      };
+
+      if (currentPoemId) {
+        const { error } = await supabase
+          .from('poems')
+          .update(poemData)
+          .eq('id', currentPoemId)
+          .eq('user_id', user.id);
+
+        if (error) {
+          setError('Failed to save poem');
+          return;
+        }
+      } else {
+        const { data, error } = await supabase
+          .from('poems')
+          .insert([poemData])
+          .select('id')
+          .single();
+
+        if (error) {
+          setError('Failed to save poem');
+          return;
+        }
+
+        if (data) {
+          setCurrentPoemId(data.id);
+        }
+      }
+
+      setLastSaved(new Date());
+    } catch {
+      setError('Failed to save poem');
+    } finally {
+      setSaving(false);
+    }
+  }, [user, content, title, isPublic, favorited, wordCount, currentPoemId]);
 
   useEffect(() => {
     setCurrentPoemId(selectedPoemId);
@@ -49,7 +102,7 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
         clearTimeout(saveTimeoutRef.current);
       }
     };
-  }, [title, content, isPublic, favorited, user, currentPoemId, wordCount]);
+  }, [title, content, isPublic, favorited, user, currentPoemId, wordCount, savePoem]);
 
   const resetEditor = () => {
     setTitle('');
@@ -73,7 +126,6 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
         .maybeSingle();
 
       if (error) {
-        console.debug('Failed to load poem');
         setError('Failed to load poem');
         return;
       }
@@ -85,65 +137,8 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
         setFavorited(data.favorited);
         setError(null);
       }
-    } catch (err) {
-      console.debug('Failed to load poem');
+    } catch {
       setError('Failed to load poem');
-    }
-  };
-
-  const savePoem = async () => {
-    if (!user || (!content.trim() && !title.trim())) return;
-
-    setSaving(true);
-    setError(null);
-
-    try {
-      const poemData = {
-        user_id: user.id,
-        title: title.trim() || 'Untitled',
-        content,
-        is_public: isPublic,
-        favorited,
-        word_count: wordCount,
-        updated_at: new Date().toISOString(),
-      };
-
-      if (currentPoemId) {
-        const { error } = await supabase
-          .from('poems')
-          .update(poemData)
-          .eq('id', currentPoemId)
-          .eq('user_id', user.id);
-
-        if (error) {
-          console.debug('Failed to save poem');
-          setError('Failed to save poem');
-          return;
-        }
-      } else {
-        const { data, error } = await supabase
-          .from('poems')
-          .insert([poemData])
-          .select('id')
-          .single();
-
-        if (error) {
-          console.debug('Failed to save poem');
-          setError('Failed to save poem');
-          return;
-        }
-
-        if (data) {
-          setCurrentPoemId(data.id);
-        }
-      }
-
-      setLastSaved(new Date());
-    } catch (err) {
-      console.debug('Failed to save poem');
-      setError('Failed to save poem');
-    } finally {
-      setSaving(false);
     }
   };
 
