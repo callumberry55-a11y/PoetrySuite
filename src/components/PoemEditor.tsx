@@ -76,35 +76,7 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
     }
   }, [user, content, title, isPublic, favorited, wordCount, currentPoemId]);
 
-  useEffect(() => {
-    setCurrentPoemId(selectedPoemId);
-    if (selectedPoemId) {
-      loadPoem(selectedPoemId);
-    } else {
-      resetEditor();
-    }
-  }, [selectedPoemId, loadPoem]);
-
-  useEffect(() => {
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current);
-    }
-
-    if (content.trim() || title.trim()) {
-      // Faster debounce for better UX - 1.5 seconds instead of 2
-      saveTimeoutRef.current = setTimeout(() => {
-        savePoem();
-      }, 1500);
-    }
-
-    return () => {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
-    };
-  }, [title, content, isPublic, favorited, user, currentPoemId, wordCount, savePoem]);
-
-  const resetEditor = () => {
+  const resetEditor = useCallback(() => {
     setTitle('');
     setContent('');
     setIsPublic(false);
@@ -112,9 +84,9 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
     setLastSaved(null);
     setError(null);
     setCurrentPoemId(null);
-  };
+  },[]);
 
-  const loadPoem = async (poemId: string) => {
+  const loadPoem = useCallback(async (poemId: string) => {
     if (!poemId || !user) return;
 
     try {
@@ -140,7 +112,35 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
     } catch {
       setError('Failed to load poem');
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    setCurrentPoemId(selectedPoemId);
+    if (selectedPoemId) {
+      loadPoem(selectedPoemId);
+    } else {
+      resetEditor();
+    }
+  }, [selectedPoemId, loadPoem, resetEditor]);
+
+  useEffect(() => {
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    if (content.trim() || title.trim()) {
+      // Faster debounce for better UX - 1.5 seconds instead of 2
+      saveTimeoutRef.current = setTimeout(() => {
+        savePoem();
+      }, 1500);
+    }
+
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, [title, content, isPublic, favorited, user, currentPoemId, wordCount, savePoem]);
 
   return (
     <div className="h-full flex flex-col bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">

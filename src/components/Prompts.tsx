@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Lightbulb, Plus, Calendar, Target } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
@@ -85,11 +85,29 @@ export default function Prompts({ onUsePrompt }: PromptsProps) {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'daily' | 'weekly' | 'challenge'>('all');
 
-  useEffect(() => {
-    loadPrompts();
-  }, [loadPrompts]);
+  const initializePrompts = useCallback(async () => {
+    if (!user) return;
 
-  const loadPrompts = async () => {
+    try {
+      const promptsToInsert = predefinedPrompts.map((prompt, index) => ({
+        ...prompt,
+        active_date: new Date(Date.now() - index * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      }));
+
+      const { data, error } = await supabase
+        .from('writing_prompts')
+        .insert(promptsToInsert)
+        .select();
+
+      if (error) throw error;
+
+      setPrompts(data || []);
+    } catch (error) {
+      console.error('Error initializing prompts:', error);
+    }
+  }, [user]);
+
+  const loadPrompts = useCallback(async () => {
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -111,29 +129,11 @@ export default function Prompts({ onUsePrompt }: PromptsProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [initializePrompts]);
 
-  const initializePrompts = async () => {
-    if (!user) return;
-
-    try {
-      const promptsToInsert = predefinedPrompts.map((prompt, index) => ({
-        ...prompt,
-        active_date: new Date(Date.now() - index * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      }));
-
-      const { data, error } = await supabase
-        .from('writing_prompts')
-        .insert(promptsToInsert)
-        .select();
-
-      if (error) throw error;
-
-      setPrompts(data || []);
-    } catch (error) {
-      console.error('Error initializing prompts:', error);
-    }
-  };
+  useEffect(() => {
+    loadPrompts();
+  }, [loadPrompts]);
 
   const addCustomPrompt = async () => {
     if (!user) return;
@@ -221,7 +221,7 @@ export default function Prompts({ onUsePrompt }: PromptsProps) {
           </button>
           <button
             onClick={() => setFilter('challenge')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
               filter === 'challenge'
                 ? 'bg-blue-600 text-white'
                 : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
