@@ -66,7 +66,7 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
       setShowInstallPrompt(true);
     };
 
-    window.addEventListener('beforeinstallprompt', handler as any);
+    window.addEventListener('beforeinstallprompt', handler as EventListener);
 
     window.addEventListener('appinstalled', () => {
       setShowInstallPrompt(false);
@@ -74,7 +74,7 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
     });
 
     return () => {
-      window.removeEventListener('beforeinstallprompt', handler as any);
+      window.removeEventListener('beforeinstallprompt', handler as EventListener);
     };
   }, []);
 
