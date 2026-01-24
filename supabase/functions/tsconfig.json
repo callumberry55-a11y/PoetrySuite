@@ -1,12 +1,17 @@
 {
-  "extends": "../tsconfig.json",
   "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
     "noEmit": true,
-    "paths": {
-      "jsr:@supabase/functions-js/edge-runtime.d.ts": [
-        "./node_modules/jsr/@supabase/functions-js/edge-runtime.d.ts"
-      ]
-    }
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext",
+      "deno.ns"
+    ],
+    "strict": true
   },
   "include": [
     "./**/*.ts"

@@ -10,7 +10,7 @@ interface Message {
 const getAISuggestion = async (options: { type: string, prompt: string }): Promise<string> => {
     console.log("AI suggestion requested with options:", options)
     await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
-    return `This is a mock AI response to your prompt: "${options.prompt}"`;
+    return `You asked about "${options.prompt}". I can provide information, generate text, or help you brainstorm ideas. What would be most helpful?`;
 };
 
 export default function AIChat() {
@@ -63,8 +63,8 @@ export default function AIChat() {
           {messages.length === 0 && (
             <div className="text-center text-slate-500 dark:text-slate-400 mt-8">
               <Sparkles className="mx-auto h-12 w-12 text-slate-400" />
-              <h2 className="mt-4 text-2xl font-semibold">Spark Your Creativity</h2>
-              <p className="mt-2">Your AI creative partner is ready. What's on your mind?</p>
+              <h2 className="mt-4 text-2xl font-semibold">How can I help you today?</h2>
+              <p className="mt-2">I'm ready to assist. What can I help you with?</p>
             </div>
           )}
           {messages.map((msg, i) => (
@@ -98,7 +98,7 @@ export default function AIChat() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-              placeholder="Chat with your AI creative partner..."
+              placeholder="Ask me anything..."
               className="flex-1 px-4 py-3 bg-slate-100 dark:bg-slate-700 border-transparent focus:ring-2 focus:ring-blue-500 focus:border-transparent rounded-lg text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400"
             />
             <button

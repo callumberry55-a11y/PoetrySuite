@@ -1,10 +1,13 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import OpenAI from "npm:openai@4.104.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
+
+type SuggestionType = "unit-test" | "e2e-test" | "code-refactor";
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
@@ -17,8 +20,54 @@ Deno.serve(async (req: Request) => {
   try {
     const { type, prompt } = await req.json();
 
-    // Placeholder for actual AI suggestion logic
-    const suggestion = `This is a placeholder response for type: ${type} and prompt: ${prompt}`;
+    if (!prompt) {
+      return new Response(
+        JSON.stringify({ error: "Prompt is required" }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    if (!type || !["unit-test", "e2e-test", "code-refactor"].includes(type)) {
+      return new Response(
+        JSON.stringify({ error: "Invalid suggestion type" }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    const openai = new OpenAI({
+      apiKey: Deno.env.get("OPENAI_API_KEY"),
+    });
+
+    const systemMessages: Record<SuggestionType, { role: "system"; content: string }> = {
+      "unit-test": {
+        role: "system",
+        content: "You are a helpful assistant that generates unit tests for the given code.",
+      },
+      "e2e-test": {
+        role: "system",
+        content: "You are a helpful assistant that generates e2e tests for the given code.",
+      },
+      "code-refactor": {
+        role: "system",
+        content: "You are a helpful assistant that refactors the given code to improve its quality.",
+      },
+    };
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: [
+        systemMessages[type as SuggestionType],
+        { role: "user", content: prompt },
+      ],
+    });
+
+    const suggestion = response.choices[0].message.content;
 
     return new Response(
       JSON.stringify({ suggestion }),
@@ -28,8 +77,9 @@ Deno.serve(async (req: Request) => {
       }
     );
   } catch (error) {
+    const message = error instanceof Error ? error.message : "An unknown error occurred";
     return new Response(
-      JSON.stringify({ error: "Failed to process request", details: error.message }),
+      JSON.stringify({ error: "Failed to process request", details: message }),
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
