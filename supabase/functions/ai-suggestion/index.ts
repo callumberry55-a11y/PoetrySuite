@@ -1,19 +1,39 @@
-import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
-serve(async (req) => {
-  // Handle CORS preflight request
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type' } });
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
+};
+
+Deno.serve(async (req: Request) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, {
+      status: 200,
+      headers: corsHeaders,
+    });
   }
 
-  // Your function logic here
-  const { type, prompt } = await req.json();
+  try {
+    const { type, prompt } = await req.json();
 
-  // Placeholder response
-  const suggestion = `This is a placeholder response for type: ${type} and prompt: ${prompt}`;
+    // Placeholder for actual AI suggestion logic
+    const suggestion = `This is a placeholder response for type: ${type} and prompt: ${prompt}`;
 
-  return new Response(
-    JSON.stringify({ suggestion }),
-    { headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type' } },
-  );
+    return new Response(
+      JSON.stringify({ suggestion }),
+      {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
+  } catch (error) {
+    return new Response(
+      JSON.stringify({ error: "Failed to process request", details: error.message }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
+  }
 });

@@ -1,0 +1,37 @@
+{
+  "packageId": "com.poetrysuite.twa",
+  "host": "poetrysuite-40372323-40609.web.app",
+  "name": "Poetry Suite",
+  "launcherName": "Poetry",
+  "themeColor": "#000000",
+  "navigationColor": "#000000",
+  "backgroundColor": "#ffffff",
+  "enableNotifications": true,
+  "startUrl": "/",
+  "iconUrl": "https://poetrysuite-40372323-40609.web.app/icon.svg",
+  "maskableIconUrl": "https://poetrysuite-40372323-40609.web.app/icon.svg",
+  "monochromeIconUrl": "https://poetrysuite-40372323-40609.web.app/icon.svg",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "android.keystore",
+    "alias": "android"
+  },
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "shortcuts": [],
+  "generatorApp": "Gemini",
+  "webManifestUrl": "https://poetrysuite-40372323-40609.web.app/manifest.json",
+  "fallbackType": "customtabs",
+  "features": {},
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "fullScopeUrl": "https://poetrysuite-40372323-40609.web.app/",
+  "minSdkVersion": 19,
+  "targetSdkVersion": 33,
+  "launchMode": "stand_alone",
+  "display": "standalone"
+}

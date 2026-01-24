@@ -1,8 +1,0 @@
-{
-  "appId": "com.poetrysuite.app",
-  "appName": "poetry-suite",
-  "webDir": "dist",
-  "server": {
-    "androidScheme": "https"
-  }
-}

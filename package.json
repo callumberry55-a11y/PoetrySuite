@@ -21,12 +21,11 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit -p tsconfig.app.json"
+    "typecheck": "tsc --noEmit -p tsconfig.app.json",
+    "deploy": "supabase functions deploy"
   },
   "dependencies": {
     "@capacitor/android": "^8.0.1",
-    "@capacitor/cli": "^7.4.5",
-    "@capacitor/core": "^8.0.1",
     "@supabase/supabase-js": "^2.91.0",
     "lucide-react": "^0.344.0",
     "react": "^18.3.1",
