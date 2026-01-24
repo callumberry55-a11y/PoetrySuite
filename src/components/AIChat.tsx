@@ -1,17 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Loader, Sparkles, Volume2 } from 'lucide-react';
+import { Send, Loader, Sparkles } from 'lucide-react';
 
 interface Message {
   text: string;
   isUser: boolean;
 }
-
-// Mock AI function
-const getAISuggestion = async (options: { type: string, prompt: string }): Promise<string> => {
-    console.log("AI suggestion requested with options:", options)
-    await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
-    return `You asked about "${options.prompt}". I can provide information, generate text, or help you brainstorm ideas. What would be most helpful?`;
-};
 
 export default function AIChat() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -33,8 +26,20 @@ export default function AIChat() {
     setIsLoading(true);
 
     try {
-      const aiResponse = await getAISuggestion({ type: 'general', prompt: currentInput });
-      const botMessage: Message = { text: aiResponse, isUser: false };
+      const response = await fetch('/api/ai', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prompt: currentInput }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      const data = await response.json();
+      const botMessage: Message = { text: data.response, isUser: false };
       setMessages(prev => [...prev, botMessage]);
     } catch (error) {
       console.error('Error getting AI suggestion:', error);
@@ -46,16 +51,11 @@ export default function AIChat() {
     }
   };
 
-  const speak = (text: string) => {
-    const utterance = new SpeechSynthesisUtterance(text);
-    speechSynthesis.speak(utterance);
-  };
-
   return (
     <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-900">
       <header className="p-4 border-b border-slate-200 dark:border-slate-700 flex items-center gap-3 bg-white dark:bg-slate-800 flex-shrink-0">
         <Sparkles className="text-blue-500" size={24} />
-        <h1 className="text-xl font-bold text-slate-900 dark:text-white">AI Chat</h1>
+        <h1 className="text-xl font-bold text-slate-900 dark:text-white">AI Assistant</h1>
       </header>
 
       <div className="flex-1 p-4 overflow-y-auto flex-grow">
@@ -71,11 +71,6 @@ export default function AIChat() {
             <div key={i} className={`flex ${msg.isUser ? 'justify-end' : 'justify-start'}`}>
               <div className={`p-3 rounded-lg max-w-xl ${msg.isUser ? 'bg-blue-600 text-white' : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm'}`}>
                 {msg.text}
-                {!msg.isUser && (
-                  <button onClick={() => speak(msg.text)} className="ml-2">
-                    <Volume2 size={16} />
-                  </button>
-                )}
               </div>
             </div>
           ))}
