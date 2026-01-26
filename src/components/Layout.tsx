@@ -244,7 +244,7 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
         )}
       </header>
 
-      <main className="flex-1 bg-m3-background" id="main-content" role="main">
+      <main className="flex-1 bg-m3-background flex" id="main-content" role="main">
         {children}
       </main>
 

@@ -125,10 +125,30 @@ function Analytics() {
     setStats(statsArray);
   }, [user, calculateStreaks]);
 
-  useEffect(() => {
-    if (user) {
-      loadStats();
-    }
+useEffect(() => {
+    if (!user) return;
+
+    loadStats();
+
+    const channel = supabase
+      .channel('analytics-poems-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'poems',
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => {
+          loadStats();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user, loadStats]);
 
   const last7Days = useMemo(() => stats.slice(0, 7).reverse(), [stats]);
@@ -142,61 +162,61 @@ function Analytics() {
   }, [last7Days]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-8">Your Analytics</h2>
+    <div className="max-w-7xl mx-auto px-4 py-8 flex-1">
+      <h2 className="text-3xl font-bold text-m3-on-surface mb-8">Your Analytics</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm">
+        <div className="bg-m3-surface-container-low rounded-xl p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-              <BookOpen className="text-blue-600 dark:text-blue-400" size={24} />
+            <div className="w-12 h-12 rounded-full bg-m3-primary-container flex items-center justify-center">
+              <BookOpen className="text-m3-on-primary-container" size={24} />
             </div>
           </div>
-          <p className="text-3xl font-bold text-slate-900 dark:text-white mb-1">{totalPoems}</p>
-          <p className="text-sm text-slate-600 dark:text-slate-400">Total Poems</p>
+          <p className="text-3xl font-bold text-m3-on-surface mb-1">{totalPoems}</p>
+          <p className="text-sm text-m3-on-surface-variant">Total Poems</p>
         </div>
 
-        <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm">
+        <div className="bg-m3-surface-container-low rounded-xl p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-              <Feather className="text-green-600 dark:text-green-400" size={24} />
+            <div className="w-12 h-12 rounded-full bg-m3-tertiary-container flex items-center justify-center">
+              <Feather className="text-m3-on-tertiary-container" size={24} />
             </div>
           </div>
-          <p className="text-3xl font-bold text-slate-900 dark:text-white mb-1">
+          <p className="text-3xl font-bold text-m3-on-surface mb-1">
             {totalWords.toLocaleString()}
           </p>
-          <p className="text-sm text-slate-600 dark:text-slate-400">Total Words</p>
+          <p className="text-sm text-m3-on-surface-variant">Total Words</p>
         </div>
 
-        <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm">
+        <div className="bg-m3-surface-container-low rounded-xl p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
-              <Flame className="text-orange-600 dark:text-orange-400" size={24} />
+            <div className="w-12 h-12 rounded-full bg-m3-error-container flex items-center justify-center">
+              <Flame className="text-m3-on-error-container" size={24} />
             </div>
           </div>
-          <p className="text-3xl font-bold text-slate-900 dark:text-white mb-1">{currentStreak}</p>
-          <p className="text-sm text-slate-600 dark:text-slate-400">Day Streak</p>
+          <p className="text-3xl font-bold text-m3-on-surface mb-1">{currentStreak}</p>
+          <p className="text-sm text-m3-on-surface-variant">Day Streak</p>
         </div>
 
-        <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm">
+        <div className="bg-m3-surface-container-low rounded-xl p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
-              <TrendingUp className="text-purple-600 dark:text-purple-400" size={24} />
+            <div className="w-12 h-12 rounded-full bg-m3-secondary-container flex items-center justify-center">
+              <TrendingUp className="text-m3-on-secondary-container" size={24} />
             </div>
           </div>
-          <p className="text-3xl font-bold text-slate-900 dark:text-white mb-1">{longestStreak}</p>
-          <p className="text-sm text-slate-600 dark:text-slate-400">Longest Streak</p>
+          <p className="text-3xl font-bold text-m3-on-surface mb-1">{longestStreak}</p>
+          <p className="text-sm text-m3-on-surface-variant">Longest Streak</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm">
-          <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-6">
+        <div className="bg-m3-surface-container-low rounded-xl p-6 shadow-sm">
+          <h3 className="text-xl font-semibold text-m3-on-surface mb-6">
             Last 7 Days Activity
           </h3>
           <div className="space-y-4">
             {last7Days.length === 0 ? (
-              <p className="text-slate-500 dark:text-slate-400 text-center py-8">
+              <p className="text-m3-on-surface-variant text-center py-8">
                 No activity in the last 7 days
               </p>
             ) : (
@@ -208,22 +228,22 @@ function Analytics() {
                 return (
                   <div
                     key={stat.date}
-                    className="flex items-center justify-between py-3 border-b border-slate-200 dark:border-slate-700 last:border-0"
+                    className="flex items-center justify-between py-3 border-b border-m3-outline-variant last:border-0"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                        <Calendar className="text-blue-600 dark:text-blue-400" size={18} />
+                      <div className="w-10 h-10 rounded-full bg-m3-primary-container flex items-center justify-center">
+                        <Calendar className="text-m3-on-primary-container" size={18} />
                       </div>
                       <div>
-                        <p className="font-medium text-slate-900 dark:text-white">
+                        <p className="font-medium text-m3-on-surface">
                           {dayName}, {dateStr}
                         </p>
-                        <p className="text-sm text-slate-600 dark:text-slate-400">
+                        <p className="text-sm text-m3-on-surface-variant">
                           {stat.poems_written} poems, {stat.words_written} words
                         </p>
                       </div>
                     </div>
-                    <div className="text-sm text-slate-500">
+                    <div className="text-sm text-m3-on-surface-variant">
                       {stat.minutes_writing} min
                     </div>
                   </div>
@@ -233,23 +253,23 @@ function Analytics() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm">
-          <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-6">
+        <div className="bg-m3-surface-container-low rounded-xl p-6 shadow-sm">
+          <h3 className="text-xl font-semibold text-m3-on-surface mb-6">
             Weekly Summary
           </h3>
           <div className="space-y-6">
             <div>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                <span className="text-sm font-medium text-m3-on-surface-variant">
                   Poems Written
                 </span>
-                <span className="text-2xl font-bold text-slate-900 dark:text-white">
+                <span className="text-2xl font-bold text-m3-on-surface">
                   {totalPoemsLast7Days}
                 </span>
               </div>
-              <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
+              <div className="w-full bg-m3-surface-variant rounded-full h-2">
                 <div
-                  className="bg-blue-500 h-2 rounded-full transition-all"
+                  className="bg-m3-primary h-2 rounded-full transition-all"
                   style={{ width: `${Math.min((totalPoemsLast7Days / 7) * 100, 100)}%` }}
                 />
               </div>
@@ -257,37 +277,37 @@ function Analytics() {
 
             <div>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                <span className="text-sm font-medium text-m3-on-surface-variant">
                   Words Written
                 </span>
-                <span className="text-2xl font-bold text-slate-900 dark:text-white">
+                <span className="text-2xl font-bold text-m3-on-surface">
                   {totalWordsLast7Days.toLocaleString()}
                 </span>
               </div>
-              <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
+              <div className="w-full bg-m3-surface-variant rounded-full h-2">
                 <div
-                  className="bg-green-500 h-2 rounded-full transition-all"
+                  className="bg-m3-tertiary h-2 rounded-full transition-all"
                   style={{ width: `${Math.min((totalWordsLast7Days / 1000) * 100, 100)}%` }}
                 />
               </div>
             </div>
 
-            <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
-              <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">
+            <div className="pt-4 border-t border-m3-outline-variant">
+              <p className="text-sm text-m3-on-surface-variant mb-2">
                 Average per day (last 7 days)
               </p>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                  <p className="text-2xl font-bold text-m3-on-surface">
                     {(totalPoemsLast7Days / 7).toFixed(1)}
                   </p>
-                  <p className="text-xs text-slate-500">poems/day</p>
+                  <p className="text-xs text-m3-on-surface-variant">poems/day</p>
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                  <p className="text-2xl font-bold text-m3-on-surface">
                     {Math.round(totalWordsLast7Days / 7)}
                   </p>
-                  <p className="text-xs text-slate-500">words/day</p>
+                  <p className="text-xs text-m3-on-surface-variant">words/day</p>
                 </div>
               </div>
             </div>
