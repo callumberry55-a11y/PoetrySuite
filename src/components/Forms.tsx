@@ -15,7 +15,7 @@ export default function Forms({ onSelectForm }: FormsProps) {
     : poetryForms.filter(form => form.difficulty === selectedDifficulty);
 
   return (
-    <div className="h-full flex flex-col bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
+    <div className="w-full h-full flex flex-col bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
       <div className="p-6 border-b border-slate-200 dark:border-slate-700">
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -72,9 +72,9 @@ export default function Forms({ onSelectForm }: FormsProps) {
       </div>
 
       <div className="flex-1 overflow-y-auto p-6">
-        <div className="max-w-5xl mx-auto">
+        <div className="w-full">
           {!selectedForm ? (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {filteredForms.map(form => (
                 <div
                   key={form.id}

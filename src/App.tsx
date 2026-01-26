@@ -1,11 +1,9 @@
 import { lazy, Suspense, useState, useCallback } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import AuthPage from './components/AuthPage';
 import Layout from './components/Layout';
-import DeveloperDashboard from './components/DeveloperDashboard';
-import DeveloperLogin from './components/DeveloperLogin';
 
 const PoemEditor = lazy(() => import('./components/PoemEditor'));
 const Library = lazy(() => import('./components/Library'));
@@ -15,20 +13,6 @@ const Discover = lazy(() => import('./components/Discover'));
 const Prompts = lazy(() => import('./components/Prompts'));
 const Forms = lazy(() => import('./components/Forms'));
 const Submissions = lazy(() => import('./components/Submissions'));
-
-const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
-    const { user, userProfile, loading } = useAuth();
-
-    if (loading) {
-        return <div>Loading...</div>;
-    }
-
-    if (!user || !userProfile?.is_developer) {
-        return <Navigate to="/developer-login" />;
-    }
-
-    return children;
-};
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -46,8 +30,6 @@ function AppContent() {
 
   return (
     <Routes>
-      <Route path="/developer-login" element={<DeveloperLogin />} />
-      <Route path="/developer/dashboard" element={<ProtectedRoute><DeveloperDashboard /></ProtectedRoute>} />
       <Route path="/*" element={user ? <MainApp /> : <AuthPage />} />
     </Routes>
   );

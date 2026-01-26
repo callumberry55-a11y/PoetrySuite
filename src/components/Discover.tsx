@@ -100,7 +100,7 @@ export default function Discover() {
   );
 
   return (
-    <div className="h-full flex flex-col bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
+    <div className="w-full h-full flex flex-col bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
       <div className="p-6 border-b border-slate-200 dark:border-slate-700">
         <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-6">Discover Poetry</h1>
 
@@ -171,7 +171,7 @@ export default function Discover() {
             <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
           </div>
         ) : activeTab === 'contests' ? (
-          <div className="max-w-4xl mx-auto space-y-6">
+          <div className="space-y-6">
             {contests.map(contest => {
               const statusColor = contest.status === 'active'
                 ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
@@ -236,7 +236,7 @@ export default function Discover() {
             )}
           </div>
         ) : (
-          <div className="max-w-3xl mx-auto space-y-6">
+          <div className="space-y-6">
             {filteredPoems.map(poem => (
               <div
                 key={poem.id}

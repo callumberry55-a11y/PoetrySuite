@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 
 import { useAuth } from '../contexts/AuthContext';
-import { BookHeart, Code } from 'lucide-react';
+import { BookHeart } from 'lucide-react';
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -11,11 +11,6 @@ export default function AuthPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { signIn, signUp, signInWithGoogle } = useAuth();
-
-  const [devFormEmail, setDevFormEmail] = useState('');
-  const [devFormPassword, setDevFormPassword] = useState('');
-  const [devFormPhone, setDevFormPhone] = useState('');
-  const showDevLogin = import.meta.env.DEV;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,31 +49,6 @@ export default function AuthPage() {
     }
   };
 
-  const handleDevLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-
-    try {
-      const { error: authError } = await signIn(devFormEmail, devFormPassword);
-
-      if (authError) {
-        if (authError.message.includes('Invalid login credentials')) {
-          const { error: signUpError } = await signUp(devFormEmail, devFormPassword);
-          if (signUpError) {
-            setError(signUpError.message);
-          }
-        } else {
-          setError(authError.message);
-        }
-      }
-    } catch {
-      setError('An unexpected error occurred');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-m3-background px-4">
       <div className="max-w-md w-full">
@@ -95,80 +65,6 @@ export default function AuthPage() {
         </div>
 
         <div className="bg-m3-surface rounded-2xl shadow-xl p-8">
-          {showDevLogin && (
-            <div className="mb-6 p-4 bg-m3-tertiary-container border-2 border-m3-tertiary-container/80 rounded-lg">
-              <div className="flex items-center gap-2 mb-3">
-                <Code className="text-m3-on-tertiary-container" size={20} />
-                <span className="font-semibold text-m3-on-tertiary-container">Developer Login</span>
-              </div>
-              <form onSubmit={handleDevLogin} className="space-y-3">
-                <div>
-                  <label htmlFor="dev-email" className="block text-xs font-medium text-m3-on-tertiary-container mb-1">
-                    Email
-                  </label>
-                  <input
-                    id="dev-email"
-                    type="email"
-                    value={devFormEmail}
-                    onChange={(e) => setDevFormEmail(e.target.value)}
-                    required
-                    className="w-full px-3 py-2 rounded-lg border border-m3-outline bg-m3-surface text-m3-on-surface focus:ring-2 focus:ring-m3-primary focus:border-transparent text-sm"
-                    placeholder="dev@example.com"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="dev-password" className="block text-xs font-medium text-m3-on-tertiary-container mb-1">
-                    Password
-                  </label>
-                  <input
-                    id="dev-password"
-                    type="password"
-                    value={devFormPassword}
-                    onChange={(e) => setDevFormPassword(e.target.value)}
-                    required
-                    minLength={8}
-                    className="w-full px-3 py-2 rounded-lg border border-m3-outline bg-m3-surface text-m3-on-surface focus:ring-2 focus:ring-m3-primary focus:border-transparent text-sm"
-                    placeholder="••••••••"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="dev-phone" className="block text-xs font-medium text-m3-on-tertiary-container mb-1">
-                    Phone Number (UK)
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value="+44"
-                      disabled
-                      className="w-16 px-3 py-2 rounded-lg border border-m3-outline bg-m3-surface-variant/40 text-m3-on-surface text-sm text-center"
-                      aria-label="Country code"
-                    />
-                    <input
-                      id="dev-phone"
-                      type="tel"
-                      value={devFormPhone}
-                      onChange={(e) => setDevFormPhone(e.target.value.replace(/\D/g, ''))}
-                      required
-                      pattern="[0-9]{10}"
-                      className="flex-1 px-3 py-2 rounded-lg border border-m3-outline bg-m3-surface text-m3-on-surface focus:ring-2 focus:ring-m3-primary focus:border-transparent text-sm"
-                      placeholder="7700900000"
-                      maxLength={10}
-                    />
-                  </div>
-                  <p className="text-xs text-m3-on-tertiary-container/80 mt-1">Enter 10 digits after +44</p>
-                </div>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full bg-m3-tertiary hover:opacity-90 disabled:bg-m3-tertiary/50 text-m3-on-tertiary font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
-                >
-                  <Code size={18} />
-                  {loading ? 'Logging in...' : 'Dev Login'}
-                </button>
-              </form>
-            </div>
-          )}
-
           <div className="flex gap-2 mb-6" role="group" aria-label="Authentication mode">
             <button
               onClick={() => setIsLogin(true)}
@@ -236,7 +132,7 @@ export default function AuthPage() {
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4" aria-label={isLogin ? 'Login form' : 'Sign up form'}>
+          <form onSubmit={handleSubmit} className="space-.y-4" aria-label={isLogin ? 'Login form' : 'Sign up form'}>
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-m3-on-surface mb-2">
                 Email

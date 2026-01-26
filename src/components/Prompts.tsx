@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Lightbulb, Plus, Calendar, Target } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { db } from '../lib/firebase';
+import { collection, getDocs, addDoc, query, orderBy, limit, writeBatch } from "firebase/firestore"; 
 import { useAuth } from '../contexts/AuthContext';
 
 interface Prompt {
@@ -43,7 +44,7 @@ const predefinedPrompts: Omit<Prompt, 'id' | 'active_date'>[] = [
   },
   {
     title: 'Conversations Unspoken',
-    content: 'Write the dialogue you wish you could have with someone. What would you say if fear didn\'t hold you back?',
+    content: "Write the dialogue you wish you could have with someone. What would you say if fear didn't hold you back?",
     prompt_type: 'weekly',
     difficulty: 'intermediate',
   },
@@ -89,19 +90,17 @@ export default function Prompts({ onUsePrompt }: PromptsProps) {
     if (!user) return;
 
     try {
-      const promptsToInsert = predefinedPrompts.map((prompt, index) => ({
-        ...prompt,
-        active_date: new Date(Date.now() - index * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      }));
-
-      const { data, error } = await supabase
-        .from('writing_prompts')
-        .insert(promptsToInsert)
-        .select();
-
-      if (error) throw error;
-
-      setPrompts(data || []);
+      const batch = writeBatch(db);
+      const promptsCollection = collection(db, "writing_prompts");
+      predefinedPrompts.forEach((prompt, index) => {
+        const docRef = addDoc(promptsCollection, {});
+        batch.set(docRef, {
+          ...prompt,
+          active_date: new Date(Date.now() - index * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        });
+      });
+      await batch.commit();
+      await loadPrompts();
     } catch (error) {
       console.error('Error initializing prompts:', error);
     }
@@ -110,18 +109,15 @@ export default function Prompts({ onUsePrompt }: PromptsProps) {
   const loadPrompts = useCallback(async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('writing_prompts')
-        .select('*')
-        .order('active_date', { ascending: false })
-        .limit(50);
-
-      if (error) throw error;
-
-      if (!data || data.length === 0) {
+      const promptsCollection = collection(db, "writing_prompts");
+      const q = query(promptsCollection, orderBy('active_date', 'desc'), limit(50));
+      const querySnapshot = await getDocs(q);
+      
+      if (querySnapshot.empty) {
         await initializePrompts();
       } else {
-        setPrompts(data || []);
+        const promptsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Prompt));
+        setPrompts(promptsData);
       }
     } catch (error) {
       console.error('Error loading prompts:', error);
@@ -132,8 +128,10 @@ export default function Prompts({ onUsePrompt }: PromptsProps) {
   }, [initializePrompts]);
 
   useEffect(() => {
-    loadPrompts();
-  }, [loadPrompts]);
+    if (user) {
+      loadPrompts();
+    }
+  }, [user, loadPrompts]);
 
   const addCustomPrompt = async () => {
     if (!user) return;
@@ -148,18 +146,14 @@ export default function Prompts({ onUsePrompt }: PromptsProps) {
     if (!difficulty) return;
 
     try {
-      const { error } = await supabase
-        .from('writing_prompts')
-        .insert({
-          title,
-          content,
-          prompt_type: 'daily',
-          difficulty,
-          active_date: new Date().toISOString().split('T')[0],
-        });
-
-      if (error) throw error;
-
+      const promptsCollection = collection(db, "writing_prompts");
+      await addDoc(promptsCollection, {
+        title,
+        content,
+        prompt_type: 'daily',
+        difficulty,
+        active_date: new Date().toISOString().split('T')[0],
+      });
       await loadPrompts();
     } catch (error) {
       console.error('Error adding custom prompt:', error);
@@ -171,7 +165,7 @@ export default function Prompts({ onUsePrompt }: PromptsProps) {
     : prompts.filter(p => p.prompt_type === filter);
 
   return (
-    <div className="h-full flex flex-col bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
+    <div className="w-full h-full flex flex-col bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
       <div className="p-6 border-b border-slate-200 dark:border-slate-700">
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -239,7 +233,7 @@ export default function Prompts({ onUsePrompt }: PromptsProps) {
             <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
           </div>
         ) : (
-          <div className="max-w-3xl mx-auto space-y-4">
+          <div className="space-y-4">
             {filteredPrompts.map(prompt => (
               <div
                 key={prompt.id}
