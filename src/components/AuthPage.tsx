@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { BookHeart } from 'lucide-react';
 
 export default function AuthPage() {

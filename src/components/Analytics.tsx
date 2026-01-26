@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, memo, useMemo } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { supabase } from '../lib/supabase';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/lib/supabase';
 import { TrendingUp, BookOpen, Feather, Calendar, Flame } from 'lucide-react';
 
 interface WritingStats {
@@ -12,6 +12,7 @@ interface WritingStats {
 
 interface Poem {
     created_at: string;
+    word_count?: number;
 }
 
 function Analytics() {
@@ -92,7 +93,7 @@ function Analytics() {
       return;
     }
 
-    const poemData = poems || [];
+    const poemData: Poem[] = poems || [];
 
     setTotalPoems(poemData.length);
     setTotalWords(poemData.reduce((sum, poem) => sum + (poem.word_count || 0), 0));

@@ -1,18 +1,18 @@
 import { lazy, Suspense, useState, useCallback } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { ThemeProvider } from './contexts/ThemeContext';
-import AuthPage from './components/AuthPage';
-import Layout from './components/Layout';
+import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import { ThemeProvider } from '@/contexts/ThemeContext';
+import AuthPage from '@/components/AuthPage';
+import Layout from '@/components/Layout';
 
-const PoemEditor = lazy(() => import('./components/PoemEditor'));
-const Library = lazy(() => import('./components/Library'));
-const Analytics = lazy(() => import('./components/Analytics'));
-const Settings = lazy(() => import('./components/Settings'));
-const Discover = lazy(() => import('./components/Discover'));
-const Prompts = lazy(() => import('./components/Prompts'));
-const Forms = lazy(() => import('./components/Forms'));
-const Submissions = lazy(() => import('./components/Submissions'));
+const PoemEditor = lazy(() => import('@/components/PoemEditor'));
+const Library = lazy(() => import('@/components/Library'));
+const Analytics = lazy(() => import('@/components/Analytics'));
+const Settings = lazy(() => import('@/components/Settings'));
+const Discover = lazy(() => import('@/components/Discover'));
+const Prompts = lazy(() => import('@/components/Prompts'));
+const Forms = lazy(() => import('@/components/Forms'));
+const Submissions = lazy(() => import('@/components/Submissions'));
 
 function AppContent() {
   const { user, loading } = useAuth();

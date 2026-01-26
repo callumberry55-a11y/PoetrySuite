@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Lightbulb, Plus, Calendar, Target } from 'lucide-react';
 import { db } from '../lib/firebase';
-import { collection, getDocs, addDoc, query, orderBy, limit, writeBatch } from "firebase/firestore"; 
+import { collection, getDocs, addDoc, query, orderBy, limit, writeBatch, doc } from "firebase/firestore"; 
 import { useAuth } from '../contexts/AuthContext';
 
 interface Prompt {
@@ -86,26 +86,6 @@ export default function Prompts({ onUsePrompt }: PromptsProps) {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'daily' | 'weekly' | 'challenge'>('all');
 
-  const initializePrompts = useCallback(async () => {
-    if (!user) return;
-
-    try {
-      const batch = writeBatch(db);
-      const promptsCollection = collection(db, "writing_prompts");
-      predefinedPrompts.forEach((prompt, index) => {
-        const docRef = addDoc(promptsCollection, {});
-        batch.set(docRef, {
-          ...prompt,
-          active_date: new Date(Date.now() - index * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        });
-      });
-      await batch.commit();
-      await loadPrompts();
-    } catch (error) {
-      console.error('Error initializing prompts:', error);
-    }
-  }, [user]);
-
   const loadPrompts = useCallback(async () => {
     setLoading(true);
     try {
@@ -125,7 +105,27 @@ export default function Prompts({ onUsePrompt }: PromptsProps) {
     } finally {
       setLoading(false);
     }
-  }, [initializePrompts]);
+  }, []);
+
+  const initializePrompts = useCallback(async () => {
+    if (!user) return;
+
+    try {
+      const batch = writeBatch(db);
+      const promptsCollection = collection(db, "writing_prompts");
+      predefinedPrompts.forEach((prompt, index) => {
+        const docRef = doc(promptsCollection);
+        batch.set(docRef, {
+          ...prompt,
+          active_date: new Date(Date.now() - index * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        });
+      });
+      await batch.commit();
+      await loadPrompts();
+    } catch (error) {
+      console.error('Error initializing prompts:', error);
+    }
+  }, [user, loadPrompts]);
 
   useEffect(() => {
     if (user) {

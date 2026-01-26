@@ -1,6 +1,6 @@
-import { ReactNode, useState, useEffect, useRef } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { useTheme } from '../contexts/ThemeContext';
+import { ReactNode, useState, useEffect, useRef, useCallback } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import {
   BookHeart,
   PenLine,
@@ -17,7 +17,6 @@ import {
   Lightbulb,
   BookOpen,
   Send,
-  Sparkles,
   MoreVertical,
 } from 'lucide-react';
 
@@ -41,6 +40,17 @@ declare global {
   }
 }
 
+const navItems = [
+  { id: 'write' as const, icon: PenLine, label: 'Write' },
+  { id: 'library' as const, icon: Library, label: 'Library' },
+  { id: 'discover' as const, icon: Compass, label: 'Discover' },
+  { id: 'prompts' as const, icon: Lightbulb, label: 'Prompts' },
+  { id: 'forms' as const, icon: BookOpen, label: 'Forms' },
+  { id: 'submissions' as const, icon: Send, label: 'Submissions' },
+  { id: 'analytics' as const, icon: BarChart3, label: 'Analytics' },
+  { id: 'settings' as const, icon: Settings, label: 'Settings' },
+];
+
 export default function Layout({ children, currentView, onViewChange }: LayoutProps) {
   const { signOut } = useAuth();
   const { isDark, toggleTheme } = useTheme();
@@ -50,17 +60,6 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const navRef = useRef<HTMLElement>(null);
   const [visibleNavItems, setVisibleNavItems] = useState<number>(9);
-
-  const navItems = [
-    { id: 'write' as const, icon: PenLine, label: 'Write' },
-    { id: 'library' as const, icon: Library, label: 'Library' },
-    { id: 'discover' as const, icon: Compass, label: 'Discover' },
-    { id: 'prompts' as const, icon: Lightbulb, label: 'Prompts' },
-    { id: 'forms' as const, icon: BookOpen, label: 'Forms' },
-    { id: 'submissions' as const, icon: Send, label: 'Submissions' },
-    { id: 'analytics' as const, icon: BarChart3, label: 'Analytics' },
-    { id: 'settings' as const, icon: Settings, label: 'Settings' },
-  ];
 
   useEffect(() => {
     const handler = (e: BeforeInstallPromptEvent) => {
@@ -83,7 +82,7 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
     };
   }, []);
 
-  const handleResize = () => {
+  const handleResize = useCallback(() => {
     if (navRef.current) {
       const navWidth = navRef.current.offsetWidth;
       // Rough estimation of item width
@@ -91,13 +90,13 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
       const maxVisible = Math.floor(navWidth / itemWidth);
       setVisibleNavItems(Math.min(navItems.length, maxVisible));
     }
-  };
+  }, []);
 
   useEffect(() => {
     window.addEventListener('resize', handleResize);
     handleResize(); // Initial calculation
     return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  }, [handleResize]);
 
   const handleInstallClick = async () => {
     if (!deferredPrompt) return;

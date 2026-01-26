@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Search, Trophy, BookOpen, TrendingUp, Users, X } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { supabase } from '@/lib/supabase';
 
 interface Poem {
   id: string;
