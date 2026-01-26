@@ -7,8 +7,6 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
-type SuggestionType = "unit-test" | "e2e-test" | "code-refactor";
-
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, {
@@ -18,7 +16,7 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const { type, prompt } = await req.json();
+    const { prompt } = await req.json();
 
     if (!prompt) {
       return new Response(
@@ -30,39 +28,14 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    if (!type || !["unit-test", "e2e-test", "code-refactor"].includes(type)) {
-      return new Response(
-        JSON.stringify({ error: "Invalid suggestion type" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
-    }
-
     const openai = new OpenAI({
       apiKey: Deno.env.get("OPENAI_API_KEY"),
     });
 
-    const systemMessages: Record<SuggestionType, { role: "system"; content: string }> = {
-      "unit-test": {
-        role: "system",
-        content: "You are a helpful assistant that generates unit tests for the given code.",
-      },
-      "e2e-test": {
-        role: "system",
-        content: "You are a helpful assistant that generates e2e tests for the given code.",
-      },
-      "code-refactor": {
-        role: "system",
-        content: "You are a helpful assistant that refactors the given code to improve its quality.",
-      },
-    };
-
     const response = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [
-        systemMessages[type as SuggestionType],
+        { role: "system", content: "You are a helpful assistant." },
         { role: "user", content: prompt },
       ],
     });

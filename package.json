@@ -1,7 +1,7 @@
 {
   "name": "poetry-suite",
   "description": "A modern poetry writing and management application with helpful writing resources",
-  "version": "75.1.1",
+  "version": "75.5.1-beta.1",
   "type": "module",
   "author": "",
   "license": "MIT",
@@ -30,9 +30,6 @@
     "build:apk": "cd android && ./gradlew assembleRelease"
   },
   "dependencies": {
-    "@capacitor/android": "^8.0.1",
-    "@capacitor/cli": "^7.4.5",
-    "@capacitor/core": "^8.0.1",
     "@supabase/supabase-js": "^2.91.0",
     "lucide-react": "^0.563.0",
     "react": "^19.2.3",

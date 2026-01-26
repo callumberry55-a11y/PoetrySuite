@@ -80,30 +80,30 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-m3-background px-4">
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-500 text-white mb-4" aria-hidden="true">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-m3-primary text-m3-on-primary mb-4" aria-hidden="true">
             <BookHeart size={32} />
           </div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
+          <h1 className="text-3xl font-bold text-m3-on-background mb-2">
             Poetry Suite
           </h1>
-          <p className="text-slate-600 dark:text-slate-400">
+          <p className="text-m3-on-surface-variant">
             Your personal sanctuary for writing, curating, and sharing poetry
           </p>
         </div>
 
-        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8">
+        <div className="bg-m3-surface rounded-2xl shadow-xl p-8">
           {showDevLogin && (
-            <div className="mb-6 p-4 bg-amber-50 dark:bg-amber-900/20 border-2 border-amber-200 dark:border-amber-800 rounded-lg">
+            <div className="mb-6 p-4 bg-m3-tertiary-container border-2 border-m3-tertiary-container/80 rounded-lg">
               <div className="flex items-center gap-2 mb-3">
-                <Code className="text-amber-600 dark:text-amber-400" size={20} />
-                <span className="font-semibold text-amber-900 dark:text-amber-100">Developer Login</span>
+                <Code className="text-m3-on-tertiary-container" size={20} />
+                <span className="font-semibold text-m3-on-tertiary-container">Developer Login</span>
               </div>
               <form onSubmit={handleDevLogin} className="space-y-3">
                 <div>
-                  <label htmlFor="dev-email" className="block text-xs font-medium text-amber-900 dark:text-amber-100 mb-1">
+                  <label htmlFor="dev-email" className="block text-xs font-medium text-m3-on-tertiary-container mb-1">
                     Email
                   </label>
                   <input
@@ -112,12 +112,12 @@ export default function AuthPage() {
                     value={devFormEmail}
                     onChange={(e) => setDevFormEmail(e.target.value)}
                     required
-                    className="w-full px-3 py-2 rounded-lg border border-amber-300 dark:border-amber-700 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:border-transparent text-sm"
+                    className="w-full px-3 py-2 rounded-lg border border-m3-outline bg-m3-surface text-m3-on-surface focus:ring-2 focus:ring-m3-primary focus:border-transparent text-sm"
                     placeholder="dev@example.com"
                   />
                 </div>
                 <div>
-                  <label htmlFor="dev-password" className="block text-xs font-medium text-amber-900 dark:text-amber-100 mb-1">
+                  <label htmlFor="dev-password" className="block text-xs font-medium text-m3-on-tertiary-container mb-1">
                     Password
                   </label>
                   <input
@@ -127,12 +127,12 @@ export default function AuthPage() {
                     onChange={(e) => setDevFormPassword(e.target.value)}
                     required
                     minLength={8}
-                    className="w-full px-3 py-2 rounded-lg border border-amber-300 dark:border-amber-700 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:border-transparent text-sm"
+                    className="w-full px-3 py-2 rounded-lg border border-m3-outline bg-m3-surface text-m3-on-surface focus:ring-2 focus:ring-m3-primary focus:border-transparent text-sm"
                     placeholder="••••••••"
                   />
                 </div>
                 <div>
-                  <label htmlFor="dev-phone" className="block text-xs font-medium text-amber-900 dark:text-amber-100 mb-1">
+                  <label htmlFor="dev-phone" className="block text-xs font-medium text-m3-on-tertiary-container mb-1">
                     Phone Number (UK)
                   </label>
                   <div className="flex gap-2">
@@ -140,7 +140,7 @@ export default function AuthPage() {
                       type="text"
                       value="+44"
                       disabled
-                      className="w-16 px-3 py-2 rounded-lg border border-amber-300 dark:border-amber-700 bg-slate-100 dark:bg-slate-600 text-slate-900 dark:text-white text-sm text-center"
+                      className="w-16 px-3 py-2 rounded-lg border border-m3-outline bg-m3-surface-variant/40 text-m3-on-surface text-sm text-center"
                       aria-label="Country code"
                     />
                     <input
@@ -150,17 +150,17 @@ export default function AuthPage() {
                       onChange={(e) => setDevFormPhone(e.target.value.replace(/\D/g, ''))}
                       required
                       pattern="[0-9]{10}"
-                      className="flex-1 px-3 py-2 rounded-lg border border-amber-300 dark:border-amber-700 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:border-transparent text-sm"
+                      className="flex-1 px-3 py-2 rounded-lg border border-m3-outline bg-m3-surface text-m3-on-surface focus:ring-2 focus:ring-m3-primary focus:border-transparent text-sm"
                       placeholder="7700900000"
                       maxLength={10}
                     />
                   </div>
-                  <p className="text-xs text-amber-700 dark:text-amber-300 mt-1">Enter 10 digits after +44</p>
+                  <p className="text-xs text-m3-on-tertiary-container/80 mt-1">Enter 10 digits after +44</p>
                 </div>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-amber-500 hover:bg-amber-600 disabled:bg-amber-300 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+                  className="w-full bg-m3-tertiary hover:opacity-90 disabled:bg-m3-tertiary/50 text-m3-on-tertiary font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
                 >
                   <Code size={18} />
                   {loading ? 'Logging in...' : 'Dev Login'}
@@ -174,8 +174,8 @@ export default function AuthPage() {
               onClick={() => setIsLogin(true)}
               className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${
                 isLogin
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
+                  ? 'bg-m3-primary text-m3-on-primary'
+                  : 'bg-m3-secondary-container text-m3-on-secondary-container'
               }`}
               aria-pressed={isLogin}
               aria-label="Switch to login mode"
@@ -186,8 +186,8 @@ export default function AuthPage() {
               onClick={() => setIsLogin(false)}
               className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${
                 !isLogin
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
+                  ? 'bg-m3-primary text-m3-on-primary'
+                  : 'bg-m3-secondary-container text-m3-on-secondary-container'
               }`}
               aria-pressed={!isLogin}
               aria-label="Switch to sign up mode"
@@ -200,7 +200,7 @@ export default function AuthPage() {
             onClick={handleGoogleSignIn}
             disabled={loading}
             type="button"
-            className="w-full mb-6 bg-white dark:bg-slate-700 border-2 border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed text-slate-700 dark:text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-3"
+            className="w-full mb-6 bg-m3-surface border-2 border-m3-outline hover:bg-m3-on-surface/5 disabled:opacity-50 disabled:cursor-not-allowed text-m3-on-surface font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-3"
             aria-label="Continue with Google"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24" aria-hidden="true" role="img">
@@ -227,10 +227,10 @@ export default function AuthPage() {
 
           <div className="relative mb-6" role="separator" aria-label="Or continue with email">
             <div className="absolute inset-0 flex items-center" aria-hidden="true">
-              <div className="w-full border-t border-slate-300 dark:border-slate-600"></div>
+              <div className="w-full border-t border-m3-outline"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400">
+              <span className="px-2 bg-m3-surface text-m3-on-surface-variant">
                 Or continue with email
               </span>
             </div>
@@ -238,7 +238,7 @@ export default function AuthPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4" aria-label={isLogin ? 'Login form' : 'Sign up form'}>
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+              <label htmlFor="email" className="block text-sm font-medium text-m3-on-surface mb-2">
                 Email
               </label>
               <input
@@ -247,7 +247,7 @@ export default function AuthPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 rounded-lg border border-m3-outline bg-m3-surface text-m3-on-surface focus:ring-2 focus:ring-m3-primary focus:border-transparent"
                 placeholder="you@example.com"
                 aria-required="true"
                 aria-describedby={error ? 'auth-error' : undefined}
@@ -255,7 +255,7 @@ export default function AuthPage() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+              <label htmlFor="password" className="block text-sm font-medium text-m3-on-surface mb-2">
                 Password
               </label>
               <input
@@ -265,7 +265,7 @@ export default function AuthPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
-                className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 rounded-lg border border-m3-outline bg-m3-surface text-m3-on-surface focus:ring-2 focus:ring-m3-primary focus:border-transparent"
                 placeholder="••••••••"
                 aria-required="true"
                 aria-describedby={error ? 'auth-error' : 'password-requirements'}
@@ -278,7 +278,7 @@ export default function AuthPage() {
             {error && (
               <div
                 id="auth-error"
-                className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-3 rounded-lg text-sm"
+                className="bg-m3-error-container text-m3-on-error-container px-4 py-3 rounded-lg text-sm"
                 role="alert"
                 aria-live="assertive"
               >
@@ -289,7 +289,7 @@ export default function AuthPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white font-medium py-3 px-4 rounded-lg transition-colors"
+              className="w-full bg-m3-primary hover:opacity-90 disabled:bg-m3-primary/50 text-m3-on-primary font-medium py-3 px-4 rounded-lg transition-colors"
               aria-label={loading ? 'Processing...' : isLogin ? 'Login to your account' : 'Create your account'}
             >
               {loading ? 'Please wait...' : isLogin ? 'Login' : 'Create Account'}
