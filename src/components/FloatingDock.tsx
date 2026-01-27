@@ -2,7 +2,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { AppWindow, Moon, Sun, LogOut, PenLine, Library, Compass, Sparkles, TrendingUp, BookOpen, Lightbulb, Settings, Send } from 'lucide-react';
 
-type ViewType = 'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'submissions' | 'ai';
+type ViewType = 'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms';
 
 interface FloatingDockProps {
   onAppDrawerOpen: () => void;
@@ -10,7 +10,7 @@ interface FloatingDockProps {
   currentView: ViewType;
 }
 
-const frequentApps: ViewType[] = ['write', 'library', 'discover', 'ai', 'analytics', 'forms', 'prompts', 'settings', 'submissions'];
+const frequentApps: ViewType[] = ['write', 'library', 'discover', 'analytics', 'forms', 'prompts', 'settings'];
 
 export default function FloatingDock({ onAppDrawerOpen, onViewChange, currentView }: FloatingDockProps) {
   const { signOut } = useAuth();
@@ -34,12 +34,10 @@ export default function FloatingDock({ onAppDrawerOpen, onViewChange, currentVie
             write: PenLine,
             library: Library,
             discover: Compass,
-            ai: Sparkles,
             analytics: TrendingUp,
             forms: BookOpen,
             prompts: Lightbulb,
             settings: Settings,
-            submissions: Send
           }[appId];
 
           return (

@@ -3,7 +3,7 @@ import { Download, X } from 'lucide-react';
 import AppDrawer from './AppDrawer';
 import FloatingDock from './FloatingDock';
 
-type ViewType = 'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'submissions' | 'ai';
+type ViewType = 'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms';
 
 interface LayoutProps {
   children: ReactNode;

@@ -1,6 +1,6 @@
-import { BookHeart, PenLine, Library, BarChart3, Settings, Compass, Lightbulb, BookOpen, Send, Bot, X } from 'lucide-react';
+import { BookHeart, PenLine, Library, BarChart3, Settings, Compass, Lightbulb, BookOpen, X } from 'lucide-react';
 
-type ViewType = 'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'submissions' | 'ai';
+type ViewType = 'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms';
 
 interface AppDrawerProps {
   isOpen: boolean;
@@ -15,10 +15,8 @@ const navItems = [
   { id: 'discover' as const, icon: Compass, label: 'Discover' },
   { id: 'prompts' as const, icon: Lightbulb, label: 'Prompts' },
   { id: 'forms' as const, icon: BookOpen, label: 'Forms' },
-  { id: 'submissions' as const, icon: Send, label: 'Submissions' },
   { id: 'analytics' as const, icon: BarChart3, label: 'Analytics' },
   { id: 'settings' as const, icon: Settings, label: 'Settings' },
-  { id: 'ai' as const, icon: Bot, label: 'AI Assistant' },
 ];
 
 export default function AppDrawer({ isOpen, onClose, onViewChange, currentView }: AppDrawerProps) {

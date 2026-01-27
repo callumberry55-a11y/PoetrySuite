@@ -12,7 +12,6 @@ const Settings = lazy(() => import('@/components/Settings'));
 const Discover = lazy(() => import('@/components/Discover'));
 const Prompts = lazy(() => import('@/components/Prompts'));
 const Forms = lazy(() => import('@/components/Forms'));
-const Submissions = lazy(() => import('@/components/Submissions'));
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -36,7 +35,7 @@ function AppContent() {
 }
 
 function MainApp() {
-    const [currentView, setCurrentView] = useState<'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'submissions'>('library');
+    const [currentView, setCurrentView] = useState<'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms'>('library');
     const [selectedPoemId, setSelectedPoemId] = useState<string | null>(null);
 
     const handleNewPoem = useCallback(() => {
@@ -90,7 +89,6 @@ function MainApp() {
               }}
             />
           )}
-          {currentView === 'submissions' && <Submissions />}
           {currentView === 'analytics' && <Analytics />}
           {currentView === 'settings' && <Settings />}
         </Suspense>

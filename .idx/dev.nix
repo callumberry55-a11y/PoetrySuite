@@ -1,23 +1,19 @@
 { pkgs, ... }: {
   channel = "stable-24.05";
-
-  packages = [
-    pkgs.nodejs_22_x
-  ];
-
-  idx.extensions = [
-    "bradlc.vscode-tailwindcss",
-    "esbenp.prettier-vscode",
-    "dbaeumer.vscode-eslint"
-  ];
-
+  packages = [ pkgs.nodejs_22_x pkgs.deno pkgs.typescript ];
+  idx.extensions = [ "denoland.vscode-deno" "bradlc.vscode-tailwindcss" "esbenp.prettier-vscode" "dbaeumer.vscode-eslint" ];
   idx.previews = {
     enable = true;
-    previews = [ {
-      name = "web";
-      command = [ "npm", "run", "dev" ];
-      port = 5173;
-      onPortFound = "open";
-    } ];
+    previews = [
+      {
+        name = "web";
+        command = ["npm" "run" "dev"];
+        port = 5173;
+        onPortFound = "open";
+      }
+    ];
+  };
+  env = {
+    PORT = "5173";
   };
 }

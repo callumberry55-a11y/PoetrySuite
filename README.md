@@ -11,7 +11,6 @@ A modern, feature-rich poetry writing and management application built with Reac
 - **Writing Prompts**: Daily, weekly, and challenge prompts to inspire creativity
 - **Poetry Forms**: Learn and practice different poetic forms
 - **Analytics**: Track your writing progress and statistics
-- **Submissions Tracker**: Manage journal submissions and responses
 - **Dark/Light Theme**: Toggle between dark and light modes
 - **Offline Support**: Progressive Web App (PWA) with offline capabilities
 - **Responsive Design**: Beautiful UI that works on all devices
@@ -69,7 +68,7 @@ After creating your Supabase project, configure these security settings:
 #### Database Migrations
 
 The database migrations in `supabase/migrations/` will automatically set up:
-- All required tables (poems, collections, poem_collections, analytics, writing_prompts, poetry_forms, submissions)
+- All required tables (poems, collections, poem_collections, analytics, writing_prompts, poetry_forms)
 - Row Level Security (RLS) policies
 - Foreign key indexes for optimal performance
 - Proper constraints and default values
@@ -114,7 +113,6 @@ npm run lint
 │   │   ├── PoemEditor.tsx
 │   │   ├── Prompts.tsx
 │   │   ├── Settings.tsx
-│   │   ├── Submissions.tsx
 │   │   └── WritingAssistant.tsx
 │   ├── contexts/       # React contexts
 │   │   ├── AuthContext.tsx
@@ -142,7 +140,6 @@ The app uses the following tables:
 - **analytics**: Track writing metrics and statistics
 - **writing_prompts**: Store daily, weekly, and challenge prompts
 - **poetry_forms**: Catalog of poetic forms and structures
-- **submissions**: Track journal submissions and responses
 
 All tables include Row Level Security (RLS) policies to ensure data privacy.
 
@@ -186,13 +183,6 @@ Explore and learn different poetic forms:
 - Sonnets, haikus, villanelles, and more
 - Structural guidelines for each form
 - Tips and examples to help you practice
-
-### Submissions Tracker
-
-Manage your poetry submissions:
-- Track which poems you've submitted where
-- Record submission dates and responses
-- Monitor acceptance rates and feedback
 
 ### Analytics
 

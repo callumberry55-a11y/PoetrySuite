@@ -2,6 +2,14 @@
 
 ## Summary of Changes
 
+### Feature Removal: "Submissions"
+
+- Removed the "Submissions" feature from the entire application.
+- Deleted the `Submissions.tsx` component.
+- Updated `App.tsx`, `Layout.tsx`, `AppDrawer.tsx`, and `FloatingDock.tsx` to remove all references to the "Submissions" view.
+- Updated `README.md` to remove any mention of the "Submissions" feature.
+- Cleaned up the database schema description in `README.md`.
+
 ### 1. **Like & Comment Functionality ✅**
 
 #### New Components Created:
@@ -50,7 +58,6 @@
   - `poems(user_id, created_at)`
   - `reactions(poem_id, user_id)`
   - `comments(poem_id, created_at)`
-  - `submissions(user_id, submission_date)`
 
 #### Performance Utilities (`performance.ts`):
 - **Debounce Function**: Prevents excessive function calls
@@ -67,7 +74,6 @@ New tables created with proper relationships and RLS:
 - **collections** - User-created poem collections
 - **tags** - User-defined tags for organization
 - **writing_stats** - Track writing progress
-- **submissions** - Literary submission tracking
 - **community_submissions** - Community showcase submissions
 - **contests** - Poetry contests management
 - **push_subscriptions** - Web push notification subscriptions
