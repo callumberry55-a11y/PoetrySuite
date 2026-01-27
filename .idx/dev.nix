@@ -3,6 +3,7 @@
 
   packages = [
     pkgs.nodejs_22_x
+    pkgs.jdk
   ];
 
   idx.extensions = [

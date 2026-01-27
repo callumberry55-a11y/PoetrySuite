@@ -18,9 +18,10 @@ import {
   BookOpen,
   Send,
   MoreVertical,
+  Bot, // Added Bot icon
 } from 'lucide-react';
 
-type ViewType = 'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'submissions';
+type ViewType = 'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'submissions' | 'ai';
 
 interface LayoutProps {
   children: ReactNode;
@@ -50,6 +51,9 @@ const navItems = [
   { id: 'analytics' as const, icon: BarChart3, label: 'Analytics' },
   { id: 'settings' as const, icon: Settings, label: 'Settings' },
 ];
+
+const aiNavItem = { id: 'ai' as const, icon: Bot, label: 'AI Assistant' };
+
 
 export default function Layout({ children, currentView, onViewChange }: LayoutProps) {
   const { signOut } = useAuth();
@@ -122,6 +126,7 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
 
   const displayedNavItems = navItems.slice(0, visibleNavItems);
   const hiddenNavItems = navItems.slice(visibleNavItems);
+  const allNavItems = [...navItems, aiNavItem];
 
   return (
     <div className="min-h-screen bg-m3-background flex flex-col">
@@ -200,6 +205,20 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
                   <span className="hidden lg:inline">{item.label}</span>
                 </button>
               ))}
+              <button
+                key={aiNavItem.id}
+                onClick={() => onViewChange(aiNavItem.id)}
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg font-medium transition-colors text-sm animate-pulse ${
+                  currentView === aiNavItem.id
+                    ? 'bg-m3-secondary-container text-m3-on-secondary-container'
+                    : 'text-m3-on-surface-variant hover:bg-m3-on-surface/10'
+                }`}
+                aria-label={`Navigate to ${aiNavItem.label}`}
+                aria-current={currentView === aiNavItem.id ? 'page' : undefined}
+              >
+                <aiNavItem.icon size={16} aria-hidden="true" />
+                <span className="hidden lg:inline">{aiNavItem.label}</span>
+              </button>
               {hiddenNavItems.length > 0 && (
                  <div className="relative">
                    <button onClick={() => setShowMoreMenu(!showMoreMenu)} className="flex items-center gap-2 px-3 py-2 rounded-lg font-medium transition-colors text-sm text-m3-on-surface-variant hover:bg-m3-on-surface/10">
@@ -259,7 +278,7 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
               </button>
             </div>
             <nav className="p-4 space-y-1" aria-label="Mobile navigation">
-              {navItems.map((item) => (
+              {allNavItems.map((item) => (
                 <button
                   key={item.id}
                   onClick={() => {
@@ -270,7 +289,7 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
                     currentView === item.id
                       ? 'bg-m3-secondary-container text-m3-on-secondary-container'
                       : 'text-m3-on-surface-variant hover:bg-m3-on-surface/10'
-                  }`}
+                  } ${item.id === 'ai' ? 'animate-pulse' : ''}`}
                   aria-label={`Navigate to ${item.label}`}
                   aria-current={currentView === item.id ? 'page' : undefined}
                 >
