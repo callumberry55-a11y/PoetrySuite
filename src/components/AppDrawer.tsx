@@ -1,0 +1,71 @@
+import { BookHeart, PenLine, Library, BarChart3, Settings, Compass, Lightbulb, BookOpen, Send, Bot, X } from 'lucide-react';
+
+type ViewType = 'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'submissions' | 'ai';
+
+interface AppDrawerProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onViewChange: (view: ViewType) => void;
+  currentView: ViewType;
+}
+
+const navItems = [
+  { id: 'write' as const, icon: PenLine, label: 'Write' },
+  { id: 'library' as const, icon: Library, label: 'Library' },
+  { id: 'discover' as const, icon: Compass, label: 'Discover' },
+  { id: 'prompts' as const, icon: Lightbulb, label: 'Prompts' },
+  { id: 'forms' as const, icon: BookOpen, label: 'Forms' },
+  { id: 'submissions' as const, icon: Send, label: 'Submissions' },
+  { id: 'analytics' as const, icon: BarChart3, label: 'Analytics' },
+  { id: 'settings' as const, icon: Settings, label: 'Settings' },
+  { id: 'ai' as const, icon: Bot, label: 'AI Assistant' },
+];
+
+export default function AppDrawer({ isOpen, onClose, onViewChange, currentView }: AppDrawerProps) {
+  if (!isOpen) return null;
+
+  return (
+    <div 
+      className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center" 
+      onClick={onClose}
+    >
+      <div 
+        className="bg-surface rounded-2xl shadow-2xl w-[90vw] max-w-4xl h-[80vh] max-h-[600px] p-6 flex flex-col" 
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center" aria-hidden="true">
+              <BookHeart size={20} className="text-on-primary" />
+            </div>
+            <h1 className="text-xl font-bold text-on-surface">Poetry Suite</h1>
+          </div>
+          <button onClick={onClose} className="p-2 rounded-full hover:bg-on-surface/10 text-on-surface-variant">
+            <X size={24} />
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto pr-2">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            {navItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => {
+                  onViewChange(item.id);
+                  onClose();
+                }}
+                className={`flex flex-col items-center justify-center gap-2 p-4 rounded-lg transition-colors aspect-square ${
+                  currentView === item.id
+                    ? 'bg-secondary-container text-on-secondary-container'
+                    : 'bg-surface-container hover:bg-surface-variant text-on-surface'
+                }`}
+              >
+                <item.icon size={32} />
+                <span className="text-sm font-medium text-center">{item.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

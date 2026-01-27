@@ -3,19 +3,19 @@
 
   packages = [
     pkgs.nodejs_22_x
-    pkgs.jdk
   ];
 
   idx.extensions = [
-    "svelte.svelte-vscode"
-    "vue.volar"
+    "bradlc.vscode-tailwindcss",
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint"
   ];
 
   idx.previews = {
     enable = true;
     previews = [ {
       name = "web";
-      command = [ "npm" "run" "dev" ];
+      command = [ "npm", "run", "dev" ];
       port = 5173;
       onPortFound = "open";
     } ];

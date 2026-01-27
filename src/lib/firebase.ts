@@ -2,21 +2,23 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { getAnalytics } from "firebase/analytics";
 
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyCzFHZkk45_Vc7k1cqK6GYxX7VL2WWvfXI",
-  authDomain: "poetrysuite-40372323-40609.firebaseapp.com",
-  projectId: "poetrysuite-40372323-40609",
-  storageBucket: "poetrysuite-40372323-40609.firebasestorage.app",
-  messagingSenderId: "474607129063",
-  appId: "1:474607129063:web:6c5fed2c3fd67be124ed42"
+  apiKey: "AIzaSyBJqwQ4IyDLoN4zm5X8YNpweoyp1g6gSUU",
+  authDomain: "poetrysuite-76507980-fe0db.firebaseapp.com",
+  projectId: "poetrysuite-76507980-fe0db",
+  storageBucket: "poetrysuite-76507980-fe0db.firebasestorage.app",
+  messagingSenderId: "931649099035",
+  appId: "1:931649099035:web:d6e7d393ffb3bb1a2d2fbe"
 };
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+export const analytics = getAnalytics(app);

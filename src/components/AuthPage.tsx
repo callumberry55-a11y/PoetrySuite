@@ -50,28 +50,28 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-m3-background px-4">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-m3-primary text-m3-on-primary mb-4" aria-hidden="true">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary text-on-primary mb-4" aria-hidden="true">
             <BookHeart size={32} />
           </div>
-          <h1 className="text-3xl font-bold text-m3-on-background mb-2">
+          <h1 className="text-3xl font-bold text-on-background mb-2">
             Poetry Suite
           </h1>
-          <p className="text-m3-on-surface-variant">
+          <p className="text-on-surface-variant">
             Your personal sanctuary for writing, curating, and sharing poetry
           </p>
         </div>
 
-        <div className="bg-m3-surface rounded-2xl shadow-xl p-8">
+        <div className="bg-surface rounded-2xl shadow-xl p-8">
           <div className="flex gap-2 mb-6" role="group" aria-label="Authentication mode">
             <button
               onClick={() => setIsLogin(true)}
               className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${
                 isLogin
-                  ? 'bg-m3-primary text-m3-on-primary'
-                  : 'bg-m3-secondary-container text-m3-on-secondary-container'
+                  ? 'bg-primary text-on-primary'
+                  : 'bg-secondary-container text-on-secondary-container'
               }`}
               aria-pressed={isLogin}
               aria-label="Switch to login mode"
@@ -82,8 +82,8 @@ export default function AuthPage() {
               onClick={() => setIsLogin(false)}
               className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${
                 !isLogin
-                  ? 'bg-m3-primary text-m3-on-primary'
-                  : 'bg-m3-secondary-container text-m3-on-secondary-container'
+                  ? 'bg-primary text-on-primary'
+                  : 'bg-secondary-container text-on-secondary-container'
               }`}
               aria-pressed={!isLogin}
               aria-label="Switch to sign up mode"
@@ -96,7 +96,7 @@ export default function AuthPage() {
             onClick={handleGoogleSignIn}
             disabled={loading}
             type="button"
-            className="w-full mb-6 bg-m3-surface border-2 border-m3-outline hover:bg-m3-on-surface/5 disabled:opacity-50 disabled:cursor-not-allowed text-m3-on-surface font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-3"
+            className="w-full mb-6 bg-surface border-2 border-outline hover:bg-on-surface/5 disabled:opacity-50 disabled:cursor-not-allowed text-on-surface font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-3"
             aria-label="Continue with Google"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24" aria-hidden="true" role="img">
@@ -123,18 +123,18 @@ export default function AuthPage() {
 
           <div className="relative mb-6" role="separator" aria-label="Or continue with email">
             <div className="absolute inset-0 flex items-center" aria-hidden="true">
-              <div className="w-full border-t border-m3-outline"></div>
+              <div className="w-full border-t border-outline"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-m3-surface text-m3-on-surface-variant">
+              <span className="px-2 bg-surface text-on-surface-variant">
                 Or continue with email
               </span>
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-.y-4" aria-label={isLogin ? 'Login form' : 'Sign up form'}>
+          <form onSubmit={handleSubmit} className="space-y-4" aria-label={isLogin ? 'Login form' : 'Sign up form'}>
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-m3-on-surface mb-2">
+              <label htmlFor="email" className="block text-sm font-medium text-on-surface mb-2">
                 Email
               </label>
               <input
@@ -143,7 +143,7 @@ export default function AuthPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full px-4 py-2 rounded-lg border border-m3-outline bg-m3-surface text-m3-on-surface focus:ring-2 focus:ring-m3-primary focus:border-transparent"
+                className="w-full px-4 py-2 rounded-lg border border-outline bg-surface text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent"
                 placeholder="you@example.com"
                 aria-required="true"
                 aria-describedby={error ? 'auth-error' : undefined}
@@ -151,7 +151,7 @@ export default function AuthPage() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-m3-on-surface mb-2">
+              <label htmlFor="password" className="block text-sm font-medium text-on-surface mb-2">
                 Password
               </label>
               <input
@@ -161,7 +161,7 @@ export default function AuthPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
-                className="w-full px-4 py-2 rounded-lg border border-m3-outline bg-m3-surface text-m3-on-surface focus:ring-2 focus:ring-m3-primary focus:border-transparent"
+                className="w-full px-4 py-2 rounded-lg border border-outline bg-surface text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent"
                 placeholder="••••••••"
                 aria-required="true"
                 aria-describedby={error ? 'auth-error' : 'password-requirements'}
@@ -174,7 +174,7 @@ export default function AuthPage() {
             {error && (
               <div
                 id="auth-error"
-                className="bg-m3-error-container text-m3-on-error-container px-4 py-3 rounded-lg text-sm"
+                className="bg-error-container text-on-error-container px-4 py-3 rounded-lg text-sm"
                 role="alert"
                 aria-live="assertive"
               >
@@ -185,7 +185,7 @@ export default function AuthPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-m3-primary hover:opacity-90 disabled:bg-m3-primary/50 text-m3-on-primary font-medium py-3 px-4 rounded-lg transition-colors"
+              className="w-full bg-primary hover:opacity-90 disabled:bg-primary/50 text-on-primary font-medium py-3 px-4 rounded-lg transition-colors"
               aria-label={loading ? 'Processing...' : isLogin ? 'Login to your account' : 'Create your account'}
             >
               {loading ? 'Please wait...' : isLogin ? 'Login' : 'Create Account'}

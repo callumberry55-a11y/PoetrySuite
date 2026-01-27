@@ -165,16 +165,16 @@ export default function Prompts({ onUsePrompt }: PromptsProps) {
     : prompts.filter(p => p.prompt_type === filter);
 
   return (
-    <div className="w-full h-full flex flex-col bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
-      <div className="p-6 border-b border-slate-200 dark:border-slate-700">
+    <div className="w-full h-full flex flex-col bg-gradient-to-br from-background to-secondary-container/20">
+      <div className="p-6 border-b border-outline">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Writing Prompts</h1>
-            <p className="text-slate-600 dark:text-slate-400">Get inspired and overcome writer's block</p>
+            <h1 className="text-3xl font-bold text-on-background mb-2">Writing Prompts</h1>
+            <p className="text-on-surface-variant">Get inspired and overcome writer's block</p>
           </div>
           <button
             onClick={addCustomPrompt}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/90 text-on-primary rounded-lg font-medium transition-colors"
           >
             <Plus size={18} />
             Add Custom
@@ -186,8 +186,8 @@ export default function Prompts({ onUsePrompt }: PromptsProps) {
             onClick={() => setFilter('all')}
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
               filter === 'all'
-                ? 'bg-blue-600 text-white'
-                : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
+                ? 'bg-primary text-on-primary'
+                : 'bg-surface text-on-surface-variant hover:bg-surface-variant'
             }`}
           >
             All
@@ -196,8 +196,8 @@ export default function Prompts({ onUsePrompt }: PromptsProps) {
             onClick={() => setFilter('daily')}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
               filter === 'daily'
-                ? 'bg-blue-600 text-white'
-                : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
+                ? 'bg-primary text-on-primary'
+                : 'bg-surface text-on-surface-variant hover:bg-surface-variant'
             }`}
           >
             <Calendar size={16} />
@@ -207,8 +207,8 @@ export default function Prompts({ onUsePrompt }: PromptsProps) {
             onClick={() => setFilter('weekly')}
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
               filter === 'weekly'
-                ? 'bg-blue-600 text-white'
-                : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
+                ? 'bg-primary text-on-primary'
+                : 'bg-surface text-on-surface-variant hover:bg-surface-variant'
             }`}
           >
             Weekly
@@ -217,8 +217,8 @@ export default function Prompts({ onUsePrompt }: PromptsProps) {
             onClick={() => setFilter('challenge')}
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
               filter === 'challenge'
-                ? 'bg-blue-600 text-white'
-                : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
+                ? 'bg-primary text-on-primary'
+                : 'bg-surface text-on-surface-variant hover:bg-surface-variant'
             }`}
           >
             <Target size={16} />
@@ -230,42 +230,42 @@ export default function Prompts({ onUsePrompt }: PromptsProps) {
       <div className="flex-1 overflow-y-auto p-6">
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
           </div>
         ) : (
           <div className="space-y-4">
             {filteredPrompts.map(prompt => (
               <div
                 key={prompt.id}
-                className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden hover:shadow-md transition-shadow"
+                className="bg-surface rounded-xl shadow-sm border border-outline overflow-hidden hover:shadow-md transition-shadow"
               >
                 <div className="p-6">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-2 flex-1">
-                      <Lightbulb className="text-amber-500 flex-shrink-0" size={20} />
-                      <h3 className="text-lg font-bold text-slate-900 dark:text-white">{prompt.title}</h3>
+                      <Lightbulb className="text-tertiary flex-shrink-0" size={20} />
+                      <h3 className="text-lg font-bold text-on-surface">{prompt.title}</h3>
                     </div>
                     <span className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ml-2 ${
                       prompt.difficulty === 'beginner'
                         ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
                         : prompt.difficulty === 'intermediate'
-                        ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+                        ? 'bg-primary-container text-on-primary-container'
                         : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
                     }`}>
                       {prompt.difficulty}
                     </span>
                   </div>
 
-                  <p className="text-slate-700 dark:text-slate-300 mb-4">{prompt.content}</p>
+                  <p className="text-on-surface mb-4">{prompt.content}</p>
 
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+                    <div className="flex items-center gap-2 text-sm text-on-surface-variant">
                       <Calendar size={14} />
                       {new Date(prompt.active_date).toLocaleDateString()}
                     </div>
                     <button
                       onClick={() => onUsePrompt(prompt)}
-                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors"
+                      className="px-4 py-2 bg-primary hover:bg-primary/90 text-on-primary rounded-lg text-sm font-medium transition-colors"
                     >
                       Use This Prompt
                     </button>
@@ -276,8 +276,8 @@ export default function Prompts({ onUsePrompt }: PromptsProps) {
 
             {filteredPrompts.length === 0 && (
               <div className="text-center py-12">
-                <Lightbulb className="mx-auto mb-4 text-slate-400" size={48} />
-                <p className="text-slate-600 dark:text-slate-400">No prompts available</p>
+                <Lightbulb className="mx-auto mb-4 text-on-surface-variant" size={48} />
+                <p className="text-on-surface-variant">No prompts available</p>
               </div>
             )}
           </div>

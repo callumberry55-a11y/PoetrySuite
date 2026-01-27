@@ -100,19 +100,19 @@ export default function Discover() {
   );
 
   return (
-    <div className="w-full h-full flex flex-col bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
-      <div className="p-6 border-b border-slate-200 dark:border-slate-700">
-        <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-6">Discover Poetry</h1>
+    <div className="w-full h-full flex flex-col bg-gradient-to-br from-background to-secondary-container/20">
+      <div className="p-6 border-b border-outline">
+        <h1 className="text-3xl font-bold text-on-background mb-6">Discover Poetry</h1>
 
         <div className="mb-6">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" size={20} />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search poems..."
-              className="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white placeholder:text-slate-400"
+              className="w-full pl-10 pr-4 py-3 bg-surface border border-outline rounded-lg text-on-surface placeholder:text-on-surface-variant"
             />
           </div>
         </div>
@@ -122,8 +122,8 @@ export default function Discover() {
             onClick={() => setActiveTab('feed')}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-colors ${
               activeTab === 'feed'
-                ? 'bg-blue-600 text-white'
-                : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
+                ? 'bg-primary text-on-primary'
+                : 'bg-surface text-on-surface-variant hover:bg-surface-variant'
             }`}
           >
             <BookOpen size={18} />
@@ -133,8 +133,8 @@ export default function Discover() {
             onClick={() => setActiveTab('contests')}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-colors ${
               activeTab === 'contests'
-                ? 'bg-blue-600 text-white'
-                : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
+                ? 'bg-primary text-on-primary'
+                : 'bg-surface text-on-surface-variant hover:bg-surface-variant'
             }`}
           >
             <Trophy size={18} />
@@ -144,8 +144,8 @@ export default function Discover() {
             onClick={() => setActiveTab('trending')}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-colors ${
               activeTab === 'trending'
-                ? 'bg-blue-600 text-white'
-                : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
+                ? 'bg-primary text-on-primary'
+                : 'bg-surface text-on-surface-variant hover:bg-surface-variant'
             }`}
           >
             <TrendingUp size={18} />
@@ -155,8 +155,8 @@ export default function Discover() {
             onClick={() => setActiveTab('following')}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-colors ${
               activeTab === 'following'
-                ? 'bg-blue-600 text-white'
-                : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
+                ? 'bg-primary text-on-primary'
+                : 'bg-surface text-on-surface-variant hover:bg-surface-variant'
             }`}
           >
             <Users size={18} />
@@ -168,7 +168,7 @@ export default function Discover() {
       <div className="flex-1 overflow-y-auto p-6">
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
           </div>
         ) : activeTab === 'contests' ? (
           <div className="space-y-6">
@@ -182,31 +182,31 @@ export default function Discover() {
               return (
                 <div
                   key={contest.id}
-                  className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden hover:shadow-md transition-shadow"
+                  className="bg-surface rounded-xl shadow-sm border border-outline overflow-hidden hover:shadow-md transition-shadow"
                 >
                   <div className="p-6">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
-                          <Trophy className="text-amber-500" size={24} />
-                          <h3 className="text-2xl font-bold text-slate-900 dark:text-white">{contest.title}</h3>
+                          <Trophy className="text-tertiary" size={24} />
+                          <h3 className="text-2xl font-bold text-on-surface">{contest.title}</h3>
                         </div>
                         <div className="flex items-center gap-2 mb-3">
                           <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusColor}`}>
                             {contest.status}
                           </span>
-                          <span className="px-3 py-1 rounded-full text-sm font-medium bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-300">
+                          <span className="px-3 py-1 rounded-full text-sm font-medium bg-tertiary-container text-on-tertiary-container">
                             {contest.theme}
                           </span>
                         </div>
                       </div>
                     </div>
 
-                    <p className="text-slate-700 dark:text-slate-300 mb-4 leading-relaxed">
+                    <p className="text-on-surface-variant mb-4 leading-relaxed">
                       {contest.description}
                     </p>
 
-                    <div className="flex items-center gap-6 text-sm text-slate-600 dark:text-slate-400 mb-4">
+                    <div className="flex items-center gap-6 text-sm text-on-surface-variant mb-4">
                       <div>
                         <span className="font-medium">Submissions:</span> {new Date(contest.start_date).toLocaleDateString()} - {new Date(contest.end_date).toLocaleDateString()}
                       </div>
@@ -217,7 +217,7 @@ export default function Discover() {
 
                     {contest.status === 'active' && (
                       <button
-                        className="w-full mt-4 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                        className="w-full mt-4 px-4 py-3 bg-primary hover:bg-primary/90 text-on-primary rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
                       >
                         <Trophy size={18} />
                         Submit Your Poem
@@ -230,8 +230,8 @@ export default function Discover() {
 
             {contests.length === 0 && (
               <div className="text-center py-12">
-                <Trophy className="mx-auto mb-4 text-slate-400" size={48} />
-                <p className="text-slate-600 dark:text-slate-400">No contests available</p>
+                <Trophy className="mx-auto mb-4 text-on-surface-variant" size={48} />
+                <p className="text-on-surface-variant">No contests available</p>
               </div>
             )}
           </div>
@@ -241,13 +241,13 @@ export default function Discover() {
               <div
                 key={poem.id}
                 onClick={() => setSelectedPoem(poem)}
-                className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden hover:shadow-md transition-all cursor-pointer"
+                className="bg-surface rounded-xl shadow-sm border border-outline overflow-hidden hover:shadow-md transition-all cursor-pointer"
               >
                 <div className="p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div>
-                      <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-1">{poem.title}</h3>
-                      <p className="text-sm text-slate-600 dark:text-slate-400">
+                      <h3 className="text-xl font-bold text-on-surface mb-1">{poem.title}</h3>
+                      <p className="text-sm text-on-surface-variant">
                         by {poem.user_profiles?.display_name || poem.user_profiles?.username || 'Anonymous'}
                       </p>
                     </div>
@@ -262,7 +262,7 @@ export default function Discover() {
 
             {filteredPoems.length === 0 && (
               <div className="text-center py-12">
-                <p className="text-slate-600 dark:text-slate-400">No poems found</p>
+                <p className="text-on-surface-variant">No poems found</p>
               </div>
             )}
           </div>
@@ -271,17 +271,17 @@ export default function Discover() {
         {/* Poem Detail Modal */}
         {selectedPoem && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
-            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-2xl w-full my-8">
-              <div className="flex items-start justify-between p-6 border-b border-slate-200 dark:border-slate-700">
+            <div className="bg-surface rounded-2xl shadow-2xl max-w-2xl w-full my-8">
+              <div className="flex items-start justify-between p-6 border-b border-outline">
                 <div>
-                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white">{selectedPoem.title}</h2>
-                  <p className="text-slate-600 dark:text-slate-400 mt-1">
+                  <h2 className="text-2xl font-bold text-on-surface">{selectedPoem.title}</h2>
+                  <p className="text-on-surface-variant mt-1">
                     by {selectedPoem.user_profiles?.display_name || selectedPoem.user_profiles?.username || 'Anonymous'}
                   </p>
                 </div>
                 <button
                   onClick={() => setSelectedPoem(null)}
-                  className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                  className="text-on-surface-variant hover:text-on-surface"
                   aria-label="Close"
                 >
                   <X size={24} />

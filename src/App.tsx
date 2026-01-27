@@ -13,17 +13,16 @@ const Discover = lazy(() => import('@/components/Discover'));
 const Prompts = lazy(() => import('@/components/Prompts'));
 const Forms = lazy(() => import('@/components/Forms'));
 const Submissions = lazy(() => import('@/components/Submissions'));
-const AIAssistant = lazy(() => import('@/components/AiAssistant'));
 
 function AppContent() {
   const { user, loading } = useAuth();
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-          <div className="text-slate-600 dark:text-slate-400">Loading...</div>
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          <div className="text-on-background">Loading...</div>
         </div>
       </div>
     );
@@ -37,7 +36,7 @@ function AppContent() {
 }
 
 function MainApp() {
-    const [currentView, setCurrentView] = useState<'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'submissions' | 'ai'>('library');
+    const [currentView, setCurrentView] = useState<'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'submissions'>('library');
     const [selectedPoemId, setSelectedPoemId] = useState<string | null>(null);
 
     const handleNewPoem = useCallback(() => {
@@ -59,7 +58,7 @@ function MainApp() {
         <Layout currentView={currentView} onViewChange={setCurrentView}>
         <Suspense fallback={
           <div className="flex items-center justify-center h-full">
-            <div className="text-slate-600 dark:text-slate-400">Loading...</div>
+            <div className="text-on-background">Loading...</div>
           </div>
         }>
           {currentView === 'write' && (
@@ -94,7 +93,6 @@ function MainApp() {
           {currentView === 'submissions' && <Submissions />}
           {currentView === 'analytics' && <Analytics />}
           {currentView === 'settings' && <Settings />}
-          {currentView === 'ai' && <AIAssistant />}
         </Suspense>
       </Layout>
     )
