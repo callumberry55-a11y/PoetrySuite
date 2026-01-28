@@ -7,9 +7,19 @@ interface AuthContextType {
   session: Session | null;
   user: User | null;
   signOut: () => Promise<void>;
+  signIn: (email: string, password: string) => Promise<any>;
+  signUp: (email: string, password: string) => Promise<any>;
+  signInWithGoogle: () => Promise<any>;
 }
 
-const AuthContext = createContext<AuthContextType>({ session: null, user: null, signOut: async () => {} });
+const AuthContext = createContext<AuthContextType>({
+  session: null,
+  user: null,
+  signOut: async () => {},
+  signIn: async (_email: string, _password: string) => {},
+  signUp: async (_email: string, _password: string) => {},
+  signInWithGoogle: async () => {},
+});
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
@@ -33,10 +43,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await supabase.auth.signOut();
   }, []);
 
+  const signIn = useCallback(async (email: string, password: string) => {
+    return await supabase.auth.signInWithPassword({ email, password });
+  }, []);
+
+  const signUp = useCallback(async (email: string, password: string) => {
+    return await supabase.auth.signUp({ email, password });
+  }, []);
+
+  const signInWithGoogle = useCallback(async () => {
+    return await supabase.auth.signInWithOAuth({
+      provider: 'google',
+    });
+  }, []);
+
   const value = {
     session,
     user,
     signOut,
+    signIn,
+    signUp,
+    signInWithGoogle,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -44,7 +71,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (context === undefined) {
+if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
