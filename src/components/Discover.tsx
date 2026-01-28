@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Search, Trophy, BookOpen, TrendingUp, Users, X } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { Trophy, BookOpen, TrendingUp, Users, X, Shield } from 'lucide-react';
+import { db } from '@/lib/firebase';
+import { collection, query, where, getDocs, orderBy, limit } from "firebase/firestore"; 
+import { runSecurityChecks } from '../utils/security';
 
 interface Poem {
   id: string;
@@ -31,8 +33,8 @@ export default function Discover() {
   const [poems, setPoems] = useState<Poem[]>([]);
   const [contests, setContests] = useState<Contest[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
   const [selectedPoem, setSelectedPoem] = useState<Poem | null>(null);
+  const [securityStatus, setSecurityStatus] = useState<'active' | 'inactive' | 'checking'>('checking');
 
   useEffect(() => {
     if (activeTab === 'contests') {
@@ -42,33 +44,27 @@ export default function Discover() {
     }
   }, [activeTab]);
 
+  useEffect(() => {
+    const performCheck = async () => {
+      setSecurityStatus('checking');
+      const result = await runSecurityChecks('some-user-input');
+      setSecurityStatus(result ? 'active' : 'inactive');
+    };
+
+    performCheck();
+    const interval = setInterval(performCheck, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   const loadPoems = async () => {
     setLoading(true);
     try {
-      const query = supabase
-        .from('poems')
-        .select(`
-          id,
-          title,
-          content,
-          user_id,
-          created_at,
-          user_profiles(username, display_name)
-        `)
-        .eq('is_public', true)
-        .order('created_at', { ascending: false })
-        .limit(20);
-
-      const { data, error } = await query;
-
-      if (error) throw error;
-
-      const poemsData = data?.map(p => ({
-          ...p,
-          user_profiles: Array.isArray(p.user_profiles) ? p.user_profiles[0] : p.user_profiles
-      })) || [];
-
-      setPoems(poemsData as unknown as Poem[]);
+      const poemsRef = collection(db, "poems");
+      const q = query(poemsRef, where("is_public", "==", true), orderBy("created_at", "desc"), limit(20));
+      const querySnapshot = await getDocs(q);
+      const poems = querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })) as Poem[];
+      setPoems(poems);
     } catch {
       console.debug('Failed to load poems');
     } finally {
@@ -79,14 +75,11 @@ export default function Discover() {
   const loadContests = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('contests')
-        .select('*')
-        .order('start_date', { ascending: false });
-
-      if (error) throw error;
-
-      setContests(data || []);
+      const contestsRef = collection(db, "contests");
+      const q = query(contestsRef, orderBy("start_date", "desc"));
+      const querySnapshot = await getDocs(q);
+      const contests = querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })) as Contest[];
+      setContests(contests);
     } catch {
       console.debug('Failed to load contests');
     } finally {
@@ -94,27 +87,40 @@ export default function Discover() {
     }
   };
 
-  const filteredPoems = poems.filter(poem =>
-    poem.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    poem.content.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const renderSecurityStatus = () => {
+    switch (securityStatus) {
+      case 'active':
+        return (
+          <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
+            <Shield size={18} />
+            <span>AI Security Guard: Active</span>
+          </div>
+        );
+      case 'inactive':
+        return (
+          <div className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400">
+            <Shield size={18} />
+            <span>AI Security Guard: Inactive</span>
+          </div>
+        );
+      case 'checking':
+        return (
+          <div className="flex items-center gap-2 text-sm text-yellow-600 dark:text-yellow-400">
+            <Shield size={18} className="animate-pulse" />
+            <span>AI Security Guard: Checking...</span>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="w-full h-full flex flex-col bg-gradient-to-br from-background to-secondary-container/20">
       <div className="p-6 border-b border-outline">
-        <h1 className="text-3xl font-bold text-on-background mb-6">Discover Poetry</h1>
-
-        <div className="mb-6">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" size={20} />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search poems..."
-              className="w-full pl-10 pr-4 py-3 bg-surface border border-outline rounded-lg text-on-surface placeholder:text-on-surface-variant"
-            />
-          </div>
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-3xl font-bold text-on-background">AI Hub</h1>
+          {renderSecurityStatus()}
         </div>
 
         <div className="flex gap-2 overflow-x-auto">
@@ -237,7 +243,7 @@ export default function Discover() {
           </div>
         ) : (
           <div className="space-y-6">
-            {filteredPoems.map(poem => (
+            {poems.map((poem:Poem) => (
               <div
                 key={poem.id}
                 onClick={() => setSelectedPoem(poem)}
@@ -259,12 +265,6 @@ export default function Discover() {
                 </div>
               </div>
             ))}
-
-            {filteredPoems.length === 0 && (
-              <div className="text-center py-12">
-                <p className="text-on-surface-variant">No poems found</p>
-              </div>
-            )}
           </div>
         )}
 

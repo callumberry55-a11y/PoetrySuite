@@ -1,6 +1,6 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
-import { AppWindow, Moon, Sun, LogOut, PenLine, Library, Compass, Sparkles, TrendingUp, BookOpen, Lightbulb, Settings, Send } from 'lucide-react';
+import { AppWindow, Moon, Sun, LogOut, PenLine, Library, Compass, TrendingUp, BookOpen, Lightbulb, Settings } from 'lucide-react';
 
 type ViewType = 'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms';
 
@@ -10,14 +10,14 @@ interface FloatingDockProps {
   currentView: ViewType;
 }
 
-const frequentApps: ViewType[] = ['write', 'library', 'discover', 'analytics', 'forms', 'prompts', 'settings'];
+const frequentApps: ViewType[] = ['write', 'library'];
 
 export default function FloatingDock({ onAppDrawerOpen, onViewChange, currentView }: FloatingDockProps) {
   const { signOut } = useAuth();
   const { isDark, toggleTheme } = useTheme();
 
   return (
-    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40">
+    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 max-w-full overflow-x-auto hide-scrollbar">
       <div className="flex items-center gap-2 bg-surface/80 backdrop-blur-md rounded-full shadow-lg p-2 border border-outline/20">
         <button
           onClick={onAppDrawerOpen}

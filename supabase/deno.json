@@ -1,7 +1,0 @@
-{
-  "importMap": "./import_map.json",
-  "nodeModulesDir": "auto",
-  "dependencies": {
-    "openai": "npm:openai@^4.52.5"
-  }
-}

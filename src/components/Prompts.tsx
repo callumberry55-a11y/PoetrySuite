@@ -86,6 +86,32 @@ export default function Prompts({ onUsePrompt }: PromptsProps) {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'daily' | 'weekly' | 'challenge'>('all');
 
+  const initializePrompts = useCallback(async () => {
+    if (!user) return [];
+
+    try {
+      const batch = writeBatch(db);
+      const promptsCollection = collection(db, "writing_prompts");
+      const newPrompts: Prompt[] = [];
+      
+      predefinedPrompts.forEach((prompt, index) => {
+        const docRef = doc(promptsCollection);
+        const newPromptData = {
+          ...prompt,
+          active_date: new Date(Date.now() - index * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        };
+        batch.set(docRef, newPromptData);
+        newPrompts.push({ id: docRef.id, ...newPromptData });
+      });
+
+      await batch.commit();
+      return newPrompts.sort((a, b) => new Date(b.active_date).getTime() - new Date(a.active_date).getTime());
+    } catch (error) {
+      console.error('Error initializing prompts:', error);
+      return [];
+    }
+  }, [user]);
+
   const loadPrompts = useCallback(async () => {
     setLoading(true);
     try {
@@ -94,7 +120,8 @@ export default function Prompts({ onUsePrompt }: PromptsProps) {
       const querySnapshot = await getDocs(q);
       
       if (querySnapshot.empty) {
-        await initializePrompts();
+        const newPrompts = await initializePrompts();
+        setPrompts(newPrompts);
       } else {
         const promptsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Prompt));
         setPrompts(promptsData);
@@ -105,27 +132,7 @@ export default function Prompts({ onUsePrompt }: PromptsProps) {
     } finally {
       setLoading(false);
     }
-  }, []);
-
-  const initializePrompts = useCallback(async () => {
-    if (!user) return;
-
-    try {
-      const batch = writeBatch(db);
-      const promptsCollection = collection(db, "writing_prompts");
-      predefinedPrompts.forEach((prompt, index) => {
-        const docRef = doc(promptsCollection);
-        batch.set(docRef, {
-          ...prompt,
-          active_date: new Date(Date.now() - index * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        });
-      });
-      await batch.commit();
-      await loadPrompts();
-    } catch (error) {
-      console.error('Error initializing prompts:', error);
-    }
-  }, [user, loadPrompts]);
+  }, [initializePrompts]);
 
   useEffect(() => {
     if (user) {
@@ -147,14 +154,15 @@ export default function Prompts({ onUsePrompt }: PromptsProps) {
 
     try {
       const promptsCollection = collection(db, "writing_prompts");
-      await addDoc(promptsCollection, {
+      const newDoc = await addDoc(promptsCollection, {
         title,
         content,
         prompt_type: 'daily',
         difficulty,
         active_date: new Date().toISOString().split('T')[0],
+        user_id: user.uid,
       });
-      await loadPrompts();
+      setPrompts(prev => [{ id: newDoc.id, title, content, prompt_type: 'daily', difficulty, active_date: new Date().toISOString().split('T')[0]} as Prompt, ...prev]);
     } catch (error) {
       console.error('Error adding custom prompt:', error);
     }

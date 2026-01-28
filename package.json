@@ -30,32 +30,30 @@
     "build:apk": "cd android && ./gradlew assembleRelease"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.43.4",
+    "@google/generative-ai": "^0.24.1",
+    "@supabase/supabase-js": "^2.93.2",
+    "@tailwindcss/postcss": "^4.1.18",
     "firebase": "12.8.0",
-    "lucide-react": "^0.395.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-router-dom": "^6.23.1",
+    "lucide-react": "^0.563.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-router-dom": "^7.13.0",
     "typescript-eslint": "^8.53.1",
     "vite-plugin-pwa": "^1.2.0"
   },
   "devDependencies": {
-    "@types/react": "^18.2.0",
-    "@types/react-dom": "^18.2.0",
+    "@types/react": "^19.2.10",
+    "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^4.3.1",
     "autoprefixer": "^10.4.19",
-    "eslint": "^8.57.0",
+    "eslint": "^9.39.2",
     "eslint-plugin-react": "^7.34.2",
-    "eslint-plugin-react-hooks": "^4.6.2",
+    "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.7",
     "postcss": "^8.4.38",
-    "supabase": "^2.72.8",
-    "tailwindcss": "^3.4.4",
+    "supabase": "^2.72.9",
+    "tailwindcss": "^4.1.18",
     "typescript": "^5.2.2",
     "vite": "^6.4.1"
-  },
-  "overrides": {
-    "tar": "6.2.1",
-    "undici": "^5.28.4"
   }
 }

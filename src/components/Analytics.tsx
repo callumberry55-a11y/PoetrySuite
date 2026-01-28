@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, memo, useMemo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/lib/supabase';
+import { db } from '@/lib/firebase';
+import { collection, query, where, getDocs, orderBy } from "firebase/firestore"; 
 import { TrendingUp, BookOpen, Feather, Calendar, Flame } from 'lucide-react';
 
 interface WritingStats {
@@ -79,78 +80,52 @@ function Analytics() {
     setLongestStreak(longest);
   }, []);
 
-  const loadStats = useCallback(async () => {
-    if (!user || !user.uid) return;
+  useEffect(() => {
+    const loadStats = async () => {
+      if (!user?.id) return;
 
-    const { data: poems, error } = await supabase
-      .from('poems')
-      .select('id, created_at, word_count')
-      .eq('user_id', user.uid)
-      .order('created_at', { ascending: false });
+      const poemsRef = collection(db, "poems");
+      const q = query(poemsRef, where("user_id", "==", user.id), orderBy("created_at", "desc"));
+      const querySnapshot = await getDocs(q);
+      const poems = querySnapshot.docs.map(doc => doc.data());
 
-    if (error) {
-      console.error('Error loading poems:', error);
-      return;
-    }
+      const poemData: Poem[] = poems as Poem[] || [];
 
-    const poemData: Poem[] = poems || [];
+      setTotalPoems(poemData.length);
+      setTotalWords(poemData.reduce((sum, poem) => sum + (poem.word_count || 0), 0));
 
-    setTotalPoems(poemData.length);
-    setTotalWords(poemData.reduce((sum, poem) => sum + (poem.word_count || 0), 0));
+      calculateStreaks(poemData);
 
-    calculateStreaks(poemData);
+      const dailyStats: { [key: string]: WritingStats } = {};
 
-    const dailyStats: { [key: string]: WritingStats } = {};
+      poemData.forEach(poem => {
+        const dateStr = new Date(poem.created_at).toISOString().split('T')[0];
 
-    poemData.forEach(poem => {
-      const dateStr = new Date(poem.created_at).toISOString().split('T')[0];
-
-      if (!dailyStats[dateStr]) {
-        dailyStats[dateStr] = {
-          date: dateStr,
-          poems_written: 0,
-          words_written: 0,
-          minutes_writing: 0,
-        };
-      }
-
-      dailyStats[dateStr].poems_written++;
-      dailyStats[dateStr].words_written += poem.word_count || 0;
-      dailyStats[dateStr].minutes_writing += Math.ceil((poem.word_count || 0) / 50);
-    });
-
-    const statsArray = Object.values(dailyStats)
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-      .slice(0, 30);
-
-    setStats(statsArray);
-  }, [user, calculateStreaks]);
-
-useEffect(() => {
-    if (!user) return;
-
-    loadStats();
-
-    const channel = supabase
-      .channel('analytics-poems-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'poems',
-          filter: `user_id=eq.${user.uid}`,
-        },
-        () => {
-          loadStats();
+        if (!dailyStats[dateStr]) {
+          dailyStats[dateStr] = {
+            date: dateStr,
+            poems_written: 0,
+            words_written: 0,
+            minutes_writing: 0,
+          };
         }
-      )
-      .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
+        dailyStats[dateStr].poems_written++;
+        dailyStats[dateStr].words_written += poem.word_count || 0;
+        dailyStats[dateStr].minutes_writing += Math.ceil((poem.word_count || 0) / 50);
+      });
+
+      const statsArray = Object.values(dailyStats)
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        .slice(0, 30);
+
+      setStats(statsArray);
     };
-  }, [user, loadStats]);
+
+    if (user) {
+      loadStats();
+    }
+  }, [user, calculateStreaks]);
 
   const last7Days = useMemo(() => stats.slice(0, 7).reverse(), [stats]);
 

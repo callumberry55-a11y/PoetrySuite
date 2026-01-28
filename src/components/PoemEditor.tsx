@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
-import { Save, Star, Globe, Lock, ArrowLeft } from 'lucide-react';
+import { generateTags } from '@/lib/functions';
+import { Save, Star, Globe, Lock, ArrowLeft, Tags } from 'lucide-react';
 
 interface PoemEditorProps {
   selectedPoemId: string | null;
@@ -15,30 +16,45 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
   const [content, setContent] = useState('');
   const [isPublic, setIsPublic] = useState(false);
   const [favorited, setFavorited] = useState(false);
+  const [tags, setTags] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const saveTimeoutRef = useRef<NodeJS.Timeout>();
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const wordCount = content.trim() ? content.trim().split(/\s+/).length : 0;
   const lineCount = content.trim() ? content.split('\n').length : 1;
 
   const savePoem = useCallback(async () => {
-    if (!user || (!content.trim() && !title.trim())) return;
+    if (!user || !user.id || (!content.trim() && !title.trim())) return;
 
     setSaving(true);
     setError(null);
 
-    clearTimeout(saveTimeoutRef.current);
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
 
     try {
+      let generatedTags = tags;
+      try {
+        const result = await generateTags({ poemContent: content });
+        const data = result.data as { tags?: string[] };
+        if (data && Array.isArray(data.tags)) {
+          generatedTags = data.tags;
+          setTags(generatedTags);
+        }
+      } catch (tagError) {
+        console.warn('Could not generate tags:', tagError);
+        // Do not block saving if tag generation fails
+      }
+
       const poemData = {
-        user_id: user.uid,
+        user_id: user.id,
         title: title.trim() || 'Untitled Poem',
         content,
         is_public: isPublic,
         favorited,
         word_count: wordCount,
+        tags: generatedTags,
         updated_at: new Date().toISOString(),
       };
 
@@ -48,7 +64,9 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
       } else {
         const { data, error } = await supabase.from('poems').insert(poemData).select('id').single();
         if (error) throw error;
-        setCurrentPoemId(data.id);
+        if (data) {
+          setCurrentPoemId(data.id);
+        }
       }
 
       setLastSaved(new Date());
@@ -58,13 +76,14 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
     } finally {
       setSaving(false);
     }
-  }, [user, content, title, isPublic, favorited, wordCount, currentPoemId]);
+  }, [user, content, title, isPublic, favorited, wordCount, currentPoemId, tags]);
 
   const resetEditor = useCallback(() => {
     setTitle('');
     setContent('');
     setIsPublic(false);
     setFavorited(false);
+    setTags([]);
     setLastSaved(null);
     setError(null);
     setCurrentPoemId(null);
@@ -82,8 +101,10 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
         setContent(data.content);
         setIsPublic(data.is_public);
         setFavorited(data.favorited);
+        setTags(data.tags || []);
         setLastSaved(null); // Reset save status on new poem load
         setError(null);
+        setCurrentPoemId(poemId);
       }
     } catch (err) {
       console.error(err);
@@ -103,10 +124,12 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
 
   useEffect(() => {
     if (content.trim() || title.trim()) {
-      clearTimeout(saveTimeoutRef.current);
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
       saveTimeoutRef.current = setTimeout(savePoem, 1500);
     }
-    return () => clearTimeout(saveTimeoutRef.current);
+    return () => {
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    };
   }, [title, content, savePoem]);
 
   return (
@@ -199,6 +222,14 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
                   <span className="font-medium" aria-label={`${lineCount} lines`}>{lineCount} lines</span>
                 </div>
               </div>
+              {tags.length > 0 && (
+                <div className="mt-4 flex items-center gap-2 flex-wrap">
+                    <Tags size={18} className="text-on-surface-variant" />
+                    {tags.map(tag => (
+                        <span key={tag} className="bg-secondary-container text-on-secondary-container text-xs font-medium px-2 py-1 rounded-full">{tag}</span>
+                    ))}
+                </div>
+              )}
             </div>
 
             <div className="p-4 sm:p-6">
