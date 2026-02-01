@@ -70,8 +70,8 @@ export default function Profile() {
     const { data, error } = await supabase
       .from('user_profiles')
       .select('*')
-      .eq('user_id', user.uid)
-      .single();
+      .eq('user_id', user.id)
+      .maybeSingle();
 
     if (error) {
       console.error('Error loading profile:', error);
@@ -96,7 +96,7 @@ export default function Profile() {
           icon
         )
       `)
-      .eq('user_id', user.uid);
+      .eq('user_id', user.id);
 
     if (error) {
       console.error('Error loading badges:', error);
@@ -120,7 +120,7 @@ export default function Profile() {
     const { data, error } = await supabase
       .from('writing_streaks')
       .select('*')
-      .eq('user_id', user.uid)
+      .eq('user_id', user.id)
       .maybeSingle();
 
     if (error) {
@@ -137,7 +137,7 @@ export default function Profile() {
     const { count, error } = await supabase
       .from('poems')
       .select('id', { count: 'exact', head: true })
-      .eq('user_id', user.uid);
+      .eq('user_id', user.id);
 
     if (error) {
       console.error('Error loading poem count:', error);
@@ -153,7 +153,7 @@ export default function Profile() {
     const { error } = await supabase
       .from('user_profiles')
       .update(editForm)
-      .eq('user_id', user.uid);
+      .eq('user_id', user.id);
 
     if (error) {
       console.error('Error saving profile:', error);
