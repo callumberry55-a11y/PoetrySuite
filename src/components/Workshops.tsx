@@ -172,21 +172,22 @@ export default function Workshops() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Writing Workshops</h2>
+    <div className="max-w-7xl mx-auto px-4 py-4 sm:py-8 pb-24">
+      <div className="flex items-center justify-between mb-4 sm:mb-6">
+        <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">Writing Workshops</h2>
         <button
           onClick={() => setShowCreateForm(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors"
+          className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white rounded-lg font-medium transition-colors touch-manipulation text-sm sm:text-base"
         >
-          <Plus size={18} />
-          Create Workshop
+          <Plus size={16} className="sm:w-[18px] sm:h-[18px]" />
+          <span className="hidden sm:inline">Create Workshop</span>
+          <span className="sm:hidden">New</span>
         </button>
       </div>
 
       {showCreateForm && (
-        <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm p-6 mb-6">
-          <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Create New Workshop</h3>
+        <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm p-4 sm:p-6 mb-4 sm:mb-6">
+          <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-3 sm:mb-4">Create New Workshop</h3>
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">

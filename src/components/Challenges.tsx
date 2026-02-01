@@ -154,26 +154,26 @@ export default function Challenges() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">Challenges & Prompts</h2>
+    <div className="max-w-7xl mx-auto px-4 py-4 sm:py-8 pb-24">
+      <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mb-4 sm:mb-6">Challenges & Prompts</h2>
 
       {todayPrompt && (
-        <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg p-6 mb-6">
-          <div className="flex items-start justify-between mb-3">
-            <div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Today's Writing Prompt</h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
+        <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg p-4 sm:p-6 mb-4 sm:mb-6">
+          <div className="flex items-start justify-between mb-3 gap-2">
+            <div className="min-w-0 flex-1">
+              <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-1">Today's Writing Prompt</h3>
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
                 {todayPrompt.response_count} poets have responded today
               </p>
             </div>
             {todayPrompt.user_has_responded && (
-              <span className="flex items-center gap-1 text-green-600 dark:text-green-400 text-sm font-medium">
-                <CheckCircle size={16} />
-                Completed
+              <span className="flex items-center gap-1 text-green-600 dark:text-green-400 text-xs sm:text-sm font-medium flex-shrink-0">
+                <CheckCircle size={14} className="sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline">Completed</span>
               </span>
             )}
           </div>
-          <p className="text-lg text-slate-900 dark:text-white font-serif mb-3">
+          <p className="text-base sm:text-lg text-slate-900 dark:text-white font-serif mb-3">
             "{todayPrompt.prompt_text}"
           </p>
           <div className="flex items-center gap-2">
@@ -197,41 +197,41 @@ export default function Challenges() {
           challenges.map((challenge) => (
             <div
               key={challenge.id}
-              className="bg-white dark:bg-slate-800 rounded-lg shadow-sm p-6"
+              className="bg-white dark:bg-slate-800 rounded-lg shadow-sm p-4 sm:p-6"
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="p-2 rounded-lg bg-gradient-to-br from-orange-100 to-orange-200 dark:from-orange-900/20 dark:to-orange-800/20 text-orange-600 dark:text-orange-400">
                   {getChallengeIcon(challenge.challenge_type)}
                 </div>
                 {challenge.user_completed && (
-                  <span className="flex items-center gap-1 text-green-600 dark:text-green-400 text-sm font-medium">
-                    <CheckCircle size={16} />
-                    Done
+                  <span className="flex items-center gap-1 text-green-600 dark:text-green-400 text-xs sm:text-sm font-medium">
+                    <CheckCircle size={14} className="sm:w-4 sm:h-4" />
+                    <span className="hidden sm:inline">Done</span>
                   </span>
                 )}
               </div>
 
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
+              <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-2">
                 {challenge.title}
               </h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mb-4 line-clamp-2">
                 {challenge.description}
               </p>
 
               <div className="space-y-2 mb-4">
-                <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center justify-between text-xs sm:text-sm">
                   <span className="text-slate-600 dark:text-slate-400">Target:</span>
                   <span className="font-semibold text-slate-900 dark:text-white">
                     {challenge.target_value} {challenge.challenge_type === 'word_count' ? 'words' : challenge.challenge_type === 'timed' ? 'minutes' : 'poems'}
                   </span>
                 </div>
-                <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center justify-between text-xs sm:text-sm">
                   <span className="text-slate-600 dark:text-slate-400">Ends:</span>
                   <span className="font-semibold text-slate-900 dark:text-white">
                     {formatDate(challenge.end_date)}
                   </span>
                 </div>
-                <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center justify-between text-xs sm:text-sm">
                   <span className="text-slate-600 dark:text-slate-400">Participants:</span>
                   <span className="font-semibold text-slate-900 dark:text-white">
                     {challenge.participant_count}
@@ -242,14 +242,14 @@ export default function Challenges() {
               {!challenge.user_has_joined ? (
                 <button
                   onClick={() => joinChallenge(challenge.id)}
-                  className="w-full px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors"
+                  className="w-full px-4 py-2 bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white rounded-lg font-medium transition-colors touch-manipulation text-sm sm:text-base"
                 >
                   Join Challenge
                 </button>
               ) : (
                 <button
                   disabled
-                  className="w-full px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400 rounded-lg font-medium cursor-not-allowed"
+                  className="w-full px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400 rounded-lg font-medium cursor-not-allowed text-sm sm:text-base"
                 >
                   {challenge.user_completed ? 'Completed' : 'In Progress'}
                 </button>

@@ -176,21 +176,21 @@ export default function Profile() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm p-6 mb-6">
-        <div className="flex items-start justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-2xl font-bold">
+    <div className="max-w-4xl mx-auto px-4 py-4 sm:py-8 pb-24">
+      <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm p-4 sm:p-6 mb-4 sm:mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-6 gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-xl sm:text-2xl font-bold flex-shrink-0">
               {profile.username.charAt(0).toUpperCase()}
             </div>
-            <div>
-              <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+            <div className="min-w-0">
+              <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white truncate">
                 {profile.username}
               </h1>
               {profile.location && (
                 <div className="flex items-center gap-1 text-slate-600 dark:text-slate-400 mt-1">
                   <MapPin size={14} />
-                  <span className="text-sm">{profile.location}</span>
+                  <span className="text-sm truncate">{profile.location}</span>
                 </div>
               )}
             </div>
@@ -198,50 +198,51 @@ export default function Profile() {
           {!isEditing ? (
             <button
               onClick={() => setIsEditing(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
+              className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white rounded-lg transition-colors touch-manipulation whitespace-nowrap"
             >
               <Edit2 size={16} />
-              Edit Profile
+              <span className="hidden sm:inline">Edit Profile</span>
+              <span className="sm:hidden">Edit</span>
             </button>
           ) : (
             <div className="flex gap-2">
               <button
                 onClick={saveProfile}
-                className="flex items-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 active:bg-green-700 text-white rounded-lg transition-colors touch-manipulation"
               >
                 <Save size={16} />
-                Save
+                <span className="hidden sm:inline">Save</span>
               </button>
               <button
                 onClick={() => {
                   setIsEditing(false);
                   setEditForm(profile);
                 }}
-                className="flex items-center gap-2 px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg transition-colors touch-manipulation"
               >
                 <X size={16} />
-                Cancel
+                <span className="hidden sm:inline">Cancel</span>
               </button>
             </div>
           )}
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-4 text-center">
-            <div className="text-2xl font-bold text-blue-500">{poemCount}</div>
-            <div className="text-sm text-slate-600 dark:text-slate-400">Poems</div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6">
+          <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-3 sm:p-4 text-center">
+            <div className="text-xl sm:text-2xl font-bold text-blue-500">{poemCount}</div>
+            <div className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">Poems</div>
           </div>
-          <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-4 text-center">
-            <div className="text-2xl font-bold text-green-500">{profile.follower_count}</div>
-            <div className="text-sm text-slate-600 dark:text-slate-400">Followers</div>
+          <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-3 sm:p-4 text-center">
+            <div className="text-xl sm:text-2xl font-bold text-green-500">{profile.follower_count}</div>
+            <div className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">Followers</div>
           </div>
-          <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-4 text-center">
-            <div className="text-2xl font-bold text-orange-500">{profile.following_count}</div>
-            <div className="text-sm text-slate-600 dark:text-slate-400">Following</div>
+          <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-3 sm:p-4 text-center">
+            <div className="text-xl sm:text-2xl font-bold text-orange-500">{profile.following_count}</div>
+            <div className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">Following</div>
           </div>
-          <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-4 text-center">
-            <div className="text-2xl font-bold text-red-500">{profile.total_likes_received}</div>
-            <div className="text-sm text-slate-600 dark:text-slate-400">Likes</div>
+          <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-3 sm:p-4 text-center">
+            <div className="text-xl sm:text-2xl font-bold text-red-500">{profile.total_likes_received}</div>
+            <div className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">Likes</div>
           </div>
         </div>
 
@@ -323,39 +324,39 @@ export default function Profile() {
       </div>
 
       {streak && (
-        <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm p-6 mb-6">
-          <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-            <Flame className="text-orange-500" size={20} />
+        <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm p-4 sm:p-6 mb-4 sm:mb-6">
+          <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-3 sm:mb-4 flex items-center gap-2">
+            <Flame className="text-orange-500" size={18} />
             Writing Streak
           </h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 rounded-lg p-4">
-              <div className="text-3xl font-bold text-orange-600 dark:text-orange-400">{streak.current_streak}</div>
-              <div className="text-sm text-orange-700 dark:text-orange-300">Current Streak</div>
+          <div className="grid grid-cols-2 gap-3 sm:gap-4">
+            <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 rounded-lg p-3 sm:p-4">
+              <div className="text-2xl sm:text-3xl font-bold text-orange-600 dark:text-orange-400">{streak.current_streak}</div>
+              <div className="text-xs sm:text-sm text-orange-700 dark:text-orange-300">Current Streak</div>
             </div>
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg p-4">
-              <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">{streak.longest_streak}</div>
-              <div className="text-sm text-blue-700 dark:text-blue-300">Longest Streak</div>
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg p-3 sm:p-4">
+              <div className="text-2xl sm:text-3xl font-bold text-blue-600 dark:text-blue-400">{streak.longest_streak}</div>
+              <div className="text-xs sm:text-sm text-blue-700 dark:text-blue-300">Longest Streak</div>
             </div>
           </div>
         </div>
       )}
 
       {badges.length > 0 && (
-        <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm p-6">
-          <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-            <Award className="text-yellow-500" size={20} />
+        <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm p-4 sm:p-6">
+          <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-3 sm:mb-4 flex items-center gap-2">
+            <Award className="text-yellow-500" size={18} />
             Badges ({badges.length})
           </h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
             {badges.map((badge) => (
               <div
                 key={badge.id}
-                className="bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 rounded-lg p-4 text-center"
+                className="bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 rounded-lg p-3 sm:p-4 text-center"
               >
-                <div className="text-3xl mb-2">{badge.icon === 'award' ? '🏆' : badge.icon === 'flame' ? '🔥' : badge.icon === 'heart' ? '❤️' : '🎖️'}</div>
-                <div className="font-semibold text-slate-900 dark:text-white text-sm">{badge.name}</div>
-                <div className="text-xs text-slate-600 dark:text-slate-400 mt-1">{badge.description}</div>
+                <div className="text-2xl sm:text-3xl mb-2">{badge.icon === 'award' ? '🏆' : badge.icon === 'flame' ? '🔥' : badge.icon === 'heart' ? '❤️' : '🎖️'}</div>
+                <div className="font-semibold text-slate-900 dark:text-white text-xs sm:text-sm">{badge.name}</div>
+                <div className="text-xs text-slate-600 dark:text-slate-400 mt-1 line-clamp-2">{badge.description}</div>
               </div>
             ))}
           </div>

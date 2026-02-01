@@ -87,10 +87,10 @@ export default function Contests() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Poetry Contests</h2>
-        <p className="text-slate-600 dark:text-slate-400">
+    <div className="max-w-7xl mx-auto px-4 py-4 sm:py-8 pb-24">
+      <div className="mb-4 sm:mb-6">
+        <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mb-1 sm:mb-2">Poetry Contests</h2>
+        <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400">
           Compete with fellow poets for recognition and prizes
         </p>
       </div>
@@ -104,17 +104,17 @@ export default function Contests() {
           <p className="text-slate-500 dark:text-slate-400">No active contests at the moment</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
           {contests.map((contest) => (
             <div
               key={contest.id}
-              className="bg-white dark:bg-slate-800 rounded-lg shadow-sm p-6"
+              className="bg-white dark:bg-slate-800 rounded-lg shadow-sm p-4 sm:p-6"
             >
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
+              <div className="flex items-start justify-between mb-3 sm:mb-4 gap-2">
+                <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-2">
-                    <Trophy className="text-yellow-500" size={20} />
-                    <h3 className="text-xl font-bold text-slate-900 dark:text-white">
+                    <Trophy className="text-yellow-500 flex-shrink-0" size={18} />
+                    <h3 className="text-base sm:text-xl font-bold text-slate-900 dark:text-white truncate">
                       {contest.title}
                     </h3>
                   </div>
@@ -124,42 +124,42 @@ export default function Contests() {
                 </div>
               </div>
 
-              <p className="text-slate-600 dark:text-slate-400 mb-4">
+              <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 mb-4 line-clamp-3">
                 {contest.description}
               </p>
 
               {contest.theme && (
                 <div className="mb-4 p-3 bg-slate-50 dark:bg-slate-700 rounded-lg">
-                  <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                  <p className="text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                     Theme
                   </p>
-                  <p className="text-slate-900 dark:text-white font-serif">
+                  <p className="text-sm sm:text-base text-slate-900 dark:text-white font-serif">
                     {contest.theme}
                   </p>
                 </div>
               )}
 
               <div className="space-y-2 mb-4">
-                <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
-                  <Clock size={14} />
-                  <span>
+                <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-600 dark:text-slate-400">
+                  <Clock size={12} className="sm:w-[14px] sm:h-[14px] flex-shrink-0" />
+                  <span className="truncate">
                     {contest.status === 'upcoming' && `Starts ${formatDate(contest.start_date)}`}
                     {contest.status === 'active' && `Ends ${formatDate(contest.end_date)}`}
                     {contest.status === 'voting' && `Voting ends ${formatDate(contest.voting_end_date)}`}
                   </span>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
-                  <Users size={14} />
+                <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-600 dark:text-slate-400">
+                  <Users size={12} className="sm:w-[14px] sm:h-[14px] flex-shrink-0" />
                   <span>{contest.entry_count} entries</span>
                 </div>
               </div>
 
               {contest.prize_description && (
                 <div className="mb-4 p-3 bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 rounded-lg">
-                  <p className="text-sm font-medium text-yellow-800 dark:text-yellow-300 mb-1">
+                  <p className="text-xs sm:text-sm font-medium text-yellow-800 dark:text-yellow-300 mb-1">
                     Prize
                   </p>
-                  <p className="text-yellow-900 dark:text-yellow-200">
+                  <p className="text-sm sm:text-base text-yellow-900 dark:text-yellow-200">
                     {contest.prize_description}
                   </p>
                 </div>
@@ -168,10 +168,10 @@ export default function Contests() {
               {contest.status === 'active' && (
                 <button
                   disabled={contest.user_has_entered}
-                  className={`w-full px-4 py-2 rounded-lg font-medium transition-colors ${
+                  className={`w-full px-4 py-2 rounded-lg font-medium transition-colors touch-manipulation text-sm sm:text-base ${
                     contest.user_has_entered
                       ? 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400 cursor-not-allowed'
-                      : 'bg-blue-500 hover:bg-blue-600 text-white'
+                      : 'bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white'
                   }`}
                 >
                   {contest.user_has_entered ? 'Already Entered' : 'Submit Entry'}
@@ -180,9 +180,9 @@ export default function Contests() {
 
               {contest.status === 'voting' && (
                 <button
-                  className="w-full px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                  className="w-full px-4 py-2 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white rounded-lg font-medium transition-colors touch-manipulation flex items-center justify-center gap-2 text-sm sm:text-base"
                 >
-                  <ThumbsUp size={16} />
+                  <ThumbsUp size={14} className="sm:w-4 sm:h-4" />
                   Vote Now
                 </button>
               )}

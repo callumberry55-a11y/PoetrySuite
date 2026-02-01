@@ -200,26 +200,26 @@ export default function SocialFeed() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Poetry Feed</h2>
+    <div className="max-w-3xl mx-auto px-4 py-4 sm:py-8 pb-24">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 gap-3">
+        <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">Poetry Feed</h2>
         <div className="flex gap-2">
           <button
             onClick={() => setFilter('discover')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+            className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg font-medium transition-colors touch-manipulation text-sm sm:text-base ${
               filter === 'discover'
                 ? 'bg-blue-500 text-white'
-                : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
+                : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-300 dark:hover:bg-slate-600'
             }`}
           >
             Discover
           </button>
           <button
             onClick={() => setFilter('following')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+            className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg font-medium transition-colors touch-manipulation text-sm sm:text-base ${
               filter === 'following'
                 ? 'bg-blue-500 text-white'
-                : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
+                : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-300 dark:hover:bg-slate-600'
             }`}
           >
             Following
@@ -240,79 +240,79 @@ export default function SocialFeed() {
           </p>
         </div>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {feed.map((poem) => (
             <article
               key={poem.id}
-              className="bg-white dark:bg-slate-800 rounded-lg shadow-sm p-6"
+              className="bg-white dark:bg-slate-800 rounded-lg shadow-sm p-4 sm:p-6"
             >
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold">
+              <div className="flex items-center justify-between mb-3 sm:mb-4 gap-2">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold flex-shrink-0 text-sm sm:text-base">
                     {poem.username.charAt(0).toUpperCase()}
                   </div>
-                  <div>
-                    <div className="font-semibold text-slate-900 dark:text-white">{poem.username}</div>
+                  <div className="min-w-0 flex-1">
+                    <div className="font-semibold text-slate-900 dark:text-white text-sm sm:text-base truncate">{poem.username}</div>
                     <div className="text-xs text-slate-500 dark:text-slate-400">{formatDate(poem.created_at)}</div>
                   </div>
                 </div>
                 {poem.user_id !== user?.uid && (
                   <button
                     onClick={() => toggleFollow(poem.user_id)}
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                    className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors touch-manipulation flex-shrink-0 ${
                       poem.user_is_following
                         ? 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
-                        : 'bg-blue-500 text-white hover:bg-blue-600'
+                        : 'bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700'
                     }`}
                   >
                     {poem.user_is_following ? (
                       <>
-                        <UserCheck size={14} />
-                        Following
+                        <UserCheck size={12} className="sm:w-[14px] sm:h-[14px]" />
+                        <span className="hidden sm:inline">Following</span>
                       </>
                     ) : (
                       <>
-                        <UserPlus size={14} />
-                        Follow
+                        <UserPlus size={12} className="sm:w-[14px] sm:h-[14px]" />
+                        <span className="hidden sm:inline">Follow</span>
                       </>
                     )}
                   </button>
                 )}
               </div>
 
-              <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-3">{poem.title}</h3>
-              <div className="text-slate-600 dark:text-slate-400 whitespace-pre-wrap font-serif mb-4 line-clamp-6">
+              <h3 className="text-lg sm:text-xl font-semibold text-slate-900 dark:text-white mb-2 sm:mb-3">{poem.title}</h3>
+              <div className="text-sm sm:text-base text-slate-600 dark:text-slate-400 whitespace-pre-wrap font-serif mb-3 sm:mb-4 line-clamp-6">
                 {poem.content}
               </div>
 
-              <div className="flex items-center gap-4 pt-4 border-t border-slate-200 dark:border-slate-700">
+              <div className="flex items-center gap-3 sm:gap-4 pt-3 sm:pt-4 border-t border-slate-200 dark:border-slate-700">
                 <button
                   onClick={() => toggleLike(poem.id)}
-                  className={`flex items-center gap-2 transition-colors ${
+                  className={`flex items-center gap-1.5 sm:gap-2 transition-colors touch-manipulation ${
                     poem.user_has_liked
                       ? 'text-red-500'
-                      : 'text-slate-500 dark:text-slate-400 hover:text-red-500'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-red-500 active:text-red-600'
                   }`}
                 >
-                  <Heart size={18} fill={poem.user_has_liked ? 'currentColor' : 'none'} />
-                  <span className="text-sm font-medium">{poem.like_count}</span>
+                  <Heart size={16} className="sm:w-[18px] sm:h-[18px]" fill={poem.user_has_liked ? 'currentColor' : 'none'} />
+                  <span className="text-xs sm:text-sm font-medium">{poem.like_count}</span>
                 </button>
-                <button className="flex items-center gap-2 text-slate-500 dark:text-slate-400 hover:text-blue-500 transition-colors">
-                  <MessageSquare size={18} />
-                  <span className="text-sm font-medium">{poem.comment_count}</span>
+                <button className="flex items-center gap-1.5 sm:gap-2 text-slate-500 dark:text-slate-400 hover:text-blue-500 active:text-blue-600 transition-colors touch-manipulation">
+                  <MessageSquare size={16} className="sm:w-[18px] sm:h-[18px]" />
+                  <span className="text-xs sm:text-sm font-medium">{poem.comment_count}</span>
                 </button>
                 <button
                   onClick={() => toggleBookmark(poem.id)}
-                  className={`flex items-center gap-2 transition-colors ml-auto ${
+                  className={`flex items-center gap-1.5 sm:gap-2 transition-colors ml-auto touch-manipulation ${
                     poem.user_has_bookmarked
                       ? 'text-blue-500'
-                      : 'text-slate-500 dark:text-slate-400 hover:text-blue-500'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-blue-500 active:text-blue-600'
                   }`}
                 >
                   {poem.user_has_bookmarked ? (
-                    <BookmarkCheck size={18} fill="currentColor" />
+                    <BookmarkCheck size={16} className="sm:w-[18px] sm:h-[18px]" fill="currentColor" />
                   ) : (
-                    <BookmarkPlus size={18} />
+                    <BookmarkPlus size={16} className="sm:w-[18px] sm:h-[18px]" />
                   )}
                 </button>
               </div>
