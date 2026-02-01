@@ -1,0 +1,195 @@
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/lib/supabase';
+import { Trophy, Clock, Users, ThumbsUp } from 'lucide-react';
+
+interface Contest {
+  id: string;
+  title: string;
+  description: string;
+  theme: string;
+  start_date: string;
+  end_date: string;
+  voting_end_date: string;
+  prize_description: string;
+  status: 'upcoming' | 'active' | 'voting' | 'completed';
+  entry_count: number;
+  user_has_entered: boolean;
+}
+
+export default function Contests() {
+  const { user } = useAuth();
+  const [contests, setContests] = useState<Contest[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (user) {
+      loadContests();
+    }
+  }, [user]);
+
+  const loadContests = async () => {
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from('contests')
+      .select('*')
+      .in('status', ['active', 'voting', 'upcoming'])
+      .order('start_date', { ascending: true });
+
+    if (error) {
+      console.error('Error loading contests:', error);
+      setLoading(false);
+      return;
+    }
+
+    const contestsWithData = await Promise.all(
+      (data || []).map(async (contest) => {
+        const { count } = await supabase
+          .from('contest_entries')
+          .select('id', { count: 'exact', head: true })
+          .eq('contest_id', contest.id);
+
+        const { data: userEntry } = await supabase
+          .from('contest_entries')
+          .select('id')
+          .eq('contest_id', contest.id)
+          .eq('user_id', user.uid)
+          .maybeSingle();
+
+        return {
+          ...contest,
+          entry_count: count || 0,
+          user_has_entered: !!userEntry
+        };
+      })
+    );
+
+    setContests(contestsWithData);
+    setLoading(false);
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'upcoming':
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400';
+      case 'active':
+        return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
+      case 'voting':
+        return 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400';
+      default:
+        return 'bg-slate-100 text-slate-800 dark:bg-slate-900/20 dark:text-slate-400';
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Poetry Contests</h2>
+        <p className="text-slate-600 dark:text-slate-400">
+          Compete with fellow poets for recognition and prizes
+        </p>
+      </div>
+
+      {loading ? (
+        <div className="text-center py-12">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+        </div>
+      ) : contests.length === 0 ? (
+        <div className="text-center py-12 bg-white dark:bg-slate-800 rounded-lg">
+          <p className="text-slate-500 dark:text-slate-400">No active contests at the moment</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {contests.map((contest) => (
+            <div
+              key={contest.id}
+              className="bg-white dark:bg-slate-800 rounded-lg shadow-sm p-6"
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Trophy className="text-yellow-500" size={20} />
+                    <h3 className="text-xl font-bold text-slate-900 dark:text-white">
+                      {contest.title}
+                    </h3>
+                  </div>
+                  <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${getStatusColor(contest.status)}`}>
+                    {contest.status.toUpperCase()}
+                  </span>
+                </div>
+              </div>
+
+              <p className="text-slate-600 dark:text-slate-400 mb-4">
+                {contest.description}
+              </p>
+
+              {contest.theme && (
+                <div className="mb-4 p-3 bg-slate-50 dark:bg-slate-700 rounded-lg">
+                  <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                    Theme
+                  </p>
+                  <p className="text-slate-900 dark:text-white font-serif">
+                    {contest.theme}
+                  </p>
+                </div>
+              )}
+
+              <div className="space-y-2 mb-4">
+                <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                  <Clock size={14} />
+                  <span>
+                    {contest.status === 'upcoming' && `Starts ${formatDate(contest.start_date)}`}
+                    {contest.status === 'active' && `Ends ${formatDate(contest.end_date)}`}
+                    {contest.status === 'voting' && `Voting ends ${formatDate(contest.voting_end_date)}`}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                  <Users size={14} />
+                  <span>{contest.entry_count} entries</span>
+                </div>
+              </div>
+
+              {contest.prize_description && (
+                <div className="mb-4 p-3 bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 rounded-lg">
+                  <p className="text-sm font-medium text-yellow-800 dark:text-yellow-300 mb-1">
+                    Prize
+                  </p>
+                  <p className="text-yellow-900 dark:text-yellow-200">
+                    {contest.prize_description}
+                  </p>
+                </div>
+              )}
+
+              {contest.status === 'active' && (
+                <button
+                  disabled={contest.user_has_entered}
+                  className={`w-full px-4 py-2 rounded-lg font-medium transition-colors ${
+                    contest.user_has_entered
+                      ? 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400 cursor-not-allowed'
+                      : 'bg-blue-500 hover:bg-blue-600 text-white'
+                  }`}
+                >
+                  {contest.user_has_entered ? 'Already Entered' : 'Submit Entry'}
+                </button>
+              )}
+
+              {contest.status === 'voting' && (
+                <button
+                  className="w-full px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                >
+                  <ThumbsUp size={16} />
+                  Vote Now
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

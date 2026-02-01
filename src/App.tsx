@@ -12,6 +12,13 @@ const Settings = lazy(() => import('@/components/Settings'));
 const Discover = lazy(() => import('@/components/Discover'));
 const Prompts = lazy(() => import('@/components/Prompts'));
 const Forms = lazy(() => import('@/components/Forms'));
+const Profile = lazy(() => import('@/components/Profile'));
+const SocialFeed = lazy(() => import('@/components/SocialFeed'));
+const Workshops = lazy(() => import('@/components/Workshops'));
+const Collaborative = lazy(() => import('@/components/Collaborative'));
+const Challenges = lazy(() => import('@/components/Challenges'));
+const Goals = lazy(() => import('@/components/Goals'));
+const Contests = lazy(() => import('@/components/Contests'));
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -35,7 +42,7 @@ function AppContent() {
 }
 
 function MainApp() {
-    const [currentView, setCurrentView] = useState<'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms'>('library');
+    const [currentView, setCurrentView] = useState<'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'profile' | 'feed' | 'workshops' | 'collaborative' | 'challenges' | 'goals' | 'contests'>('library');
     const [selectedPoemId, setSelectedPoemId] = useState<string | null>(null);
 
     const handleNewPoem = useCallback(() => {
@@ -91,6 +98,13 @@ function MainApp() {
           )}
           {currentView === 'analytics' && <Analytics />}
           {currentView === 'settings' && <Settings />}
+          {currentView === 'profile' && <Profile />}
+          {currentView === 'feed' && <SocialFeed />}
+          {currentView === 'workshops' && <Workshops />}
+          {currentView === 'collaborative' && <Collaborative />}
+          {currentView === 'challenges' && <Challenges />}
+          {currentView === 'goals' && <Goals />}
+          {currentView === 'contests' && <Contests />}
         </Suspense>
       </Layout>
     )

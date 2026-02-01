@@ -1,0 +1,210 @@
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/lib/supabase';
+import { Target, Plus, TrendingUp, CheckCircle } from 'lucide-react';
+
+interface Goal {
+  id: string;
+  goal_type: string;
+  target_value: number;
+  current_value: number;
+  start_date: string;
+  end_date: string;
+  status: 'active' | 'completed' | 'failed';
+}
+
+export default function Goals() {
+  const { user } = useAuth();
+  const [goals, setGoals] = useState<Goal[]>([]);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [newGoal, setNewGoal] = useState({
+    goal_type: 'weekly_poems',
+    target_value: 3
+  });
+
+  useEffect(() => {
+    if (user) {
+      loadGoals();
+    }
+  }, [user]);
+
+  const loadGoals = async () => {
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from('writing_goals')
+      .select('*')
+      .eq('user_id', user.uid)
+      .in('status', ['active', 'completed'])
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error loading goals:', error);
+      return;
+    }
+
+    setGoals(data || []);
+  };
+
+  const createGoal = async () => {
+    if (!user) return;
+
+    const now = new Date();
+    const endDate = new Date(now);
+    if (newGoal.goal_type.includes('weekly')) {
+      endDate.setDate(endDate.getDate() + 7);
+    } else {
+      endDate.setMonth(endDate.getMonth() + 1);
+    }
+
+    const { error } = await supabase
+      .from('writing_goals')
+      .insert([{
+        user_id: user.uid,
+        goal_type: newGoal.goal_type,
+        target_value: newGoal.target_value,
+        current_value: 0,
+        start_date: now.toISOString().split('T')[0],
+        end_date: endDate.toISOString().split('T')[0],
+        status: 'active'
+      }]);
+
+    if (error) {
+      console.error('Error creating goal:', error);
+      alert('Failed to create goal');
+      return;
+    }
+
+    setShowCreateForm(false);
+    setNewGoal({ goal_type: 'weekly_poems', target_value: 3 });
+    loadGoals();
+  };
+
+  const getProgressPercentage = (goal: Goal) => {
+    return Math.min((goal.current_value / goal.target_value) * 100, 100);
+  };
+
+  const formatGoalType = (type: string) => {
+    return type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Writing Goals</h2>
+        <button
+          onClick={() => setShowCreateForm(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors"
+        >
+          <Plus size={18} />
+          New Goal
+        </button>
+      </div>
+
+      {showCreateForm && (
+        <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm p-6 mb-6">
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Create New Goal</h3>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                Goal Type
+              </label>
+              <select
+                value={newGoal.goal_type}
+                onChange={(e) => setNewGoal({ ...newGoal, goal_type: e.target.value })}
+                className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+              >
+                <option value="weekly_poems">Weekly Poems</option>
+                <option value="monthly_poems">Monthly Poems</option>
+                <option value="word_count">Total Word Count</option>
+                <option value="daily_writing">Daily Writing Streak</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                Target
+              </label>
+              <input
+                type="number"
+                value={newGoal.target_value}
+                onChange={(e) => setNewGoal({ ...newGoal, target_value: parseInt(e.target.value) })}
+                min="1"
+                className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+              />
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={createGoal}
+                className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium"
+              >
+                Create
+              </button>
+              <button
+                onClick={() => setShowCreateForm(false)}
+                className="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="space-y-4">
+        {goals.length === 0 ? (
+          <div className="text-center py-12 bg-white dark:bg-slate-800 rounded-lg">
+            <p className="text-slate-500 dark:text-slate-400">No goals yet. Create one to get started!</p>
+          </div>
+        ) : (
+          goals.map((goal) => (
+            <div
+              key={goal.id}
+              className="bg-white dark:bg-slate-800 rounded-lg shadow-sm p-6"
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">
+                    {formatGoalType(goal.goal_type)}
+                  </h3>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    {new Date(goal.start_date).toLocaleDateString()} - {new Date(goal.end_date).toLocaleDateString()}
+                  </p>
+                </div>
+                {goal.status === 'completed' && (
+                  <span className="flex items-center gap-1 text-green-600 dark:text-green-400 text-sm font-medium">
+                    <CheckCircle size={16} />
+                    Completed
+                  </span>
+                )}
+              </div>
+
+              <div className="mb-3">
+                <div className="flex items-center justify-between text-sm mb-2">
+                  <span className="text-slate-600 dark:text-slate-400">Progress</span>
+                  <span className="font-semibold text-slate-900 dark:text-white">
+                    {goal.current_value} / {goal.target_value}
+                  </span>
+                </div>
+                <div className="w-full h-3 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all ${
+                      goal.status === 'completed'
+                        ? 'bg-green-500'
+                        : 'bg-blue-500'
+                    }`}
+                    style={{ width: `${getProgressPercentage(goal)}%` }}
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                <TrendingUp size={14} />
+                {getProgressPercentage(goal).toFixed(0)}% complete
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
