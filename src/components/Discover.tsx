@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Trophy, BookOpen, TrendingUp, Users, X, Shield } from 'lucide-react';
-import { db } from '@/lib/firebase';
-import { collection, query, where, getDocs, orderBy, limit } from "firebase/firestore"; 
+import { Trophy, BookOpen, TrendingUp, Users, X, Shield, Heart, MessageSquare } from 'lucide-react';
+import { supabase } from '../lib/supabase';
+import { useAuth } from '../contexts/AuthContext';
 import { runSecurityChecks } from '../utils/security';
+import { CommentsSection } from './CommentsSection';
 
 interface Poem {
   id: string;
@@ -10,10 +11,10 @@ interface Poem {
   content: string;
   user_id: string;
   created_at: string;
-  user_profiles?: {
-      username: string;
-      display_name: string;
-  };
+  username?: string;
+  like_count?: number;
+  comment_count?: number;
+  user_has_liked?: boolean;
 }
 
 interface Contest {
@@ -29,6 +30,7 @@ interface Contest {
 }
 
 export default function Discover() {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'feed' | 'contests' | 'trending' | 'following'>('feed');
   const [poems, setPoems] = useState<Poem[]>([]);
   const [contests, setContests] = useState<Contest[]>([]);
@@ -60,13 +62,53 @@ export default function Discover() {
   const loadPoems = async () => {
     setLoading(true);
     try {
-      const poemsRef = collection(db, "poems");
-      const q = query(poemsRef, where("is_public", "==", true), orderBy("created_at", "desc"), limit(20));
-      const querySnapshot = await getDocs(q);
-      const poems = querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })) as Poem[];
-      setPoems(poems);
-    } catch {
-      console.debug('Failed to load poems');
+      const { data, error } = await supabase
+        .from('poems')
+        .select('id, title, content, user_id, created_at')
+        .eq('is_public', true)
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (error) throw error;
+
+      const poemsWithData = await Promise.all(
+        (data || []).map(async (poem) => {
+          const { data: profile } = await supabase
+            .from('user_profiles')
+            .select('username')
+            .eq('user_id', poem.user_id)
+            .maybeSingle();
+
+          const { data: likeData } = await supabase
+            .from('reactions')
+            .select('id', { count: 'exact', head: true })
+            .eq('poem_id', poem.id);
+
+          const { data: commentData } = await supabase
+            .from('comments')
+            .select('id', { count: 'exact', head: true })
+            .eq('poem_id', poem.id);
+
+          const { data: userLike } = user ? await supabase
+            .from('reactions')
+            .select('id')
+            .eq('poem_id', poem.id)
+            .eq('user_id', user.uid)
+            .maybeSingle() : { data: null };
+
+          return {
+            ...poem,
+            username: profile?.username || 'Anonymous',
+            like_count: likeData?.length || 0,
+            comment_count: commentData?.length || 0,
+            user_has_liked: !!userLike,
+          };
+        })
+      );
+
+      setPoems(poemsWithData);
+    } catch (error) {
+      console.error('Failed to load poems:', error);
     } finally {
       setLoading(false);
     }
@@ -75,15 +117,59 @@ export default function Discover() {
   const loadContests = async () => {
     setLoading(true);
     try {
-      const contestsRef = collection(db, "contests");
-      const q = query(contestsRef, orderBy("start_date", "desc"));
-      const querySnapshot = await getDocs(q);
-      const contests = querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })) as Contest[];
-      setContests(contests);
-    } catch {
-      console.debug('Failed to load contests');
+      const { data, error } = await supabase
+        .from('contests')
+        .select('*')
+        .order('start_date', { ascending: false });
+
+      if (error) throw error;
+      setContests(data || []);
+    } catch (error) {
+      console.error('Failed to load contests:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleLike = async (poemId: string, currentlyLiked: boolean) => {
+    if (!user) return;
+
+    try {
+      if (currentlyLiked) {
+        const { error } = await supabase
+          .from('reactions')
+          .delete()
+          .eq('poem_id', poemId)
+          .eq('user_id', user.uid);
+
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('reactions')
+          .insert({ poem_id: poemId, user_id: user.uid });
+
+        if (error) throw error;
+      }
+
+      setPoems(poems.map(poem =>
+        poem.id === poemId
+          ? {
+              ...poem,
+              user_has_liked: !currentlyLiked,
+              like_count: (poem.like_count || 0) + (currentlyLiked ? -1 : 1)
+            }
+          : poem
+      ));
+
+      if (selectedPoem?.id === poemId) {
+        setSelectedPoem({
+          ...selectedPoem,
+          user_has_liked: !currentlyLiked,
+          like_count: (selectedPoem.like_count || 0) + (currentlyLiked ? -1 : 1)
+        });
+      }
+    } catch (error) {
+      console.error('Error toggling like:', error);
     }
   };
 
@@ -246,15 +332,17 @@ export default function Discover() {
             {poems.map((poem:Poem) => (
               <div
                 key={poem.id}
-                onClick={() => setSelectedPoem(poem)}
-                className="bg-surface rounded-xl shadow-sm border border-outline overflow-hidden hover:shadow-md transition-all cursor-pointer"
+                className="bg-surface rounded-xl shadow-sm border border-outline overflow-hidden hover:shadow-md transition-all"
               >
-                <div className="p-6">
+                <div
+                  className="p-6 cursor-pointer"
+                  onClick={() => setSelectedPoem(poem)}
+                >
                   <div className="flex items-start justify-between mb-4">
                     <div>
                       <h3 className="text-xl font-bold text-on-surface mb-1">{poem.title}</h3>
                       <p className="text-sm text-on-surface-variant">
-                        by {poem.user_profiles?.display_name || poem.user_profiles?.username || 'Anonymous'}
+                        by {poem.username || 'Anonymous'}
                       </p>
                     </div>
                   </div>
@@ -262,6 +350,34 @@ export default function Discover() {
                   <div className="prose dark:prose-invert max-w-none mb-4">
                     <p className="whitespace-pre-wrap line-clamp-6">{poem.content}</p>
                   </div>
+                </div>
+
+                <div className="px-6 pb-4 flex items-center gap-4 border-t border-outline pt-3">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleLike(poem.id, poem.user_has_liked || false);
+                    }}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-colors ${
+                      poem.user_has_liked
+                        ? 'text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20'
+                        : 'text-on-surface-variant hover:bg-surface-variant'
+                    }`}
+                  >
+                    <Heart
+                      size={18}
+                      fill={poem.user_has_liked ? 'currentColor' : 'none'}
+                    />
+                    <span className="text-sm font-medium">{poem.like_count || 0}</span>
+                  </button>
+
+                  <button
+                    onClick={() => setSelectedPoem(poem)}
+                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-on-surface-variant hover:bg-surface-variant transition-colors"
+                  >
+                    <MessageSquare size={18} />
+                    <span className="text-sm font-medium">{poem.comment_count || 0}</span>
+                  </button>
                 </div>
               </div>
             ))}
@@ -276,7 +392,7 @@ export default function Discover() {
                 <div>
                   <h2 className="text-2xl font-bold text-on-surface">{selectedPoem.title}</h2>
                   <p className="text-on-surface-variant mt-1">
-                    by {selectedPoem.user_profiles?.display_name || selectedPoem.user_profiles?.username || 'Anonymous'}
+                    by {selectedPoem.username || 'Anonymous'}
                   </p>
                 </div>
                 <button
@@ -288,10 +404,29 @@ export default function Discover() {
                 </button>
               </div>
 
-              <div className="p-6 max-h-96 overflow-y-auto">
+              <div className="p-6 max-h-[60vh] overflow-y-auto">
                 <div className="prose dark:prose-invert max-w-none mb-6">
                   <p className="whitespace-pre-wrap">{selectedPoem.content}</p>
                 </div>
+
+                <div className="flex items-center gap-4 pb-6 mb-6 border-b border-outline">
+                  <button
+                    onClick={() => handleLike(selectedPoem.id, selectedPoem.user_has_liked || false)}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+                      selectedPoem.user_has_liked
+                        ? 'bg-red-50 text-red-500 dark:bg-red-950/20'
+                        : 'bg-surface-variant text-on-surface-variant hover:bg-on-surface-variant/10'
+                    }`}
+                  >
+                    <Heart
+                      size={18}
+                      fill={selectedPoem.user_has_liked ? 'currentColor' : 'none'}
+                    />
+                    <span>{selectedPoem.like_count || 0} {(selectedPoem.like_count || 0) === 1 ? 'Like' : 'Likes'}</span>
+                  </button>
+                </div>
+
+                <CommentsSection poemId={selectedPoem.id} />
               </div>
             </div>
           </div>

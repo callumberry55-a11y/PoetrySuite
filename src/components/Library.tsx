@@ -16,7 +16,9 @@ import {
   Download,
   Sparkles,
   RefreshCw,
-  BookOpen
+  BookOpen,
+  Heart,
+  MessageSquare
 } from 'lucide-react';
 
 interface Poem {
@@ -27,6 +29,8 @@ interface Poem {
   word_count: number;
   created_at: string;
   favorited: boolean;
+  like_count?: number;
+  comment_count?: number;
 }
 
 interface InternetPoem {
@@ -80,7 +84,27 @@ function Library({ onNewPoem, onEditPoem }: LibraryProps) {
       return;
     }
 
-    setPoems(data || []);
+    const poemsWithCounts = await Promise.all(
+      (data || []).map(async (poem) => {
+        const { count: likeCount } = await supabase
+          .from('reactions')
+          .select('id', { count: 'exact', head: true })
+          .eq('poem_id', poem.id);
+
+        const { count: commentCount } = await supabase
+          .from('comments')
+          .select('id', { count: 'exact', head: true })
+          .eq('poem_id', poem.id);
+
+        return {
+          ...poem,
+          like_count: likeCount || 0,
+          comment_count: commentCount || 0,
+        };
+      })
+    );
+
+    setPoems(poemsWithCounts);
   }, [user]);
 
   const loadCollections = useCallback(async () => {
@@ -650,8 +674,20 @@ function Library({ onNewPoem, onEditPoem }: LibraryProps) {
                 <p className="text-slate-600 dark:text-slate-400 text-sm line-clamp-3 mb-4 font-serif">
                   {poem.content || 'No content yet...'}
                 </p>
-                <div className="flex items-center justify-between text-xs text-slate-500">
+                <div className="flex items-center justify-between text-xs text-slate-500 mb-3">
+                  <div className="flex items-center gap-3">
+                    <span className="flex items-center gap-1">
+                      <Heart size={14} aria-hidden="true" />
+                      {poem.like_count || 0}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <MessageSquare size={14} aria-hidden="true" />
+                      {poem.comment_count || 0}
+                    </span>
+                  </div>
                   <span>{poem.word_count} words</span>
+                </div>
+                <div className="text-xs text-slate-500">
                   <span>{formatDate(poem.created_at)}</span>
                 </div>
               </article>
