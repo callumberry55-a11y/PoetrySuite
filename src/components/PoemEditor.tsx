@@ -54,7 +54,6 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
         is_public: isPublic,
         favorited,
         word_count: wordCount,
-        tags: generatedTags,
         updated_at: new Date().toISOString(),
       };
 
@@ -101,8 +100,8 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
         setContent(data.content);
         setIsPublic(data.is_public);
         setFavorited(data.favorited);
-        setTags(data.tags || []);
-        setLastSaved(null); // Reset save status on new poem load
+        setTags([]);
+        setLastSaved(null);
         setError(null);
         setCurrentPoemId(poemId);
       }
