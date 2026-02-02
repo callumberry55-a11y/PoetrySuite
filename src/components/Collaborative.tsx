@@ -113,7 +113,7 @@ export default function Collaborative() {
     const { error } = await supabase
       .from('collaborative_poems')
       .insert([{
-        creator_id: user.uid,
+        creator_id: user.id,
         ...newPoem,
         content: '',
         status: 'active'
@@ -139,7 +139,7 @@ export default function Collaborative() {
       .from('poem_collaborators')
       .insert([{
         collaborative_poem_id: selectedPoem,
-        user_id: user.uid,
+        user_id: user.id,
         contribution: newContribution,
         position: nextPosition
       }]);

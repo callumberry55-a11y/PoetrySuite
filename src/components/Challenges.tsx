@@ -66,7 +66,7 @@ export default function Challenges() {
           .from('challenge_participations')
           .select('completed')
           .eq('challenge_id', challenge.id)
-          .eq('user_id', user.uid)
+          .eq('user_id', user.id)
           .maybeSingle();
 
         return {
@@ -106,7 +106,7 @@ export default function Challenges() {
       .from('prompt_responses')
       .select('id')
       .eq('prompt_id', prompt.id)
-      .eq('user_id', user.uid)
+      .eq('user_id', user.id)
       .maybeSingle();
 
     setTodayPrompt({
@@ -123,7 +123,7 @@ export default function Challenges() {
       .from('challenge_participations')
       .insert([{
         challenge_id: challengeId,
-        user_id: user.uid
+        user_id: user.id
       }]);
 
     if (error) {

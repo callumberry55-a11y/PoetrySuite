@@ -76,7 +76,7 @@ function Library({ onNewPoem, onEditPoem }: LibraryProps) {
     const { data, error } = await supabase
       .from('poems')
       .select('*')
-      .eq('user_id', user.uid)
+      .eq('user_id', user.id)
       .order('updated_at', { ascending: false });
 
     if (error) {
@@ -113,7 +113,7 @@ function Library({ onNewPoem, onEditPoem }: LibraryProps) {
     const { data, error } = await supabase
       .from('collections')
       .select('*')
-      .eq('user_id', user.uid)
+      .eq('user_id', user.id)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -205,7 +205,7 @@ function Library({ onNewPoem, onEditPoem }: LibraryProps) {
     const { error } = await supabase
       .from('poems')
       .insert([{
-        user_id: user.uid,
+        user_id: user.id,
         title: `${poem.title} by ${poem.author}`,
         content: content,
         is_public: false,
@@ -309,7 +309,7 @@ function Library({ onNewPoem, onEditPoem }: LibraryProps) {
     const { error } = await supabase
       .from('collections')
       .insert([{
-        user_id: user.uid,
+        user_id: user.id,
         name: newCollectionName,
         description: '',
         color: '#6366f1',

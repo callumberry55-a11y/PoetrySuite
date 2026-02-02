@@ -77,7 +77,7 @@ export function CommentsSection({ poemId }: CommentsSectionProps) {
       setSubmitting(true);
       const { error } = await supabase.from('comments').insert({
         poem_id: poemId,
-        user_id: user.uid,
+        user_id: user.id,
         content: newComment.trim(),
       });
 
@@ -166,7 +166,7 @@ export function CommentsSection({ poemId }: CommentsSectionProps) {
                         {comment.content}
                       </p>
                     </div>
-                    {user && user.uid === comment.user_id && (
+                    {user && user.id === comment.user_id && (
                       <button
                         onClick={() => handleDeleteComment(comment.id)}
                         className="flex-shrink-0 p-1.5 rounded-lg hover:bg-error-container hover:text-error transition-colors"

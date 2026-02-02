@@ -53,7 +53,7 @@ export default function SocialFeed() {
       const { data: follows } = await supabase
         .from('follows')
         .select('following_id')
-        .eq('follower_id', user.uid);
+        .eq('follower_id', user.id);
 
       const followingIds = follows?.map(f => f.following_id) || [];
       if (followingIds.length === 0) {
@@ -88,20 +88,20 @@ export default function SocialFeed() {
           .from('reactions')
           .select('id')
           .eq('poem_id', poem.id)
-          .eq('user_id', user.uid)
+          .eq('user_id', user.id)
           .maybeSingle();
 
         const { data: userBookmark } = await supabase
           .from('bookmarks')
           .select('id')
           .eq('poem_id', poem.id)
-          .eq('user_id', user.uid)
+          .eq('user_id', user.id)
           .maybeSingle();
 
         const { data: userFollow } = await supabase
           .from('follows')
           .select('id')
-          .eq('follower_id', user.uid)
+          .eq('follower_id', user.id)
           .eq('following_id', poem.user_id)
           .maybeSingle();
 
@@ -136,11 +136,11 @@ export default function SocialFeed() {
         .from('reactions')
         .delete()
         .eq('poem_id', poemId)
-        .eq('user_id', user.uid);
+        .eq('user_id', user.id);
     } else {
       await supabase
         .from('reactions')
-        .insert([{ poem_id: poemId, user_id: user.uid }]);
+        .insert([{ poem_id: poemId, user_id: user.id }]);
     }
 
     loadFeed();
@@ -157,18 +157,18 @@ export default function SocialFeed() {
         .from('bookmarks')
         .delete()
         .eq('poem_id', poemId)
-        .eq('user_id', user.uid);
+        .eq('user_id', user.id);
     } else {
       await supabase
         .from('bookmarks')
-        .insert([{ poem_id: poemId, user_id: user.uid }]);
+        .insert([{ poem_id: poemId, user_id: user.id }]);
     }
 
     loadFeed();
   };
 
   const toggleFollow = async (authorId: string) => {
-    if (!user || authorId === user.uid) return;
+    if (!user || authorId === user.id) return;
 
     const poem = feed.find(p => p.user_id === authorId);
     if (!poem) return;
@@ -177,12 +177,12 @@ export default function SocialFeed() {
       await supabase
         .from('follows')
         .delete()
-        .eq('follower_id', user.uid)
+        .eq('follower_id', user.id)
         .eq('following_id', authorId);
     } else {
       await supabase
         .from('follows')
-        .insert([{ follower_id: user.uid, following_id: authorId }]);
+        .insert([{ follower_id: user.id, following_id: authorId }]);
     }
 
     loadFeed();

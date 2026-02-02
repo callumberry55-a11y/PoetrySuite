@@ -160,7 +160,7 @@ export default function Prompts({ onUsePrompt }: PromptsProps) {
         prompt_type: 'daily',
         difficulty,
         active_date: new Date().toISOString().split('T')[0],
-        user_id: user.uid,
+        user_id: user.id,
       });
       setPrompts(prev => [{ id: newDoc.id, title, content, prompt_type: 'daily', difficulty, active_date: new Date().toISOString().split('T')[0]} as Prompt, ...prev]);
     } catch (error) {

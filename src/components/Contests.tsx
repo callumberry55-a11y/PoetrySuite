@@ -54,7 +54,7 @@ export default function Contests() {
           .from('contest_entries')
           .select('id')
           .eq('contest_id', contest.id)
-          .eq('user_id', user.uid)
+          .eq('user_id', user.id)
           .maybeSingle();
 
         return {

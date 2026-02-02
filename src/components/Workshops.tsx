@@ -54,7 +54,7 @@ export default function Workshops() {
     const { data, error } = await supabase
       .from('workshops')
       .select('*')
-      .or(`creator_id.eq.${user.uid},id.in.(select workshop_id from workshop_members where user_id = '${user.uid}')`)
+      .or(`creator_id.eq.${user.id},id.in.(select workshop_id from workshop_members where user_id = '${user.id}')`)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -127,7 +127,7 @@ export default function Workshops() {
     const { data: workshop, error } = await supabase
       .from('workshops')
       .insert([{
-        creator_id: user.uid,
+        creator_id: user.id,
         ...newWorkshop
       }])
       .select()
@@ -143,7 +143,7 @@ export default function Workshops() {
       .from('workshop_members')
       .insert([{
         workshop_id: workshop.id,
-        user_id: user.uid,
+        user_id: user.id,
         role: 'admin'
       }]);
 
@@ -159,7 +159,7 @@ export default function Workshops() {
       .from('workshop_members')
       .insert([{
         workshop_id: workshopId,
-        user_id: user.uid,
+        user_id: user.id,
         role: 'member'
       }]);
 

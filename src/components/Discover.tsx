@@ -93,7 +93,7 @@ export default function Discover() {
             .from('reactions')
             .select('id')
             .eq('poem_id', poem.id)
-            .eq('user_id', user.uid)
+            .eq('user_id', user.id)
             .maybeSingle() : { data: null };
 
           return {
@@ -140,13 +140,13 @@ export default function Discover() {
           .from('reactions')
           .delete()
           .eq('poem_id', poemId)
-          .eq('user_id', user.uid);
+          .eq('user_id', user.id);
 
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from('reactions')
-          .insert({ poem_id: poemId, user_id: user.uid });
+          .insert({ poem_id: poemId, user_id: user.id });
 
         if (error) throw error;
       }

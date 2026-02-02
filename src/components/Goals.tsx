@@ -34,7 +34,7 @@ export default function Goals() {
     const { data, error } = await supabase
       .from('writing_goals')
       .select('*')
-      .eq('user_id', user.uid)
+      .eq('user_id', user.id)
       .in('status', ['active', 'completed'])
       .order('created_at', { ascending: false });
 
@@ -60,7 +60,7 @@ export default function Goals() {
     const { error } = await supabase
       .from('writing_goals')
       .insert([{
-        user_id: user.uid,
+        user_id: user.id,
         goal_type: newGoal.goal_type,
         target_value: newGoal.target_value,
         current_value: 0,

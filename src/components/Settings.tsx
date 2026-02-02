@@ -160,7 +160,7 @@ export default function Settings() {
               </div>
               <div>
                 <p className="text-sm text-slate-600 dark:text-slate-400">User ID</p>
-                <p className="font-medium text-slate-900 dark:text-white">{user?.uid}</p>
+                <p className="font-medium text-slate-900 dark:text-white">{user?.id}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
