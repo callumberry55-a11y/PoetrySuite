@@ -1,138 +1,70 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Lightbulb, Plus, Calendar, Target } from 'lucide-react';
-import { db } from '../lib/firebase';
-import { collection, getDocs, addDoc, query, orderBy, limit, writeBatch, doc } from "firebase/firestore"; 
-import { useAuth } from '../contexts/AuthContext';
+import { Lightbulb, Plus, Calendar } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Prompt {
   id: string;
-  title: string;
-  content: string;
-  prompt_type: string;
-  difficulty: string;
-  active_date: string;
+  prompt_text: string;
+  prompt_date: string;
+  category: string;
+  response_count: number;
+  user_has_responded: boolean;
 }
 
 interface PromptsProps {
-  onUsePrompt: (prompt: Prompt) => void;
+  onUsePrompt?: (prompt: Prompt) => void;
 }
-
-const predefinedPrompts: Omit<Prompt, 'id' | 'active_date'>[] = [
-  {
-    title: 'Morning Ritual',
-    content: 'Write about the first hour of your day. Focus on sensory details and small moments of awareness.',
-    prompt_type: 'daily',
-    difficulty: 'beginner',
-  },
-  {
-    title: 'Transformation',
-    content: 'Explore a moment of personal change. What was the catalyst? How did you emerge different?',
-    prompt_type: 'weekly',
-    difficulty: 'intermediate',
-  },
-  {
-    title: 'In the Voice of Water',
-    content: 'Personify an element of nature. Write from its perspective about witnessing human life.',
-    prompt_type: 'challenge',
-    difficulty: 'advanced',
-  },
-  {
-    title: 'Memory Fragment',
-    content: 'Capture a childhood memory using only sensory details. No explanations, just images and feelings.',
-    prompt_type: 'daily',
-    difficulty: 'beginner',
-  },
-  {
-    title: 'Conversations Unspoken',
-    content: "Write the dialogue you wish you could have with someone. What would you say if fear didn't hold you back?",
-    prompt_type: 'weekly',
-    difficulty: 'intermediate',
-  },
-  {
-    title: 'Ekphrastic Challenge',
-    content: 'Find a painting or photograph that moves you. Write a poem responding to or entering the image.',
-    prompt_type: 'challenge',
-    difficulty: 'advanced',
-  },
-  {
-    title: 'Weather Within',
-    content: 'Describe your current emotional state using only weather metaphors and imagery.',
-    prompt_type: 'daily',
-    difficulty: 'beginner',
-  },
-  {
-    title: 'The Abandoned',
-    content: 'Write about an abandoned place you know or imagine. What stories do the empty spaces hold?',
-    prompt_type: 'weekly',
-    difficulty: 'intermediate',
-  },
-  {
-    title: 'Constraint: Lipogram',
-    content: 'Write a poem without using the letter "e". Embrace the challenge and find creative solutions.',
-    prompt_type: 'challenge',
-    difficulty: 'advanced',
-  },
-  {
-    title: 'Sound Poem',
-    content: 'Write a poem focused entirely on sounds. Use onomatopoeia, rhythm, and auditory imagery.',
-    prompt_type: 'daily',
-    difficulty: 'intermediate',
-  },
-];
 
 export default function Prompts({ onUsePrompt }: PromptsProps) {
   const { user } = useAuth();
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<'all' | 'daily' | 'weekly' | 'challenge'>('all');
-
-  const initializePrompts = useCallback(async () => {
-    if (!user) return [];
-
-    try {
-      const batch = writeBatch(db);
-      const promptsCollection = collection(db, "writing_prompts");
-      const newPrompts: Prompt[] = [];
-      
-      predefinedPrompts.forEach((prompt, index) => {
-        const docRef = doc(promptsCollection);
-        const newPromptData = {
-          ...prompt,
-          active_date: new Date(Date.now() - index * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        };
-        batch.set(docRef, newPromptData);
-        newPrompts.push({ id: docRef.id, ...newPromptData });
-      });
-
-      await batch.commit();
-      return newPrompts.sort((a, b) => new Date(b.active_date).getTime() - new Date(a.active_date).getTime());
-    } catch (error) {
-      console.error('Error initializing prompts:', error);
-      return [];
-    }
-  }, [user]);
+  const [filter, setFilter] = useState<'all' | 'theme' | 'form' | 'word' | 'image'>('all');
 
   const loadPrompts = useCallback(async () => {
+    if (!user) return;
+
     setLoading(true);
     try {
-      const promptsCollection = collection(db, "writing_prompts");
-      const q = query(promptsCollection, orderBy('active_date', 'desc'), limit(50));
-      const querySnapshot = await getDocs(q);
-      
-      if (querySnapshot.empty) {
-        const newPrompts = await initializePrompts();
-        setPrompts(newPrompts);
-      } else {
-        const promptsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Prompt));
-        setPrompts(promptsData);
-      }
+      const { data, error } = await supabase
+        .from('daily_prompts')
+        .select('*')
+        .order('prompt_date', { ascending: false })
+        .limit(30);
+
+      if (error) throw error;
+
+      const promptsWithData = await Promise.all(
+        (data || []).map(async (prompt) => {
+          const { count } = await supabase
+            .from('prompt_responses')
+            .select('id', { count: 'exact', head: true })
+            .eq('prompt_id', prompt.id);
+
+          const { data: userResponse } = await supabase
+            .from('prompt_responses')
+            .select('id')
+            .eq('prompt_id', prompt.id)
+            .eq('user_id', user.id)
+            .maybeSingle();
+
+          return {
+            ...prompt,
+            response_count: count || 0,
+            user_has_responded: !!userResponse
+          };
+        })
+      );
+
+      setPrompts(promptsWithData);
     } catch (error) {
       console.error('Error loading prompts:', error);
       setPrompts([]);
     } finally {
       setLoading(false);
     }
-  }, [initializePrompts]);
+  }, [user]);
 
   useEffect(() => {
     if (user) {
@@ -140,157 +72,121 @@ export default function Prompts({ onUsePrompt }: PromptsProps) {
     }
   }, [user, loadPrompts]);
 
-  const addCustomPrompt = async () => {
-    if (!user) return;
-
-    const title = prompt('Enter prompt title:');
-    if (!title) return;
-
-    const content = prompt('Enter prompt content:');
-    if (!content) return;
-
-    const difficulty = prompt('Enter difficulty (beginner/intermediate/advanced):', 'intermediate');
-    if (!difficulty) return;
-
-    try {
-      const promptsCollection = collection(db, "writing_prompts");
-      const newDoc = await addDoc(promptsCollection, {
-        title,
-        content,
-        prompt_type: 'daily',
-        difficulty,
-        active_date: new Date().toISOString().split('T')[0],
-        user_id: user.id,
-      });
-      setPrompts(prev => [{ id: newDoc.id, title, content, prompt_type: 'daily', difficulty, active_date: new Date().toISOString().split('T')[0]} as Prompt, ...prev]);
-    } catch (error) {
-      console.error('Error adding custom prompt:', error);
-    }
-  };
-
   const filteredPrompts = filter === 'all'
     ? prompts
-    : prompts.filter(p => p.prompt_type === filter);
+    : prompts.filter(p => p.category === filter);
 
   return (
-    <div className="w-full h-full flex flex-col bg-gradient-to-br from-background to-secondary-container/20">
-      <div className="p-6 border-b border-outline">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-3xl font-bold text-on-background mb-2">Writing Prompts</h1>
-            <p className="text-on-surface-variant">Get inspired and overcome writer's block</p>
-          </div>
-          <button
-            onClick={addCustomPrompt}
-            className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/90 text-on-primary rounded-lg font-medium transition-colors"
-          >
-            <Plus size={18} />
-            Add Custom
-          </button>
-        </div>
-
-        <div className="flex gap-2 flex-wrap">
-          <button
-            onClick={() => setFilter('all')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              filter === 'all'
-                ? 'bg-primary text-on-primary'
-                : 'bg-surface text-on-surface-variant hover:bg-surface-variant'
-            }`}
-          >
-            All
-          </button>
-          <button
-            onClick={() => setFilter('daily')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
-              filter === 'daily'
-                ? 'bg-primary text-on-primary'
-                : 'bg-surface text-on-surface-variant hover:bg-surface-variant'
-            }`}
-          >
-            <Calendar size={16} />
-            Daily
-          </button>
-          <button
-            onClick={() => setFilter('weekly')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              filter === 'weekly'
-                ? 'bg-primary text-on-primary'
-                : 'bg-surface text-on-surface-variant hover:bg-surface-variant'
-            }`}
-          >
-            Weekly
-          </button>
-          <button
-            onClick={() => setFilter('challenge')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              filter === 'challenge'
-                ? 'bg-primary text-on-primary'
-                : 'bg-surface text-on-surface-variant hover:bg-surface-variant'
-            }`}
-          >
-            <Target size={16} />
-            Challenges
-          </button>
-        </div>
+    <div className="max-w-7xl mx-auto px-4 py-4 sm:py-8 pb-24">
+      <div className="mb-6">
+        <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mb-2">Writing Prompts</h2>
+        <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400">Get inspired and overcome writer's block</p>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-6">
-        {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {filteredPrompts.map(prompt => (
-              <div
-                key={prompt.id}
-                className="bg-surface rounded-xl shadow-sm border border-outline overflow-hidden hover:shadow-md transition-shadow"
-              >
-                <div className="p-6">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-2 flex-1">
-                      <Lightbulb className="text-tertiary flex-shrink-0" size={20} />
-                      <h3 className="text-lg font-bold text-on-surface">{prompt.title}</h3>
-                    </div>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ml-2 ${
-                      prompt.difficulty === 'beginner'
-                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
-                        : prompt.difficulty === 'intermediate'
-                        ? 'bg-primary-container text-on-primary-container'
-                        : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
-                    }`}>
-                      {prompt.difficulty}
+      <div className="flex gap-2 flex-wrap mb-6">
+        <button
+          onClick={() => setFilter('all')}
+          className={`px-3 sm:px-4 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base ${
+            filter === 'all'
+              ? 'bg-blue-500 text-white'
+              : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600'
+          }`}
+        >
+          All
+        </button>
+        <button
+          onClick={() => setFilter('theme')}
+          className={`px-3 sm:px-4 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base ${
+            filter === 'theme'
+              ? 'bg-blue-500 text-white'
+              : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600'
+          }`}
+        >
+          Theme
+        </button>
+        <button
+          onClick={() => setFilter('form')}
+          className={`px-3 sm:px-4 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base ${
+            filter === 'form'
+              ? 'bg-blue-500 text-white'
+              : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600'
+          }`}
+        >
+          Form
+        </button>
+        <button
+          onClick={() => setFilter('word')}
+          className={`px-3 sm:px-4 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base ${
+            filter === 'word'
+              ? 'bg-blue-500 text-white'
+              : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600'
+          }`}
+        >
+          Word
+        </button>
+        <button
+          onClick={() => setFilter('image')}
+          className={`px-3 sm:px-4 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base ${
+            filter === 'image'
+              ? 'bg-blue-500 text-white'
+              : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600'
+          }`}
+        >
+          Image
+        </button>
+      </div>
+
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+          {filteredPrompts.map(prompt => (
+            <div
+              key={prompt.id}
+              className="bg-white dark:bg-slate-800 rounded-lg shadow-sm p-4 sm:p-6 hover:shadow-md transition-shadow"
+            >
+              <div className="flex items-start gap-3 mb-3">
+                <div className="p-2 rounded-lg bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/20 dark:to-blue-800/20">
+                  <Lightbulb className="text-blue-600 dark:text-blue-400" size={20} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="inline-block px-2 py-1 rounded text-xs font-medium bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 mb-2">
+                    {prompt.category}
+                  </span>
+                  {prompt.user_has_responded && (
+                    <span className="ml-2 text-green-600 dark:text-green-400 text-xs font-medium">
+                      ✓ Responded
                     </span>
-                  </div>
-
-                  <p className="text-on-surface mb-4">{prompt.content}</p>
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-sm text-on-surface-variant">
-                      <Calendar size={14} />
-                      {new Date(prompt.active_date).toLocaleDateString()}
-                    </div>
-                    <button
-                      onClick={() => onUsePrompt(prompt)}
-                      className="px-4 py-2 bg-primary hover:bg-primary/90 text-on-primary rounded-lg text-sm font-medium transition-colors"
-                    >
-                      Use This Prompt
-                    </button>
-                  </div>
+                  )}
                 </div>
               </div>
-            ))}
 
-            {filteredPrompts.length === 0 && (
-              <div className="text-center py-12">
-                <Lightbulb className="mx-auto mb-4 text-on-surface-variant" size={48} />
-                <p className="text-on-surface-variant">No prompts available</p>
+              <p className="text-base sm:text-lg text-slate-900 dark:text-white font-serif mb-4">
+                "{prompt.prompt_text}"
+              </p>
+
+              <div className="flex items-center justify-between text-xs sm:text-sm">
+                <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
+                  <Calendar size={14} />
+                  {new Date(prompt.prompt_date).toLocaleDateString()}
+                </div>
+                <span className="text-slate-600 dark:text-slate-400">
+                  {prompt.response_count} {prompt.response_count === 1 ? 'response' : 'responses'}
+                </span>
               </div>
-            )}
-          </div>
-        )}
-      </div>
+            </div>
+          ))}
+
+          {filteredPrompts.length === 0 && (
+            <div className="col-span-full text-center py-12">
+              <Lightbulb className="mx-auto mb-4 text-slate-400" size={48} />
+              <p className="text-slate-500 dark:text-slate-400">No prompts available in this category</p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
