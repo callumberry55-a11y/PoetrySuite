@@ -73,21 +73,35 @@ export function CommentsSection({ poemId }: CommentsSectionProps) {
     e.preventDefault();
     if (!newComment.trim() || !user) return;
 
+    const commentContent = newComment.trim();
+    setNewComment('');
+
     try {
       setSubmitting(true);
-      const { error } = await supabase.from('comments').insert({
+      const { data, error } = await supabase.from('comments').insert({
         poem_id: poemId,
         user_id: user.id,
-        content: newComment.trim(),
-      });
+        content: commentContent,
+      }).select().single();
 
       if (error) throw error;
 
-      setNewComment('');
-      await loadComments();
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('username')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      const newCommentData: Comment = {
+        ...data,
+        username: profile?.username || 'Anonymous',
+      };
+
+      setComments([...comments, newCommentData]);
     } catch (error) {
       console.error('Error posting comment:', error);
-      alert('Failed to post comment');
+      setNewComment(commentContent);
+      alert('Failed to post comment. Please try again.');
     } finally {
       setSubmitting(false);
     }

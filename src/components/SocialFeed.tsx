@@ -171,30 +171,60 @@ export default function SocialFeed() {
   };
 
   const toggleLike = async (poemId: string) => {
-    if (!user) return;
+    if (!user) {
+      alert('Please sign in to like poems');
+      return;
+    }
 
     const poem = feed.find(p => p.id === poemId);
     if (!poem) return;
 
+    const wasLiked = poem.user_has_liked;
+    const previousCount = poem.like_count;
+
+    setFeed(feed.map(p =>
+      p.id === poemId
+        ? {
+            ...p,
+            user_has_liked: !p.user_has_liked,
+            like_count: p.like_count + (p.user_has_liked ? -1 : 1)
+          }
+        : p
+    ));
+
+    if (selectedPoem?.id === poemId) {
+      setSelectedPoem({
+        ...selectedPoem,
+        user_has_liked: !selectedPoem.user_has_liked,
+        like_count: selectedPoem.like_count + (selectedPoem.user_has_liked ? -1 : 1)
+      });
+    }
+
     try {
-      if (poem.user_has_liked) {
-        await supabase
+      if (wasLiked) {
+        const { error } = await supabase
           .from('reactions')
           .delete()
           .eq('poem_id', poemId)
           .eq('user_id', user.id);
+
+        if (error) throw error;
       } else {
-        await supabase
+        const { error } = await supabase
           .from('reactions')
           .insert([{ poem_id: poemId, user_id: user.id }]);
+
+        if (error) throw error;
       }
+    } catch (error) {
+      console.error('Error toggling like:', error);
 
       setFeed(feed.map(p =>
         p.id === poemId
           ? {
               ...p,
-              user_has_liked: !p.user_has_liked,
-              like_count: p.like_count + (p.user_has_liked ? -1 : 1)
+              user_has_liked: wasLiked,
+              like_count: previousCount
             }
           : p
       ));
@@ -202,12 +232,12 @@ export default function SocialFeed() {
       if (selectedPoem?.id === poemId) {
         setSelectedPoem({
           ...selectedPoem,
-          user_has_liked: !selectedPoem.user_has_liked,
-          like_count: selectedPoem.like_count + (selectedPoem.user_has_liked ? -1 : 1)
+          user_has_liked: wasLiked,
+          like_count: previousCount
         });
       }
-    } catch (error) {
-      console.error('Error toggling like:', error);
+
+      alert('Failed to update like. Please try again.');
     }
   };
 
@@ -490,15 +520,15 @@ export default function SocialFeed() {
                         e.stopPropagation();
                         toggleLike(poem.id);
                       }}
-                      className={`flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 rounded-lg transition-colors ${
+                      className={`flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 rounded-lg transition-all ${
                         poem.user_has_liked
-                          ? 'text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20'
-                          : 'text-on-surface-variant hover:bg-surface-variant'
+                          ? 'text-red-500 bg-red-50 dark:bg-red-950/20 hover:bg-red-100 dark:hover:bg-red-950/30'
+                          : 'text-on-surface-variant hover:bg-surface-variant hover:text-red-500'
                       }`}
                     >
                       <Heart
                         size={16}
-                        className="sm:w-[18px] sm:h-[18px]"
+                        className={`sm:w-[18px] sm:h-[18px] transition-all ${poem.user_has_liked ? 'scale-110' : ''}`}
                         fill={poem.user_has_liked ? 'currentColor' : 'none'}
                       />
                       <span className="text-xs sm:text-sm font-medium">{poem.like_count}</span>
@@ -563,14 +593,15 @@ export default function SocialFeed() {
                 <div className="flex items-center gap-4 pb-6 mb-6 border-b border-outline">
                   <button
                     onClick={() => toggleLike(selectedPoem.id)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
                       selectedPoem.user_has_liked
-                        ? 'bg-red-50 text-red-500 dark:bg-red-950/20'
-                        : 'bg-surface-variant text-on-surface-variant hover:bg-on-surface-variant/10'
+                        ? 'bg-red-50 text-red-500 dark:bg-red-950/20 hover:bg-red-100 dark:hover:bg-red-950/30'
+                        : 'bg-surface-variant text-on-surface-variant hover:bg-on-surface-variant/10 hover:text-red-500'
                     }`}
                   >
                     <Heart
                       size={18}
+                      className={`transition-all ${selectedPoem.user_has_liked ? 'scale-110' : ''}`}
                       fill={selectedPoem.user_has_liked ? 'currentColor' : 'none'}
                     />
                     <span>{selectedPoem.like_count || 0} {(selectedPoem.like_count || 0) === 1 ? 'Like' : 'Likes'}</span>
