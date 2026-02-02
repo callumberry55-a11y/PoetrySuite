@@ -10,7 +10,6 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<any>;
   signUp: (email: string, password: string) => Promise<any>;
-  signInWithGoogle: () => Promise<any>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -20,7 +19,6 @@ const AuthContext = createContext<AuthContextType>({
   signOut: async () => {},
   signIn: async (_email: string, _password: string) => {},
   signUp: async (_email: string, _password: string) => {},
-  signInWithGoogle: async () => {},
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -56,12 +54,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return await supabase.auth.signUp({ email, password });
   }, []);
 
-  const signInWithGoogle = useCallback(async () => {
-    return await supabase.auth.signInWithOAuth({
-      provider: 'google',
-    });
-  }, []);
-
   const value = {
     session,
     user,
@@ -69,7 +61,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signOut,
     signIn,
     signUp,
-    signInWithGoogle,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
