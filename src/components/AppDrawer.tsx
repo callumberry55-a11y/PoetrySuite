@@ -12,7 +12,7 @@ interface AppDrawerProps {
 const navItems = [
   { id: 'write' as const, icon: PenLine, label: 'Write' },
   { id: 'library' as const, icon: Library, label: 'Library' },
-  { id: 'discover' as const, icon: Compass, label: 'Discover' },
+  { id: 'discover' as const, icon: Compass, label: 'AI Hub' },
   { id: 'feed' as const, icon: Users, label: 'Social Feed' },
   { id: 'prompts' as const, icon: Lightbulb, label: 'Prompts' },
   { id: 'challenges' as const, icon: Zap, label: 'Challenges' },
