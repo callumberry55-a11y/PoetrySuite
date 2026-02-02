@@ -61,7 +61,7 @@ export default function AppDrawer({ isOpen, onClose, onViewChange, currentView }
                 className={`flex flex-col items-center justify-center gap-2 p-4 rounded-lg transition-colors aspect-square ${
                   currentView === item.id
                     ? 'bg-secondary-container text-on-secondary-container'
-                    : 'bg-surface-container hover:bg-surface-variant text-on-surface'
+                    : 'bg-surface-variant/50 hover:bg-surface-variant text-on-surface'
                 }`}
               >
                 <item.icon size={32} />
