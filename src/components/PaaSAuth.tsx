@@ -45,7 +45,12 @@ export default function PaaSAuth() {
         password,
       });
 
-      if (signupError) throw signupError;
+      if (signupError) {
+        if (signupError.message.includes('already registered')) {
+          throw new Error('This email is already registered. Please login instead.');
+        }
+        throw signupError;
+      }
 
       if (authData.user) {
         const { error: devError } = await supabase.from('paas_developers').insert({
@@ -56,7 +61,12 @@ export default function PaaSAuth() {
           is_verified: false
         });
 
-        if (devError) throw devError;
+        if (devError) {
+          if (devError.message.includes('duplicate') || devError.code === '23505') {
+            throw new Error('Developer account already exists. Please login instead.');
+          }
+          throw new Error('Failed to create developer profile. Please contact support.');
+        }
 
         setUserType('developer');
       }
