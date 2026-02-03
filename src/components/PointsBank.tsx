@@ -23,6 +23,17 @@ interface TaxSettings {
   purchase_tax_rate: number;
   collection_frequency: string;
   is_active: boolean;
+  next_adjustment_year?: number;
+}
+
+interface TaxRateAdjustment {
+  adjustment_year: number;
+  previous_tax_rate: number;
+  new_tax_rate: number;
+  previous_purchase_tax_rate: number;
+  new_purchase_tax_rate: number;
+  adjustment_amount: number;
+  applied_at: string;
 }
 
 export default function PointsBank() {
@@ -36,6 +47,7 @@ export default function PointsBank() {
   });
   const [funds, setFunds] = useState<EconomyFund[]>([]);
   const [taxSettings, setTaxSettings] = useState<TaxSettings | null>(null);
+  const [taxAdjustments, setTaxAdjustments] = useState<TaxRateAdjustment[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPeriod, setSelectedPeriod] = useState<'day' | 'week' | 'month' | 'year'>('month');
 
@@ -65,6 +77,12 @@ export default function PointsBank() {
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
+
+      const { data: adjustments } = await supabase
+        .from('tax_rate_adjustments')
+        .select('*')
+        .order('adjustment_year', { ascending: false })
+        .limit(5);
 
       const totalDistributed = transactions?.reduce((sum, tx) => {
         if (tx.transaction_type === 'mint') return sum + tx.amount;
@@ -104,6 +122,10 @@ export default function PointsBank() {
 
       if (taxConfig) {
         setTaxSettings(taxConfig);
+      }
+
+      if (adjustments) {
+        setTaxAdjustments(adjustments);
       }
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -314,6 +336,56 @@ export default function PointsBank() {
                   <p className="text-emerald-200 text-xs mt-1">Always protected</p>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-gradient-to-br from-rose-600 to-pink-600 rounded-2xl p-8 shadow-lg text-white">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                  <TrendingUp className="text-white" size={28} />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold">Automatic Tax Inflation</h2>
+                  <p className="text-rose-100">Annual adjustment to maintain economic balance</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                  <p className="text-rose-100 text-sm mb-1">Annual Increase</p>
+                  <p className="text-3xl font-bold">+0.5%</p>
+                  <p className="text-rose-200 text-xs mt-1">Every year</p>
+                </div>
+                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                  <p className="text-rose-100 text-sm mb-1">Next Adjustment</p>
+                  <p className="text-3xl font-bold">{taxSettings?.next_adjustment_year || new Date().getFullYear() + 1}</p>
+                  <p className="text-rose-200 text-xs mt-1">Scheduled year</p>
+                </div>
+                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                  <p className="text-rose-100 text-sm mb-1">Projected (5yr)</p>
+                  <p className="text-2xl font-bold">{((taxSettings?.tax_rate || 5) + 2.5).toFixed(1)}%</p>
+                  <p className="text-rose-200 text-xs mt-1">Monthly tax rate</p>
+                </div>
+              </div>
+
+              {taxAdjustments.length > 0 && (
+                <div className="mt-6 bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                  <h3 className="text-lg font-semibold mb-3">Recent Adjustments</h3>
+                  <div className="space-y-2">
+                    {taxAdjustments.slice(0, 3).map((adj) => (
+                      <div key={adj.adjustment_year} className="flex items-center justify-between text-sm">
+                        <span className="text-rose-100">{adj.adjustment_year}</span>
+                        <span className="text-rose-200">
+                          {adj.previous_tax_rate}% → {adj.new_tax_rate}%
+                          <span className="ml-2 text-xs">({adj.adjustment_amount > 0 ? '+' : ''}{adj.adjustment_amount}%)</span>
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -652,6 +724,18 @@ export default function PointsBank() {
                   <h3 className="font-semibold text-slate-900 dark:text-white mb-1">Secure & Auditable</h3>
                   <p className="text-sm text-slate-600 dark:text-slate-400">
                     All transactions are recorded in a secure, auditable database ensuring transparency and accountability.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center text-rose-600 dark:text-rose-400 font-bold">
+                  9
+                </div>
+                <div>
+                  <h3 className="font-semibold text-slate-900 dark:text-white mb-1">Automatic Tax Inflation</h3>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    Tax rates automatically increase by 0.5% each year to maintain economic balance and control long-term inflation. This ensures the system remains sustainable as the community grows.
                   </p>
                 </div>
               </div>
