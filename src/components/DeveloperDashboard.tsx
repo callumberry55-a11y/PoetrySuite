@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Key, Copy, Plus, Trash2, Activity, Coins, TrendingUp, AlertCircle, CheckCircle, Eye, EyeOff } from 'lucide-react';
+import { Key, Copy, Plus, Trash2, Activity, Coins, TrendingUp, AlertCircle, CheckCircle, Eye, EyeOff, RefreshCw } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 interface ApiKey {
   id: string;
@@ -44,54 +45,79 @@ export default function DeveloperDashboard() {
   const [newKeyName, setNewKeyName] = useState('');
   const [newlyCreatedKey, setNewlyCreatedKey] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'keys' | 'usage' | 'billing'>('overview');
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadDeveloperData();
   }, []);
 
-  const loadDeveloperData = async () => {
+  const loadDeveloperData = async (isRefresh = false) => {
     try {
-      const { supabase } = await import('../lib/supabase');
+      if (isRefresh) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+      }
+      setError(null);
+
       const { data: { user } } = await supabase.auth.getUser();
 
-      if (!user) return;
+      if (!user) {
+        setError('Not authenticated');
+        setLoading(false);
+        setRefreshing(false);
+        return;
+      }
 
-      const { data: devData } = await supabase
-        .from('paas_developers')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-
-      if (devData) {
-        setProfile(devData);
-
-        const { data: accountData } = await supabase
+      const [
+        { data: devData, error: devError },
+        { data: accountData, error: accountError },
+        { data: keysData, error: keysError },
+        { data: txData, error: txError }
+      ] = await Promise.all([
+        supabase
+          .from('paas_developers')
+          .select('*')
+          .eq('id', user.id)
+          .maybeSingle(),
+        supabase
           .from('paas_point_accounts')
           .select('*')
           .eq('developer_id', user.id)
-          .maybeSingle();
-
-        setPointAccount(accountData);
-
-        const { data: keysData } = await supabase
+          .maybeSingle(),
+        supabase
           .from('paas_api_keys')
           .select('*')
           .eq('developer_id', user.id)
-          .order('created_at', { ascending: false });
-
-        setApiKeys(keysData || []);
-
-        const { data: txData } = await supabase
+          .order('created_at', { ascending: false }),
+        supabase
           .from('paas_transactions')
           .select('*')
           .eq('developer_id', user.id)
           .order('created_at', { ascending: false })
-          .limit(20);
+          .limit(20)
+      ]);
 
-        setTransactions(txData || []);
+      if (devError || !devData) {
+        setError('Developer profile not found');
+        setLoading(false);
+        setRefreshing(false);
+        return;
       }
+
+      setProfile(devData);
+      setPointAccount(accountData || null);
+      setApiKeys(keysData || []);
+      setTransactions(txData || []);
+      setLoading(false);
+      setRefreshing(false);
     } catch (error) {
       console.error('Error loading developer data:', error);
+      setError('Failed to load dashboard data');
+      setLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -99,8 +125,6 @@ export default function DeveloperDashboard() {
     if (!newKeyName.trim() || !profile) return;
 
     try {
-      const { supabase } = await import('../lib/supabase');
-
       const fullKey = 'pk_' + Array.from(crypto.getRandomValues(new Uint8Array(32)))
         .map(b => b.toString(16).padStart(2, '0'))
         .join('');
@@ -123,21 +147,35 @@ export default function DeveloperDashboard() {
 
       setNewlyCreatedKey(fullKey);
       setNewKeyName('');
-      loadDeveloperData();
+
+      const { data: keysData } = await supabase
+        .from('paas_api_keys')
+        .select('*')
+        .eq('developer_id', profile.id)
+        .order('created_at', { ascending: false });
+
+      setApiKeys(keysData || []);
     } catch (error) {
       console.error('Error generating API key:', error);
     }
   };
 
   const revokeApiKey = async (keyId: string) => {
+    if (!profile) return;
+
     try {
-      const { supabase } = await import('../lib/supabase');
       await supabase
         .from('paas_api_keys')
         .update({ is_active: false })
         .eq('id', keyId);
 
-      loadDeveloperData();
+      const { data: keysData } = await supabase
+        .from('paas_api_keys')
+        .select('*')
+        .eq('developer_id', profile.id)
+        .order('created_at', { ascending: false });
+
+      setApiKeys(keysData || []);
     } catch (error) {
       console.error('Error revoking API key:', error);
     }
@@ -147,7 +185,7 @@ export default function DeveloperDashboard() {
     navigator.clipboard.writeText(text);
   };
 
-  if (!profile) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
         <div className="text-center">
@@ -158,27 +196,56 @@ export default function DeveloperDashboard() {
     );
   }
 
+  if (error || !profile) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-6">
+          <AlertCircle className="mx-auto mb-4 text-red-600" size={48} />
+          <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">Unable to Load Dashboard</h2>
+          <p className="text-slate-600 dark:text-slate-400 mb-4">{error || 'Developer profile not found'}</p>
+          <button
+            onClick={loadDeveloperData}
+            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 p-4 sm:p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Developer Dashboard</h1>
-          <p className="text-slate-600 dark:text-slate-400">{profile.email}</p>
-          <div className="flex gap-2 mt-2">
-            <span className={`px-3 py-1 text-sm rounded-full ${
-              profile.subscription_status === 'active'
-                ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-                : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-400'
-            }`}>
-              {profile.subscription_status}
-            </span>
-            {profile.is_verified && (
-              <span className="px-3 py-1 text-sm rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 flex items-center gap-1">
-                <CheckCircle size={14} />
-                Verified
+        <div className="mb-6 flex items-start justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Developer Dashboard</h1>
+            <p className="text-slate-600 dark:text-slate-400">{profile.email}</p>
+            <div className="flex gap-2 mt-2">
+              <span className={`px-3 py-1 text-sm rounded-full ${
+                profile.subscription_status === 'active'
+                  ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                  : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-400'
+              }`}>
+                {profile.subscription_status}
               </span>
-            )}
+              {profile.is_verified && (
+                <span className="px-3 py-1 text-sm rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 flex items-center gap-1">
+                  <CheckCircle size={14} />
+                  Verified
+                </span>
+              )}
+            </div>
           </div>
+          <button
+            onClick={() => loadDeveloperData(true)}
+            disabled={refreshing}
+            className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-600 rounded-lg transition-colors disabled:opacity-50"
+            title="Refresh data"
+          >
+            <RefreshCw size={18} className={refreshing ? 'animate-spin' : ''} />
+            Refresh
+          </button>
         </div>
 
         <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
