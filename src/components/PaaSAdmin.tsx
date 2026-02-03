@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Shield, Users, Key, Coins, Activity, AlertTriangle, CheckCircle, XCircle, TrendingUp, DollarSign, Search, Download, RefreshCw, Eye, Ban } from 'lucide-react';
+import ExternalApiKeysManager from './ExternalApiKeysManager';
 
 interface Developer {
   id: string;
@@ -59,7 +60,7 @@ interface PaaSAdminProps {
 export default function PaaSAdmin({ onLogout }: PaaSAdminProps) {
   const { user } = useAuth();
   const [isAuthenticated, setIsAuthenticated] = useState(true);
-  const [activeTab, setActiveTab] = useState<'overview' | 'developers' | 'security' | 'transactions'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'developers' | 'security' | 'transactions' | 'api-keys'>('overview');
   const [developers, setDevelopers] = useState<Developer[]>([]);
   const [securityEvents, setSecurityEvents] = useState<SecurityEvent[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -428,6 +429,17 @@ export default function PaaSAdmin({ onLogout }: PaaSAdminProps) {
               <Coins size={18} />
               <span>Transactions</span>
             </button>
+            <button
+              onClick={() => setActiveTab('api-keys')}
+              className={`py-3 px-3 md:py-4 md:px-4 border-b-2 font-medium transition-colors whitespace-nowrap flex items-center gap-2 ${
+                activeTab === 'api-keys'
+                  ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <Key size={18} />
+              <span>External API</span>
+            </button>
           </div>
         </div>
 
@@ -640,6 +652,8 @@ export default function PaaSAdmin({ onLogout }: PaaSAdminProps) {
               </div>
             </div>
           )}
+
+          {activeTab === 'api-keys' && <ExternalApiKeysManager />}
         </div>
       </div>
 
