@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { Moon, Sun, User, Mail, Download, Smartphone, FileText, ChevronDown, ChevronUp, Clock, Trash2, AlertTriangle, Bell, BellOff, MessageSquare, Send } from 'lucide-react';
+import { Moon, Sun, User, Mail, Download, Smartphone, FileText, ChevronDown, ChevronUp, Clock, Trash2, AlertTriangle, Bell, BellOff, MessageSquare, Send, ExternalLink } from 'lucide-react';
 import { functions } from '../lib/firebase';
 import { httpsCallable } from 'firebase/functions';
 import { subscribeToNotifications, unsubscribeFromNotifications, isSubscribed } from '../utils/notifications';
@@ -438,6 +438,23 @@ export default function Settings() {
                   <p>Updates are tracked in our Git repository.</p>
               </div>
             )}
+
+            <a
+              href="/COPYRIGHT.md"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors group"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                  <FileText className="text-purple-600 dark:text-purple-400" size={20} />
+                </div>
+                <span className="font-medium text-slate-900 dark:text-white">
+                  Copyright & Legal Notice
+                </span>
+              </div>
+              <ExternalLink className="text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300" size={20} />
+            </a>
           </div>
         </div>
 
