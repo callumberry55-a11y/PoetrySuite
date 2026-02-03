@@ -2,7 +2,7 @@
 
 ## Vulnerability Disclosure
 
-If you discover a security vulnerability, please email security@poetrysuite.net instead of using the issue tracker.
+If you discover a security vulnerability, please email callumberry45@proton.me instead of using the issue tracker.
 
 ## Security Features
 
@@ -121,4 +121,4 @@ This software is proprietary and protected by copyright law. Unauthorized reprod
 
 ## Contact
 
-For security concerns, please contact: security@poetrysuite.net
+For security concerns, please contact: callumberry45@proton.me

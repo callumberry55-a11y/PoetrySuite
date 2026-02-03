@@ -241,7 +241,7 @@ firebase deploy
 
 ## Copyright & Legal
 
-**© 2024-2026 [Your Name/Company Name]. All Rights Reserved.**
+**© 2024-2026 Stanzalink poetry. All Rights Reserved.**
 
 This software is proprietary and protected by UK Copyright Law. For full copyright information, licensing terms, and legal notices, please refer to [COPYRIGHT.md](./COPYRIGHT.md).
 

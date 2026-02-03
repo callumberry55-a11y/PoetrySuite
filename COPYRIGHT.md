@@ -2,7 +2,7 @@
 
 ## Proprietary Rights & Intellectual Property Notice
 
-**© 2024-2026 [Your Name/Company Name]. All Rights Reserved.**
+**© 2024-2026 Stanzalink poetry. All Rights Reserved.**
 
 ---
 
@@ -26,7 +26,7 @@ The £0.75-per-point valuation, the "Neural Handshake" protocols, and the Manual
 
 Commercial rights and PaaS (Poetry-as-a-Service) integration keys for Version 123.1.1-Beta.2 and beyond are subject to a separate licensing agreement.
 
-**For licensing inquiries, please contact:** [Your Email]
+**For licensing inquiries, please contact:** callumberry45@proton.me
 
 ---
 
