@@ -39,6 +39,9 @@ interface Transaction {
 
 export default function PaaSAdmin() {
   const { user } = useAuth();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [code, setCode] = useState('');
+  const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState<'overview' | 'developers' | 'security' | 'transactions'>('overview');
   const [developers, setDevelopers] = useState<Developer[]>([]);
   const [securityEvents, setSecurityEvents] = useState<SecurityEvent[]>([]);
@@ -52,8 +55,21 @@ export default function PaaSAdmin() {
   });
 
   useEffect(() => {
-    loadData();
-  }, []);
+    if (isAuthenticated) {
+      loadData();
+    }
+  }, [isAuthenticated]);
+
+  const handleCodeSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (code === '1798') {
+      setIsAuthenticated(true);
+      setError('');
+    } else {
+      setError('Invalid access code');
+      setCode('');
+    }
+  };
 
   const loadData = async () => {
     try {
@@ -127,6 +143,50 @@ export default function PaaSAdmin() {
       console.error('Error suspending developer:', error);
     }
   };
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4">
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-8 max-w-md w-full">
+          <div className="flex items-center justify-center mb-6">
+            <div className="w-16 h-16 bg-blue-600 dark:bg-blue-500 rounded-full flex items-center justify-center">
+              <Shield className="text-white" size={32} />
+            </div>
+          </div>
+          <h2 className="text-2xl font-bold text-center text-slate-900 dark:text-white mb-2">
+            PaaS Admin Access
+          </h2>
+          <p className="text-center text-slate-600 dark:text-slate-400 mb-6">
+            Enter the 4-digit access code
+          </p>
+          <form onSubmit={handleCodeSubmit} className="space-y-4">
+            <div>
+              <input
+                type="password"
+                inputMode="numeric"
+                maxLength={4}
+                value={code}
+                onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+                className="w-full px-4 py-3 text-center text-2xl tracking-widest bg-slate-100 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white"
+                placeholder="••••"
+                autoFocus
+              />
+              {error && (
+                <p className="mt-2 text-sm text-red-600 dark:text-red-400 text-center">{error}</p>
+              )}
+            </div>
+            <button
+              type="submit"
+              disabled={code.length !== 4}
+              className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 dark:disabled:bg-slate-600 text-white rounded-lg font-medium transition-colors disabled:cursor-not-allowed"
+            >
+              Access Admin
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
