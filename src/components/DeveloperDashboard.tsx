@@ -48,10 +48,116 @@ export default function DeveloperDashboard() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [realtimeConnected, setRealtimeConnected] = useState(false);
 
   useEffect(() => {
     loadDeveloperData();
   }, []);
+
+  useEffect(() => {
+    if (!profile) return;
+
+    const devChannel = supabase
+      .channel('developer-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'paas_developers',
+          filter: `id=eq.${profile.id}`
+        },
+        (payload) => {
+          if (payload.eventType === 'UPDATE') {
+            setProfile(payload.new as DeveloperProfile);
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'paas_point_accounts',
+          filter: `developer_id=eq.${profile.id}`
+        },
+        (payload) => {
+          if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT') {
+            const newAccount = payload.new as PointAccount;
+            setPointAccount(prev => {
+              if (prev && newAccount.balance_points !== prev.balance_points) {
+                const diff = parseFloat(newAccount.balance_points.toString()) - parseFloat(prev.balance_points.toString());
+                if (diff !== 0) {
+                  console.log(`Points ${diff > 0 ? 'added' : 'deducted'}: ${Math.abs(diff)}`);
+                }
+              }
+              return newAccount;
+            });
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'paas_api_keys',
+          filter: `developer_id=eq.${profile.id}`
+        },
+        async (payload) => {
+          if (payload.eventType === 'INSERT') {
+            const { data: keysData } = await supabase
+              .from('paas_api_keys')
+              .select('*')
+              .eq('developer_id', profile.id)
+              .order('created_at', { ascending: false });
+            if (keysData) setApiKeys(keysData);
+          } else if (payload.eventType === 'UPDATE') {
+            setApiKeys(prev =>
+              prev.map(key => key.id === payload.new.id ? payload.new as ApiKey : key)
+            );
+          } else if (payload.eventType === 'DELETE') {
+            setApiKeys(prev => prev.filter(key => key.id !== payload.old.id));
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'paas_transactions',
+          filter: `developer_id=eq.${profile.id}`
+        },
+        async (payload) => {
+          const { data: txData } = await supabase
+            .from('paas_transactions')
+            .select('*')
+            .eq('developer_id', profile.id)
+            .order('created_at', { ascending: false })
+            .limit(20);
+          if (txData) {
+            setTransactions(txData);
+            const newTx = payload.new as Transaction;
+            console.log(`New transaction: ${newTx.transaction_type} - ${newTx.amount_points} points`);
+          }
+        }
+      )
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          setRealtimeConnected(true);
+          console.log('Real-time connected');
+        } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
+          setRealtimeConnected(false);
+          console.log('Real-time disconnected');
+        }
+      });
+
+    return () => {
+      supabase.removeChannel(devChannel);
+      setRealtimeConnected(false);
+    };
+  }, [profile]);
 
   const loadDeveloperData = async (isRefresh = false) => {
     try {
@@ -237,15 +343,23 @@ export default function DeveloperDashboard() {
               )}
             </div>
           </div>
-          <button
-            onClick={() => loadDeveloperData(true)}
-            disabled={refreshing}
-            className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-600 rounded-lg transition-colors disabled:opacity-50"
-            title="Refresh data"
-          >
-            <RefreshCw size={18} className={refreshing ? 'animate-spin' : ''} />
-            Refresh
-          </button>
+          <div className="flex items-center gap-3">
+            {realtimeConnected && (
+              <div className="flex items-center gap-2 px-3 py-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-sm text-green-700 dark:text-green-400 font-medium">Live</span>
+              </div>
+            )}
+            <button
+              onClick={() => loadDeveloperData(true)}
+              disabled={refreshing}
+              className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-600 rounded-lg transition-colors disabled:opacity-50"
+              title="Refresh data"
+            >
+              <RefreshCw size={18} className={refreshing ? 'animate-spin' : ''} />
+              Refresh
+            </button>
+          </div>
         </div>
 
         <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
