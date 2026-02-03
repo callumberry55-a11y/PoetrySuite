@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
-import { Trophy, Clock, Users, ThumbsUp, Award, Medal, Shield } from 'lucide-react';
+import { Trophy, Clock, Users, ThumbsUp, Medal, Shield } from 'lucide-react';
 
 interface Badge {
   id: string;
@@ -32,13 +32,7 @@ export default function Contests() {
   const [contests, setContests] = useState<Contest[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (user) {
-      loadContests();
-    }
-  }, [user]);
-
-  const loadContests = async () => {
+  const loadContests = useCallback(async () => {
     if (!user) return;
 
     const { data, error } = await supabase
@@ -82,7 +76,13 @@ export default function Contests() {
 
     setContests(contestsWithData);
     setLoading(false);
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      loadContests();
+    }
+  }, [user, loadContests]);
 
   const getStatusColor = (status: string) => {
     switch (status) {

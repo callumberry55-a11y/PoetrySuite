@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { Award, Lock, Trophy, Star } from 'lucide-react';
@@ -25,13 +25,7 @@ export default function Badges() {
   const [filter, setFilter] = useState<'all' | 'earned' | 'locked'>('all');
   const [rankFilter, setRankFilter] = useState<string>('all');
 
-  useEffect(() => {
-    if (user) {
-      loadBadges();
-    }
-  }, [user]);
-
-  const loadBadges = async () => {
+  const loadBadges = useCallback(async () => {
     if (!user) return;
 
     const { data: allBadges, error: badgesError } = await supabase
@@ -65,7 +59,13 @@ export default function Badges() {
 
     setBadges(badgesWithStatus);
     setLoading(false);
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      loadBadges();
+    }
+  }, [user, loadBadges]);
 
   const getRankColor = (rank: string) => {
     switch (rank) {

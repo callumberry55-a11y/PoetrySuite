@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
-import { Users, Plus, Send, CheckCircle } from 'lucide-react';
+import { Users, Plus, Send } from 'lucide-react';
 
 interface CollaborativePoem {
   id: string;
@@ -24,6 +24,17 @@ interface Contribution {
   contributed_at: string;
 }
 
+interface RawContribution {
+  id: string;
+  user_id: string;
+  contribution: string;
+  position: number;
+  contributed_at: string;
+  user_profiles: {
+    username: string;
+  }[];
+}
+
 export default function Collaborative() {
   const { user } = useAuth();
   const [poems, setPoems] = useState<CollaborativePoem[]>([]);
@@ -37,19 +48,7 @@ export default function Collaborative() {
     max_contributors: 10
   });
 
-  useEffect(() => {
-    if (user) {
-      loadPoems();
-    }
-  }, [user]);
-
-  useEffect(() => {
-    if (selectedPoem) {
-      loadContributions(selectedPoem);
-    }
-  }, [selectedPoem]);
-
-  const loadPoems = async () => {
+  const loadPoems = useCallback(async () => {
     const { data, error } = await supabase
       .from('collaborative_poems')
       .select('*')
@@ -76,9 +75,9 @@ export default function Collaborative() {
     );
 
     setPoems(poemsWithCounts);
-  };
+  }, []);
 
-  const loadContributions = async (poemId: string) => {
+  const loadContributions = useCallback(async (poemId: string) => {
     const { data, error } = await supabase
       .from('poem_collaborators')
       .select(`
@@ -97,15 +96,27 @@ export default function Collaborative() {
       return;
     }
 
-    setContributions((data || []).map((c: any) => ({
+    setContributions((data || []).map((c: RawContribution) => ({
       id: c.id,
       user_id: c.user_id,
-      username: c.user_profiles.username,
+      username: c.user_profiles[0]?.username || 'Anonymous',
       contribution: c.contribution,
       position: c.position,
       contributed_at: c.contributed_at
     })));
-  };
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      loadPoems();
+    }
+  }, [user, loadPoems]);
+
+  useEffect(() => {
+    if (selectedPoem) {
+      loadContributions(selectedPoem);
+    }
+  }, [selectedPoem, loadContributions]);
 
   const createPoem = async () => {
     if (!user || !newPoem.title.trim()) return;

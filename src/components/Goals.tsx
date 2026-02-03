@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { Target, Plus, TrendingUp, CheckCircle, Award, Lock } from 'lucide-react';
@@ -36,14 +36,7 @@ export default function Goals() {
     target_value: 3
   });
 
-  useEffect(() => {
-    if (user) {
-      loadGoals();
-      loadBadges();
-    }
-  }, [user]);
-
-  const loadGoals = async () => {
+  const loadGoals = useCallback(async () => {
     if (!user) return;
 
     const { data, error } = await supabase
@@ -59,9 +52,9 @@ export default function Goals() {
     }
 
     setGoals(data || []);
-  };
+  }, [user]);
 
-  const loadBadges = async () => {
+  const loadBadges = useCallback(async () => {
     if (!user) return;
 
     const { data: allBadges, error: badgesError } = await supabase
@@ -93,7 +86,14 @@ export default function Goals() {
     }));
 
     setBadges(badgesWithStatus);
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      loadGoals();
+      loadBadges();
+    }
+  }, [user, loadGoals, loadBadges]);
 
   const createGoal = async () => {
     if (!user) return;

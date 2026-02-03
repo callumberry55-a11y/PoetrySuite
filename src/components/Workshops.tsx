@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
-import { Users, Plus, Lock, Globe, MessageCircle, Send } from 'lucide-react';
+import { Users, Plus, Lock, Globe, MessageCircle } from 'lucide-react';
 
 interface Workshop {
   id: string;
@@ -24,6 +24,20 @@ interface WorkshopSubmission {
   critique_count: number;
 }
 
+interface RawSubmission {
+  id: string;
+  poem_id: string;
+  submitted_by: string;
+  submitted_at: string;
+  poems: {
+    title: string;
+    content: string;
+  }[];
+  user_profiles: {
+    username: string;
+  }[];
+}
+
 export default function Workshops() {
   const { user } = useAuth();
   const [workshops, setWorkshops] = useState<Workshop[]>([]);
@@ -36,19 +50,7 @@ export default function Workshops() {
     is_public: true
   });
 
-  useEffect(() => {
-    if (user) {
-      loadWorkshops();
-    }
-  }, [user]);
-
-  useEffect(() => {
-    if (selectedWorkshop) {
-      loadSubmissions(selectedWorkshop);
-    }
-  }, [selectedWorkshop]);
-
-  const loadWorkshops = async () => {
+  const loadWorkshops = useCallback(async () => {
     if (!user) return;
 
     const { data, error } = await supabase
@@ -77,9 +79,9 @@ export default function Workshops() {
     );
 
     setWorkshops(workshopsWithCounts);
-  };
+  }, [user]);
 
-  const loadSubmissions = async (workshopId: string) => {
+  const loadSubmissions = useCallback(async (workshopId: string) => {
     const { data, error } = await supabase
       .from('workshop_submissions')
       .select(`
@@ -99,7 +101,7 @@ export default function Workshops() {
     }
 
     const submissionsWithCounts = await Promise.all(
-      (data || []).map(async (submission: any) => {
+      (data || []).map(async (submission: RawSubmission) => {
         const { count } = await supabase
           .from('critiques')
           .select('id', { count: 'exact', head: true })
@@ -108,10 +110,10 @@ export default function Workshops() {
         return {
           id: submission.id,
           poem_id: submission.poem_id,
-          poem_title: submission.poems.title,
-          poem_content: submission.poems.content,
+          poem_title: submission.poems[0]?.title || '',
+          poem_content: submission.poems[0]?.content || '',
           submitted_by: submission.submitted_by,
-          submitted_by_username: submission.user_profiles.username,
+          submitted_by_username: submission.user_profiles[0]?.username || 'Unknown',
           submitted_at: submission.submitted_at,
           critique_count: count || 0
         };
@@ -119,7 +121,19 @@ export default function Workshops() {
     );
 
     setSubmissions(submissionsWithCounts);
-  };
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      loadWorkshops();
+    }
+  }, [user, loadWorkshops]);
+
+  useEffect(() => {
+    if (selectedWorkshop) {
+      loadSubmissions(selectedWorkshop);
+    }
+  }, [selectedWorkshop, loadSubmissions]);
 
   const createWorkshop = async () => {
     if (!user || !newWorkshop.name.trim()) return;
@@ -149,25 +163,6 @@ export default function Workshops() {
 
     setShowCreateForm(false);
     setNewWorkshop({ name: '', description: '', is_public: true });
-    loadWorkshops();
-  };
-
-  const joinWorkshop = async (workshopId: string) => {
-    if (!user) return;
-
-    const { error } = await supabase
-      .from('workshop_members')
-      .insert([{
-        workshop_id: workshopId,
-        user_id: user.id,
-        role: 'member'
-      }]);
-
-    if (error) {
-      console.error('Error joining workshop:', error);
-      return;
-    }
-
     loadWorkshops();
   };
 

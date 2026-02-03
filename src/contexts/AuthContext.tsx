@@ -1,6 +1,6 @@
 // @refresh reset
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { Session, User } from '@supabase/supabase-js';
+import { Session, User, AuthResponse } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 
 interface AuthContextType {
@@ -8,8 +8,8 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   signOut: () => Promise<void>;
-  signIn: (email: string, password: string) => Promise<any>;
-  signUp: (email: string, password: string) => Promise<any>;
+  signIn: (email: string, password: string) => Promise<AuthResponse>;
+  signUp: (email: string, password: string) => Promise<AuthResponse>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -17,8 +17,8 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
   signOut: async () => {},
-  signIn: async (_email: string, _password: string) => {},
-  signUp: async (_email: string, _password: string) => {},
+  signIn: async () => ({ data: { user: null, session: null }, error: null }),
+  signUp: async () => ({ data: { user: null, session: null }, error: null }),
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {

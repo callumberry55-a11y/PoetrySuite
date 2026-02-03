@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { Heart, MessageSquare, BookmarkPlus, BookmarkCheck, UserPlus, UserCheck, Trophy, BookOpen, TrendingUp, Users, X, Shield } from 'lucide-react';
@@ -40,28 +40,7 @@ export default function SocialFeed() {
   const [selectedPoem, setSelectedPoem] = useState<FeedPoem | null>(null);
   const [securityStatus, setSecurityStatus] = useState<'active' | 'inactive' | 'checking'>('checking');
 
-  useEffect(() => {
-    if (activeTab === 'contests') {
-      loadContests();
-    } else {
-      loadFeed();
-    }
-  }, [activeTab, user]);
-
-  useEffect(() => {
-    const performCheck = async () => {
-      setSecurityStatus('checking');
-      const result = await runSecurityChecks('some-user-input');
-      setSecurityStatus(result ? 'active' : 'inactive');
-    };
-
-    performCheck();
-    const interval = setInterval(performCheck, 5000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const loadFeed = async () => {
+  const loadFeed = useCallback(async () => {
     setLoading(true);
     try {
       let query = supabase
@@ -151,9 +130,9 @@ export default function SocialFeed() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [activeTab, user]);
 
-  const loadContests = async () => {
+  const loadContests = useCallback(async () => {
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -168,7 +147,28 @@ export default function SocialFeed() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === 'contests') {
+      loadContests();
+    } else {
+      loadFeed();
+    }
+  }, [activeTab, user, loadFeed, loadContests]);
+
+  useEffect(() => {
+    const performCheck = async () => {
+      setSecurityStatus('checking');
+      const result = await runSecurityChecks('some-user-input');
+      setSecurityStatus(result ? 'active' : 'inactive');
+    };
+
+    performCheck();
+    const interval = setInterval(performCheck, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const toggleLike = async (poemId: string) => {
     if (!user) {

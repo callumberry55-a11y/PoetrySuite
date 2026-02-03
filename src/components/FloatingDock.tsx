@@ -1,8 +1,8 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
-import { AppWindow, Moon, Sun, LogOut, PenLine, Library, Compass, TrendingUp, BookOpen, Lightbulb, Settings, Users, User, Zap, Trophy } from 'lucide-react';
+import { AppWindow, Moon, Sun, LogOut, PenLine, Library, Compass, TrendingUp, BookOpen, Lightbulb, Settings, Users, User, Zap, Trophy, Target, UsersRound, GraduationCap, Award, ShoppingBag } from 'lucide-react';
 
-type ViewType = 'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'profile' | 'feed' | 'workshops' | 'collaborative' | 'challenges' | 'goals' | 'contests';
+type ViewType = 'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'profile' | 'feed' | 'workshops' | 'collaborative' | 'challenges' | 'goals' | 'contests' | 'badges' | 'store';
 
 interface FloatingDockProps {
   onAppDrawerOpen: () => void;
@@ -42,6 +42,11 @@ export default function FloatingDock({ onAppDrawerOpen, onViewChange, currentVie
             profile: User,
             challenges: Zap,
             contests: Trophy,
+            goals: Target,
+            workshops: GraduationCap,
+            collaborative: UsersRound,
+            badges: Award,
+            store: ShoppingBag,
           }[appId] || Library;
 
           return (

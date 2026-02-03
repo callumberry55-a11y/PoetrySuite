@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Lightbulb, Plus, Calendar } from 'lucide-react';
+import { Lightbulb, Calendar } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -16,7 +16,7 @@ interface PromptsProps {
   onUsePrompt?: (prompt: Prompt) => void;
 }
 
-export default function Prompts({ onUsePrompt }: PromptsProps) {
+export default function Prompts({ onUsePrompt: _onUsePrompt }: PromptsProps) {
   const { user } = useAuth();
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [loading, setLoading] = useState(true);

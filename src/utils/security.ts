@@ -1,5 +1,9 @@
 import { getFunctions, httpsCallable } from 'firebase/functions';
 
+interface SecurityGuardResponse {
+  status: 'malicious' | 'safe';
+}
+
 /**
  * Invokes the 'securityGuard' Firebase Cloud Function to perform a real-time
  * security assessment of the user's input.
@@ -13,7 +17,7 @@ export const runSecurityChecks = async (userInput: string): Promise<boolean> => 
 
   try {
     const functions = getFunctions();
-    const securityGuard = httpsCallable(functions, 'securityGuard');
+    const securityGuard = httpsCallable<{ userInput: string }, SecurityGuardResponse>(functions, 'securityGuard');
     const result = await securityGuard({ userInput });
     const isMalicious = result.data.status === 'malicious';
 

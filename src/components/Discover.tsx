@@ -43,7 +43,7 @@ export default function Discover() {
       const prompt = `As a poetry expert, analyze the following poem and provide constructive feedback and suggestions for improvement:\n\n${inputText}\n\nProvide specific suggestions on imagery, word choice, rhythm, and overall impact.`;
       const response = await model.generateContent(prompt);
       setResult(response.response.text());
-    } catch (error) {
+    } catch (_error) {
       setResult('Error generating suggestions. Please try again.');
     } finally {
       setLoading(false);
@@ -60,7 +60,7 @@ export default function Discover() {
       const prompt = `Analyze the writing style of this poem and provide detailed insights:\n\n${inputText}\n\nInclude: tone, voice, literary devices used, stylistic patterns, and unique characteristics.`;
       const response = await model.generateContent(prompt);
       setResult(response.response.text());
-    } catch (error) {
+    } catch (_error) {
       setResult('Error analyzing style. Please try again.');
     } finally {
       setLoading(false);

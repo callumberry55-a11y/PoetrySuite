@@ -1,8 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import {
-  User,
   MapPin,
   Globe,
   Edit2,
@@ -10,10 +9,6 @@ import {
   X,
   Award,
   Flame,
-  Heart,
-  BookOpen,
-  Users,
-  Calendar,
   Coins
 } from 'lucide-react';
 
@@ -61,16 +56,7 @@ export default function Profile() {
   const [poemCount, setPoemCount] = useState(0);
   const [loadError, setLoadError] = useState(false);
 
-  useEffect(() => {
-    if (user) {
-      loadProfile();
-      loadBadges();
-      loadStreak();
-      loadPoemCount();
-    }
-  }, [user]);
-
-  const loadProfile = async () => {
+  const loadProfile = useCallback(async () => {
     if (!user) return;
 
     setLoadError(false);
@@ -94,7 +80,7 @@ export default function Profile() {
 
     setProfile(data);
     setEditForm(data);
-  };
+  }, [user]);
 
   const createProfile = async () => {
     if (!user) return;
@@ -129,7 +115,7 @@ export default function Profile() {
     await loadProfile();
   };
 
-  const loadBadges = async () => {
+  const loadBadges = useCallback(async () => {
     if (!user) return;
 
     const { data, error } = await supabase
@@ -163,7 +149,16 @@ export default function Profile() {
     }));
 
     setBadges(formattedBadges);
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      loadProfile();
+      loadBadges();
+      loadStreak();
+      loadPoemCount();
+    }
+  }, [user, loadProfile, loadBadges]);
 
   const loadStreak = async () => {
     if (!user) return;

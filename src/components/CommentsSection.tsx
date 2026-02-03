@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { MessageSquare, Trash2, Send } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
@@ -24,11 +24,7 @@ export function CommentsSection({ poemId }: CommentsSectionProps) {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    loadComments();
-  }, [poemId]);
-
-  const loadComments = async () => {
+  const loadComments = useCallback(async () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
@@ -67,7 +63,11 @@ export function CommentsSection({ poemId }: CommentsSectionProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [poemId]);
+
+  useEffect(() => {
+    loadComments();
+  }, [loadComments]);
 
   const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault();

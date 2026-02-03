@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import {
@@ -40,14 +40,7 @@ export default function Store() {
   const [purchasing, setPurchasing] = useState<string | null>(null);
   const [filter, setFilter] = useState<string>('all');
 
-  useEffect(() => {
-    if (user) {
-      loadStore();
-      loadProfile();
-    }
-  }, [user]);
-
-  const loadProfile = async () => {
+  const loadProfile = useCallback(async () => {
     if (!user) return;
 
     const { data, error } = await supabase
@@ -62,9 +55,9 @@ export default function Store() {
     }
 
     setProfile(data);
-  };
+  }, [user]);
 
-  const loadStore = async () => {
+  const loadStore = useCallback(async () => {
     if (!user) return;
 
     const { data: storeItems, error: itemsError } = await supabase
@@ -97,7 +90,14 @@ export default function Store() {
 
     setItems(itemsWithOwnership);
     setLoading(false);
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      loadStore();
+      loadProfile();
+    }
+  }, [user, loadStore, loadProfile]);
 
   const purchaseItem = async (itemId: string, price: number) => {
     if (!user || !profile) return;

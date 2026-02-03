@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { Trophy, Target, Clock, Zap, CheckCircle } from 'lucide-react';
@@ -31,14 +31,7 @@ export default function Challenges() {
   const [todayPrompt, setTodayPrompt] = useState<DailyPrompt | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (user) {
-      loadChallenges();
-      loadTodayPrompt();
-    }
-  }, [user]);
-
-  const loadChallenges = async () => {
+  const loadChallenges = useCallback(async () => {
     if (!user) return;
 
     const now = new Date().toISOString();
@@ -80,9 +73,9 @@ export default function Challenges() {
 
     setChallenges(challengesWithData);
     setLoading(false);
-  };
+  }, [user]);
 
-  const loadTodayPrompt = async () => {
+  const loadTodayPrompt = useCallback(async () => {
     if (!user) return;
 
     const today = new Date().toISOString().split('T')[0];
@@ -114,7 +107,14 @@ export default function Challenges() {
       response_count: count || 0,
       user_has_responded: !!userResponse
     });
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      loadChallenges();
+      loadTodayPrompt();
+    }
+  }, [user, loadChallenges, loadTodayPrompt]);
 
   const joinChallenge = async (challengeId: string) => {
     if (!user) return;
