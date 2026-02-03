@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { Moon, Sun, User, Mail, Download, Smartphone, FileText, ChevronDown, ChevronUp, Clock, Trash2, AlertTriangle, Bell, BellOff, MessageSquare, Send, ExternalLink } from 'lucide-react';
+import { Moon, Sun, User, Mail, Download, Smartphone, FileText, ChevronDown, ChevronUp, Clock, Trash2, AlertTriangle, Bell, BellOff, MessageSquare, Send, ExternalLink, Coins, Activity, TrendingUp, DollarSign } from 'lucide-react';
 import { functions } from '../lib/firebase';
 import { httpsCallable } from 'firebase/functions';
 import { subscribeToNotifications, unsubscribeFromNotifications, isSubscribed } from '../utils/notifications';
@@ -208,6 +208,127 @@ export default function Settings() {
             <span className="font-medium">Version {packageJson.version}</span>
             <span className="text-slate-400 dark:text-slate-600">·</span>
             <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-md font-medium">Beta</span>
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm">
+          <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+            <Coins className="text-amber-600 dark:text-amber-400" size={24} />
+            Points System
+          </h3>
+          <p className="text-slate-600 dark:text-slate-400 mb-6">
+            Poetry Suite uses a points-based system for various features and activities. Earn points through participation and use them for premium features.
+          </p>
+
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="border-b border-slate-200 dark:border-slate-700">
+                  <th className="text-left py-3 px-4 font-semibold text-slate-900 dark:text-white">Activity</th>
+                  <th className="text-center py-3 px-4 font-semibold text-slate-900 dark:text-white">Points</th>
+                  <th className="text-left py-3 px-4 font-semibold text-slate-900 dark:text-white">Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b border-slate-100 dark:border-slate-700/50">
+                  <td className="py-3 px-4 text-slate-700 dark:text-slate-300">
+                    <div className="flex items-center gap-2">
+                      <TrendingUp size={16} className="text-green-600 dark:text-green-400" />
+                      <span>Write a Poem</span>
+                    </div>
+                  </td>
+                  <td className="text-center py-3 px-4 font-medium text-green-600 dark:text-green-400">+10</td>
+                  <td className="py-3 px-4 text-sm text-slate-600 dark:text-slate-400">Earn points for publishing a poem</td>
+                </tr>
+                <tr className="border-b border-slate-100 dark:border-slate-700/50">
+                  <td className="py-3 px-4 text-slate-700 dark:text-slate-300">
+                    <div className="flex items-center gap-2">
+                      <TrendingUp size={16} className="text-green-600 dark:text-green-400" />
+                      <span>Contest Submission</span>
+                    </div>
+                  </td>
+                  <td className="text-center py-3 px-4 font-medium text-green-600 dark:text-green-400">+25</td>
+                  <td className="py-3 px-4 text-sm text-slate-600 dark:text-slate-400">Submit a poem to a contest</td>
+                </tr>
+                <tr className="border-b border-slate-100 dark:border-slate-700/50">
+                  <td className="py-3 px-4 text-slate-700 dark:text-slate-300">
+                    <div className="flex items-center gap-2">
+                      <TrendingUp size={16} className="text-green-600 dark:text-green-400" />
+                      <span>Win Contest</span>
+                    </div>
+                  </td>
+                  <td className="text-center py-3 px-4 font-medium text-green-600 dark:text-green-400">+100</td>
+                  <td className="py-3 px-4 text-sm text-slate-600 dark:text-slate-400">Win first place in a contest</td>
+                </tr>
+                <tr className="border-b border-slate-100 dark:border-slate-700/50">
+                  <td className="py-3 px-4 text-slate-700 dark:text-slate-300">
+                    <div className="flex items-center gap-2">
+                      <TrendingUp size={16} className="text-green-600 dark:text-green-400" />
+                      <span>Earn a Badge</span>
+                    </div>
+                  </td>
+                  <td className="text-center py-3 px-4 font-medium text-green-600 dark:text-green-400">+50</td>
+                  <td className="py-3 px-4 text-sm text-slate-600 dark:text-slate-400">Complete badge requirements</td>
+                </tr>
+                <tr className="border-b border-slate-100 dark:border-slate-700/50">
+                  <td className="py-3 px-4 text-slate-700 dark:text-slate-300">
+                    <div className="flex items-center gap-2">
+                      <Activity size={16} className="text-red-600 dark:text-red-400" />
+                      <span>Store Purchases</span>
+                    </div>
+                  </td>
+                  <td className="text-center py-3 px-4 font-medium text-red-600 dark:text-red-400">Varies</td>
+                  <td className="py-3 px-4 text-sm text-slate-600 dark:text-slate-400">Buy themes, prompts, and features</td>
+                </tr>
+                <tr className="border-b border-slate-100 dark:border-slate-700/50">
+                  <td className="py-3 px-4 text-slate-700 dark:text-slate-300">
+                    <div className="flex items-center gap-2">
+                      <Activity size={16} className="text-red-600 dark:text-red-400" />
+                      <span>Premium Features</span>
+                    </div>
+                  </td>
+                  <td className="text-center py-3 px-4 font-medium text-red-600 dark:text-red-400">Varies</td>
+                  <td className="py-3 px-4 text-sm text-slate-600 dark:text-slate-400">Access exclusive tools and resources</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <DollarSign className="text-blue-600 dark:text-blue-400" size={20} />
+                <h4 className="font-semibold text-blue-900 dark:text-blue-100">Point Value</h4>
+              </div>
+              <p className="text-2xl font-bold text-blue-900 dark:text-blue-100 mb-1">1 point = £0.75</p>
+              <p className="text-xs text-blue-700 dark:text-blue-300">Standard conversion rate</p>
+            </div>
+
+            <div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <TrendingUp className="text-green-600 dark:text-green-400" size={20} />
+                <h4 className="font-semibold text-green-900 dark:text-green-100">Earning Points</h4>
+              </div>
+              <p className="text-sm text-green-800 dark:text-green-200">
+                Participate in contests, write poems, and complete challenges to earn points
+              </p>
+            </div>
+
+            <div className="p-4 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <Coins className="text-purple-600 dark:text-purple-400" size={20} />
+                <h4 className="font-semibold text-purple-900 dark:text-purple-100">Using Points</h4>
+              </div>
+              <p className="text-sm text-purple-800 dark:text-purple-200">
+                Spend points on store items, themes, and premium features
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-4 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+            <p className="text-sm text-amber-800 dark:text-amber-200">
+              <strong>Developer Note:</strong> For developers using our API, points are deducted based on API usage. Visit the Developer Dashboard to manage your API keys and monitor point consumption.
+            </p>
           </div>
         </div>
 
