@@ -56,33 +56,7 @@ export default function Profile() {
   const [poemCount, setPoemCount] = useState(0);
   const [loadError, setLoadError] = useState(false);
 
-  const loadProfile = useCallback(async () => {
-    if (!user) return;
-
-    setLoadError(false);
-
-    const { data, error } = await supabase
-      .from('user_profiles')
-      .select('*')
-      .eq('user_id', user.id)
-      .maybeSingle();
-
-    if (error) {
-      console.error('Error loading profile:', error);
-      setLoadError(true);
-      return;
-    }
-
-    if (!data) {
-      await createProfile();
-      return;
-    }
-
-    setProfile(data);
-    setEditForm(data);
-  }, [user]);
-
-  const createProfile = async () => {
+  const createProfile = useCallback(async () => {
     if (!user) return;
 
     const username = user.email?.split('@')[0] || 'user';
@@ -111,9 +85,42 @@ export default function Profile() {
       setLoadError(true);
       return;
     }
+  }, [user]);
 
-    await loadProfile();
-  };
+  const loadProfile = useCallback(async () => {
+    if (!user) return;
+
+    setLoadError(false);
+
+    const { data, error } = await supabase
+      .from('user_profiles')
+      .select('*')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (error) {
+      console.error('Error loading profile:', error);
+      setLoadError(true);
+      return;
+    }
+
+    if (!data) {
+      await createProfile();
+      const { data: newData } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (newData) {
+        setProfile(newData);
+        setEditForm(newData);
+      }
+      return;
+    }
+
+    setProfile(data);
+    setEditForm(data);
+  }, [user, createProfile]);
 
   const loadBadges = useCallback(async () => {
     if (!user) return;
@@ -151,16 +158,7 @@ export default function Profile() {
     setBadges(formattedBadges);
   }, [user]);
 
-  useEffect(() => {
-    if (user) {
-      loadProfile();
-      loadBadges();
-      loadStreak();
-      loadPoemCount();
-    }
-  }, [user]);
-
-  const loadStreak = async () => {
+  const loadStreak = useCallback(async () => {
     if (!user) return;
 
     const { data, error } = await supabase
@@ -175,9 +173,9 @@ export default function Profile() {
     }
 
     setStreak(data);
-  };
+  }, [user]);
 
-  const loadPoemCount = async () => {
+  const loadPoemCount = useCallback(async () => {
     if (!user) return;
 
     const { count, error } = await supabase
@@ -191,7 +189,16 @@ export default function Profile() {
     }
 
     setPoemCount(count || 0);
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      loadProfile();
+      loadBadges();
+      loadStreak();
+      loadPoemCount();
+    }
+  }, [user, loadProfile, loadBadges, loadStreak, loadPoemCount]);
 
   const saveProfile = async () => {
     if (!user) return;

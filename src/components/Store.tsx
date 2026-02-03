@@ -118,7 +118,7 @@ export default function Store() {
       loadProfile();
       loadTaxSettings();
     }
-  }, [user]);
+  }, [user, loadStore, loadProfile, loadTaxSettings]);
 
   const purchaseItem = async (itemId: string, price: number) => {
     if (!user || !profile) return;

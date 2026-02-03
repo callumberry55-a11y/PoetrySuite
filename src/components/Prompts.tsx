@@ -12,11 +12,7 @@ interface Prompt {
   user_has_responded: boolean;
 }
 
-interface PromptsProps {
-  onUsePrompt?: (prompt: Prompt) => void;
-}
-
-export default function Prompts({ onUsePrompt: _onUsePrompt }: PromptsProps) {
+export default function Prompts() {
   const { user } = useAuth();
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [loading, setLoading] = useState(true);

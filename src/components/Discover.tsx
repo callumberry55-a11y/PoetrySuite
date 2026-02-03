@@ -46,7 +46,7 @@ export default function Discover() {
       const prompt = `As a poetry expert, analyze the following poem and provide constructive feedback and suggestions for improvement:\n\n${inputText}\n\nProvide specific suggestions on imagery, word choice, rhythm, and overall impact.`;
       const response = await model.generateContent(prompt);
       setResult(response.response.text());
-    } catch (_error) {
+    } catch {
       setResult('Error generating suggestions. Please try again.');
     } finally {
       setLoading(false);
@@ -63,7 +63,7 @@ export default function Discover() {
       const prompt = `Analyze the writing style of this poem and provide detailed insights:\n\n${inputText}\n\nInclude: tone, voice, literary devices used, stylistic patterns, and unique characteristics.`;
       const response = await model.generateContent(prompt);
       setResult(response.response.text());
-    } catch (_error) {
+    } catch {
       setResult('Error analyzing style. Please try again.');
     } finally {
       setLoading(false);
@@ -80,7 +80,7 @@ export default function Discover() {
       const prompt = `Generate 3-5 creative poem ideas based on:\nTheme: ${theme || 'any'}\nEmotion: ${emotion || 'any'}\n\nProvide brief descriptions for each idea that a poet could develop.`;
       const response = await model.generateContent(prompt);
       setResult(response.response.text());
-    } catch (error) {
+    } catch {
       setResult('Error generating ideas. Please try again.');
     } finally {
       setLoading(false);
@@ -97,7 +97,7 @@ export default function Discover() {
       const prompt = `Validate if this poem follows the rules of a ${selectedForm}:\n\n${inputText}\n\nProvide detailed feedback on structure, rhyme scheme, meter, and any deviations from the traditional form.`;
       const response = await model.generateContent(prompt);
       setResult(response.response.text());
-    } catch (error) {
+    } catch {
       setResult('Error validating form. Please try again.');
     } finally {
       setLoading(false);
@@ -114,7 +114,7 @@ export default function Discover() {
       const prompt = `Perform an advanced analysis of the rhyme scheme and meter of this poem:\n\n${inputText}\n\nProvide:\n1. Detailed rhyme scheme (ABAB, etc.)\n2. Meter analysis (iambic pentameter, etc.)\n3. Syllable count per line\n4. Internal rhymes and sound patterns\n5. Suggestions for improving rhythm and flow`;
       const response = await model.generateContent(prompt);
       setResult(response.response.text());
-    } catch (error) {
+    } catch {
       setResult('Error analyzing rhyme and meter. Please try again.');
     } finally {
       setLoading(false);
@@ -131,7 +131,7 @@ export default function Discover() {
       const prompt = `You are a collaborative poetry writing partner. Based on this context or starting lines:\n\n${cowriteContext}\n\nContinue the poem or suggest next lines that maintain the style, theme, and flow. Provide 2-3 different continuation options.`;
       const response = await model.generateContent(prompt);
       setResult(response.response.text());
-    } catch (error) {
+    } catch {
       setResult('Error generating co-writing suggestions. Please try again.');
     } finally {
       setLoading(false);
@@ -148,7 +148,7 @@ export default function Discover() {
       const prompt = `Based on these poetry preferences:\n\n${userPreferences}\n\nProvide personalized recommendations including:\n1. Poets and authors to explore\n2. Poetry styles and forms to try\n3. Themes that might resonate\n4. Writing exercises to develop your style\n5. Classic and contemporary poems to read`;
       const response = await model.generateContent(prompt);
       setResult(response.response.text());
-    } catch (error) {
+    } catch {
       setResult('Error generating recommendations. Please try again.');
     } finally {
       setLoading(false);
@@ -165,7 +165,7 @@ export default function Discover() {
       const prompt = `Translate this poem to ${targetLanguage}, preserving its poetic essence:\n\n${inputText}\n\nProvide:\n1. The translated poem\n2. Notes on how you preserved rhythm, imagery, and meaning\n3. Any cultural adaptations made\n4. Alternative word choices for key phrases`;
       const response = await model.generateContent(prompt);
       setResult(response.response.text());
-    } catch (error) {
+    } catch {
       setResult('Error translating poem. Please try again.');
     } finally {
       setLoading(false);

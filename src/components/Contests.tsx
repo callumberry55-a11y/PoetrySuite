@@ -82,7 +82,7 @@ export default function Contests() {
     if (user) {
       loadContests();
     }
-  }, [user]);
+  }, [user, loadContests]);
 
   const getStatusColor = (status: string) => {
     switch (status) {

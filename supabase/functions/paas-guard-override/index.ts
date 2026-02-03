@@ -14,7 +14,7 @@ interface OverrideRequest {
   action: 'allow' | 'deny';
 }
 
-async function verifyAdminKey(apiKey: string, supabase: any) {
+async function verifyAdminKey(apiKey: string) {
   const adminKey = Deno.env.get('PAAS_ADMIN_KEY') || 'admin-key-placeholder';
 
   if (apiKey !== adminKey) {

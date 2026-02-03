@@ -114,7 +114,7 @@ export default function Challenges() {
       loadChallenges();
       loadTodayPrompt();
     }
-  }, [user]);
+  }, [user, loadChallenges, loadTodayPrompt]);
 
   const joinChallenge = async (challengeId: string) => {
     if (!user) return;

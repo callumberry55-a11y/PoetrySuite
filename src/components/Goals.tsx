@@ -93,7 +93,7 @@ export default function Goals() {
       loadGoals();
       loadBadges();
     }
-  }, [user]);
+  }, [user, loadGoals, loadBadges]);
 
   const createGoal = async () => {
     if (!user) return;

@@ -27,7 +27,7 @@ const MILESTONE_GRANTS: any = {
   master: { points: 3000000, vesting: { immediate: 300000, monthly: 225000, duration: 12 } }
 };
 
-async function verifyAdminKey(apiKey: string, supabase: any) {
+async function verifyAdminKey(apiKey: string) {
   const adminKey = Deno.env.get('PAAS_ADMIN_KEY') || 'admin-key-placeholder';
 
   if (apiKey !== adminKey) {

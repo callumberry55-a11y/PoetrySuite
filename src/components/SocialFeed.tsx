@@ -155,7 +155,7 @@ export default function SocialFeed() {
     } else {
       loadFeed();
     }
-  }, [activeTab, user]);
+  }, [activeTab, user, loadContests, loadFeed]);
 
   useEffect(() => {
     const performCheck = async () => {

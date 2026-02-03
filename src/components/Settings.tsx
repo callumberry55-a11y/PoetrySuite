@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { Moon, Sun, User, Mail, Download, Smartphone, FileText, ChevronDown, ChevronUp, Clock, Trash2, AlertTriangle, Bell, BellOff, MessageSquare, Send, ExternalLink, Coins, Activity, TrendingUp, DollarSign } from 'lucide-react';
@@ -34,6 +34,25 @@ export default function Settings() {
   const [feedbackSuccess, setFeedbackSuccess] = useState(false);
   const [showCurrencyTable, setShowCurrencyTable] = useState(false);
 
+  const loadNotificationPreference = useCallback(async () => {
+    if (!user) return;
+
+    try {
+      const { supabase } = await import('../lib/supabase');
+      const { data } = await supabase
+        .from('user_preferences')
+        .select('notifications_enabled')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (data && typeof data.notifications_enabled === 'boolean') {
+        setNotificationsEnabled(data.notifications_enabled);
+      }
+    } catch (error) {
+      console.warn('Error loading notification preference:', error);
+    }
+  }, [user]);
+
   useEffect(() => {
     const handler = (e: Event) => {
       e.preventDefault();
@@ -59,26 +78,7 @@ export default function Settings() {
     return () => {
       window.removeEventListener('beforeinstallprompt', handler);
     };
-  }, []);
-
-  const loadNotificationPreference = async () => {
-    if (!user) return;
-
-    try {
-      const { supabase } = await import('../lib/supabase');
-      const { data } = await supabase
-        .from('user_preferences')
-        .select('notifications_enabled')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (data && typeof data.notifications_enabled === 'boolean') {
-        setNotificationsEnabled(data.notifications_enabled);
-      }
-    } catch (error) {
-      console.warn('Error loading notification preference:', error);
-    }
-  };
+  }, [loadNotificationPreference]);
 
   const handleInstall = async () => {
     if (!deferredPrompt) return;
