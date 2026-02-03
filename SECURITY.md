@@ -115,6 +115,10 @@ Key secure dependencies:
 - `react`, `react-router-dom` - Security-focused frameworks
 - All other dependencies pinned to secure versions
 
+## Copyright & Legal Notice
+
+This software is proprietary and protected by copyright law. Unauthorized reproduction, decompilation, or reverse engineering is prohibited. For complete copyright information, licensing terms, and intellectual property notices, see [COPYRIGHT.md](./COPYRIGHT.md).
+
 ## Contact
 
 For security concerns, please contact: security@poetrysuite.net

@@ -239,9 +239,11 @@ firebase deploy
 4. Push to the branch
 5. Open a pull request
 
-## License
+## Copyright & Legal
 
-MIT License - feel free to use this project for personal or commercial purposes.
+**© 2024-2026 [Your Name/Company Name]. All Rights Reserved.**
+
+This software is proprietary and protected by UK Copyright Law. For full copyright information, licensing terms, and legal notices, please refer to [COPYRIGHT.md](./COPYRIGHT.md).
 
 ## Support
 
