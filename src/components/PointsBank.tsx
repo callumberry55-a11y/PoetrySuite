@@ -11,6 +11,19 @@ interface PointsStats {
   weeklyDistribution: number;
 }
 
+interface EconomyFund {
+  fund_type: string;
+  allocated_amount: number;
+  remaining_amount: number;
+  currency: string;
+}
+
+interface TaxSettings {
+  tax_rate: number;
+  collection_frequency: string;
+  is_active: boolean;
+}
+
 export default function PointsBank() {
   const [stats, setStats] = useState<PointsStats>({
     totalAllocated: 5400000000,
@@ -20,6 +33,8 @@ export default function PointsBank() {
     monthlyDistribution: 0,
     weeklyDistribution: 0,
   });
+  const [funds, setFunds] = useState<EconomyFund[]>([]);
+  const [taxSettings, setTaxSettings] = useState<TaxSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedPeriod, setSelectedPeriod] = useState<'day' | 'week' | 'month' | 'year'>('month');
 
@@ -36,6 +51,19 @@ export default function PointsBank() {
       const { data: transactions } = await supabase
         .from('paas_economy_transactions')
         .select('amount, transaction_type, created_at');
+
+      const { data: economyFunds } = await supabase
+        .from('economy_funds')
+        .select('*')
+        .order('fund_type');
+
+      const { data: taxConfig } = await supabase
+        .from('tax_settings')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
       const totalDistributed = transactions?.reduce((sum, tx) => {
         if (tx.transaction_type === 'mint') return sum + tx.amount;
@@ -68,6 +96,14 @@ export default function PointsBank() {
         monthlyDistribution,
         weeklyDistribution,
       });
+
+      if (economyFunds) {
+        setFunds(economyFunds);
+      }
+
+      if (taxConfig) {
+        setTaxSettings(taxConfig);
+      }
     } catch (error) {
       console.error('Error fetching stats:', error);
     } finally {
@@ -215,6 +251,102 @@ export default function PointsBank() {
           </div>
         </div>
 
+        <div className="bg-gradient-to-br from-amber-600 to-orange-600 rounded-2xl p-8 shadow-lg text-white">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                  <DollarSign className="text-white" size={28} />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold">Tax System</h2>
+                  <p className="text-amber-100">Automatic monthly collection</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                  <p className="text-amber-100 text-sm mb-1">Tax Rate</p>
+                  <p className="text-3xl font-bold">{taxSettings?.tax_rate || 5}%</p>
+                  <p className="text-amber-200 text-xs mt-1">Applied to all earnings</p>
+                </div>
+                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                  <p className="text-amber-100 text-sm mb-1">Collection Frequency</p>
+                  <p className="text-3xl font-bold capitalize">{taxSettings?.collection_frequency || 'Monthly'}</p>
+                  <p className="text-amber-200 text-xs mt-1">Automatic deduction</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg border border-slate-200 dark:border-slate-700">
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
+            <Coins className="text-emerald-600 dark:text-emerald-400" size={24} />
+            Economy Funding Breakdown
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {funds.map((fund) => {
+              const fundColors = {
+                grant: {
+                  bg: 'from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20',
+                  text: 'text-blue-900 dark:text-blue-100',
+                  accent: 'text-blue-600 dark:text-blue-400',
+                  label: 'text-blue-700 dark:text-blue-300',
+                },
+                rewards: {
+                  bg: 'from-emerald-50 to-emerald-100 dark:from-emerald-900/20 dark:to-emerald-800/20',
+                  text: 'text-emerald-900 dark:text-emerald-100',
+                  accent: 'text-emerald-600 dark:text-emerald-400',
+                  label: 'text-emerald-700 dark:text-emerald-300',
+                },
+                reserve: {
+                  bg: 'from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20',
+                  text: 'text-purple-900 dark:text-purple-100',
+                  accent: 'text-purple-600 dark:text-purple-400',
+                  label: 'text-purple-700 dark:text-purple-300',
+                },
+              };
+
+              const colors = fundColors[fund.fund_type as keyof typeof fundColors];
+              const usedPercentage = ((fund.allocated_amount - fund.remaining_amount) / fund.allocated_amount) * 100;
+
+              return (
+                <div key={fund.fund_type} className={`p-6 bg-gradient-to-br ${colors.bg} rounded-xl`}>
+                  <div className="mb-4">
+                    <p className={`text-sm font-medium ${colors.label} capitalize mb-1`}>
+                      {fund.fund_type} Fund
+                    </p>
+                    <p className={`text-2xl font-bold ${colors.text}`}>
+                      £{formatNumber(fund.allocated_amount)}
+                    </p>
+                    <p className={`text-xs ${colors.accent} mt-1`}>
+                      Allocated for {new Date().getFullYear()}
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className={colors.label}>Remaining</span>
+                      <span className={`font-bold ${colors.text}`}>
+                        £{formatNumber(fund.remaining_amount)}
+                      </span>
+                    </div>
+                    <div className="w-full h-2 bg-white/50 dark:bg-slate-900/30 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full ${colors.accent} bg-current transition-all duration-500`}
+                        style={{ width: `${100 - usedPercentage}%` }}
+                      />
+                    </div>
+                    <p className={`text-xs ${colors.accent}`}>
+                      {(100 - usedPercentage).toFixed(2)}% available
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg border border-slate-200 dark:border-slate-700">
             <div className="flex items-center justify-between mb-6">
@@ -354,21 +486,26 @@ export default function PointsBank() {
                   <p className="text-blue-100">Sustainable API monetization for the community</p>
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-                  <p className="text-blue-100 text-sm mb-1">Annual Allocation</p>
+                  <p className="text-blue-100 text-sm mb-1">Points Budget</p>
                   <p className="text-3xl font-bold">5.4B</p>
                   <p className="text-blue-200 text-xs mt-1">Points per year</p>
                 </div>
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-                  <p className="text-blue-100 text-sm mb-1">Fair Distribution</p>
-                  <p className="text-3xl font-bold">100%</p>
-                  <p className="text-blue-200 text-xs mt-1">Usage-based rewards</p>
+                  <p className="text-blue-100 text-sm mb-1">Grant Fund</p>
+                  <p className="text-3xl font-bold">£3B</p>
+                  <p className="text-blue-200 text-xs mt-1">Annual grants</p>
                 </div>
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-                  <p className="text-blue-100 text-sm mb-1">Renewal</p>
-                  <p className="text-3xl font-bold">Annual</p>
-                  <p className="text-blue-200 text-xs mt-1">Fresh allocation yearly</p>
+                  <p className="text-blue-100 text-sm mb-1">Rewards</p>
+                  <p className="text-3xl font-bold">£1.4B</p>
+                  <p className="text-blue-200 text-xs mt-1">Developer rewards</p>
+                </div>
+                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                  <p className="text-blue-100 text-sm mb-1">Reserve</p>
+                  <p className="text-3xl font-bold">£750M</p>
+                  <p className="text-blue-200 text-xs mt-1">System reserve</p>
                 </div>
               </div>
             </div>
@@ -447,6 +584,18 @@ export default function PointsBank() {
               <div className="flex gap-4">
                 <div className="flex-shrink-0 w-8 h-8 rounded-full bg-cyan-100 dark:bg-cyan-900/30 flex items-center justify-center text-cyan-600 dark:text-cyan-400 font-bold">
                   6
+                </div>
+                <div>
+                  <h3 className="font-semibold text-slate-900 dark:text-white mb-1">Automatic Tax System</h3>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    A 5% tax is automatically collected monthly from all developer earnings to fund grants, rewards, and maintain system reserves.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold">
+                  7
                 </div>
                 <div>
                   <h3 className="font-semibold text-slate-900 dark:text-white mb-1">Secure & Auditable</h3>
