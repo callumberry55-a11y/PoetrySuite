@@ -193,6 +193,21 @@ export default function Settings() {
       <div className="space-y-6">
         <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm">
           <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-4">
+            About Poetry Suite
+          </h3>
+          <p className="text-slate-600 dark:text-slate-400 mb-4">
+            Poetry Suite is your personal sanctuary for writing, curating, and sharing poetry.
+            Track your progress, organize your work, and let your creativity flow.
+          </p>
+          <div className="flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
+            <span className="font-medium">Version {packageJson.version}</span>
+            <span className="text-slate-400 dark:text-slate-600">·</span>
+            <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-md font-medium">Beta</span>
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm">
+          <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-4">
             Account Information
           </h3>
           <div className="space-y-4">
@@ -561,21 +576,6 @@ export default function Settings() {
               </div>
             </div>
           )}
-        </div>
-
-        <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm">
-          <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-4">
-            About Poetry Suite
-          </h3>
-          <p className="text-slate-600 dark:text-slate-400 mb-4">
-            Poetry Suite is your personal sanctuary for writing, curating, and sharing poetry.
-            Track your progress, organize your work, and let your creativity flow.
-          </p>
-          <div className="flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
-            <span className="font-medium">Version {packageJson.version}</span>
-            <span className="text-slate-400 dark:text-slate-600">·</span>
-            <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-md font-medium">Beta</span>
-          </div>
         </div>
       </div>
     </div>
