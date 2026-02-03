@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Shield, Mail, Lock, User, Building } from 'lucide-react';
+import { Shield, Mail, Lock, User, Building, Key } from 'lucide-react';
 import PaaSAdmin from './PaaSAdmin';
 import DeveloperDashboard from './DeveloperDashboard';
 import { useAuth } from '../contexts/AuthContext';
@@ -17,6 +17,7 @@ export default function PaaSAuth() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [organizationName, setOrganizationName] = useState('');
+  const [accessCode, setAccessCode] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleAdminLogin = () => {
@@ -29,7 +30,7 @@ export default function PaaSAuth() {
   };
 
   const handleDeveloperSignup = async () => {
-    if (!email || !password || !organizationName) {
+    if (!email || !password || !organizationName || !accessCode) {
       setError('All fields are required');
       return;
     }
@@ -39,6 +40,14 @@ export default function PaaSAuth() {
 
     try {
       const { supabase } = await import('../lib/supabase');
+
+      const { data: isValidCode, error: codeError } = await supabase.rpc('verify_developer_access_code', {
+        access_code: accessCode
+      });
+
+      if (codeError || !isValidCode) {
+        throw new Error('Invalid or expired access code. Please contact support for a valid code.');
+      }
 
       const { data: authData, error: signupError } = await supabase.auth.signUp({
         email,
@@ -113,6 +122,7 @@ export default function PaaSAuth() {
       setEmail('');
       setPassword('');
       setOrganizationName('');
+      setAccessCode('');
       setAdminCode('');
     } catch (err) {
       console.error('Logout error:', err);
@@ -316,6 +326,22 @@ export default function PaaSAuth() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    <Key className="inline mr-2" size={16} />
+                    Developer Access Code
+                  </label>
+                  <input
+                    type="text"
+                    value={accessCode}
+                    onChange={(e) => setAccessCode(e.target.value.toUpperCase())}
+                    placeholder="POET2026"
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-900 dark:text-white font-mono"
+                  />
+                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                    Contact support to obtain a valid access code
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                     <Lock className="inline mr-2" size={16} />
                     Password
                   </label>
@@ -335,7 +361,7 @@ export default function PaaSAuth() {
                 )}
                 <div className="flex gap-3">
                   <button
-                    onClick={() => { setMode('select'); setError(''); setEmail(''); setPassword(''); setOrganizationName(''); }}
+                    onClick={() => { setMode('select'); setError(''); setEmail(''); setPassword(''); setOrganizationName(''); setAccessCode(''); }}
                     className="flex-1 px-4 py-3 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-lg font-medium transition-colors"
                   >
                     Back
