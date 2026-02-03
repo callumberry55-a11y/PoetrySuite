@@ -1,6 +1,6 @@
-import { BookHeart, PenLine, Library, BarChart3, Settings, Compass, Lightbulb, BookOpen, X, User, Users, UsersRound, Zap, Target, Trophy, Award } from 'lucide-react';
+import { BookHeart, PenLine, Library, BarChart3, Settings, Compass, Lightbulb, BookOpen, X, User, Users, UsersRound, Zap, Target, Trophy, Award, ShoppingBag } from 'lucide-react';
 
-type ViewType = 'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'profile' | 'feed' | 'workshops' | 'collaborative' | 'challenges' | 'goals' | 'contests' | 'badges';
+type ViewType = 'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'profile' | 'feed' | 'workshops' | 'collaborative' | 'challenges' | 'goals' | 'contests' | 'badges' | 'store';
 
 interface AppDrawerProps {
   isOpen: boolean;
@@ -18,6 +18,7 @@ const navItems = [
   { id: 'challenges' as const, icon: Zap, label: 'Challenges' },
   { id: 'contests' as const, icon: Trophy, label: 'Contests' },
   { id: 'badges' as const, icon: Award, label: 'Badges' },
+  { id: 'store' as const, icon: ShoppingBag, label: 'Store' },
   { id: 'workshops' as const, icon: UsersRound, label: 'Workshops' },
   { id: 'collaborative' as const, icon: Users, label: 'Collaborative' },
   { id: 'goals' as const, icon: Target, label: 'Goals' },

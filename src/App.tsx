@@ -20,6 +20,7 @@ const Challenges = lazy(() => import('@/components/Challenges'));
 const Goals = lazy(() => import('@/components/Goals'));
 const Contests = lazy(() => import('@/components/Contests'));
 const Badges = lazy(() => import('@/components/Badges'));
+const Store = lazy(() => import('@/components/Store'));
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -43,7 +44,7 @@ function AppContent() {
 }
 
 function MainApp() {
-    const [currentView, setCurrentView] = useState<'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'profile' | 'feed' | 'workshops' | 'collaborative' | 'challenges' | 'goals' | 'contests' | 'badges'>('library');
+    const [currentView, setCurrentView] = useState<'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'profile' | 'feed' | 'workshops' | 'collaborative' | 'challenges' | 'goals' | 'contests' | 'badges' | 'store'>('library');
     const [selectedPoemId, setSelectedPoemId] = useState<string | null>(null);
 
     const handleNewPoem = useCallback(() => {
@@ -107,6 +108,7 @@ function MainApp() {
           {currentView === 'goals' && <Goals />}
           {currentView === 'contests' && <Contests />}
           {currentView === 'badges' && <Badges />}
+          {currentView === 'store' && <Store />}
         </Suspense>
       </Layout>
     )

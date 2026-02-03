@@ -13,7 +13,8 @@ import {
   Heart,
   BookOpen,
   Users,
-  Calendar
+  Calendar,
+  Coins
 } from 'lucide-react';
 
 interface UserProfile {
@@ -30,6 +31,8 @@ interface UserProfile {
   total_likes_received: number;
   is_editor: boolean;
   is_mentor: boolean;
+  points_balance: number;
+  points_earned_total: number;
 }
 
 interface UserBadge {
@@ -294,7 +297,7 @@ export default function Profile() {
           )}
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 sm:gap-4 mb-6">
           <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-3 sm:p-4 text-center">
             <div className="text-xl sm:text-2xl font-bold text-blue-500">{poemCount}</div>
             <div className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">Poems</div>
@@ -310,6 +313,15 @@ export default function Profile() {
           <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-3 sm:p-4 text-center">
             <div className="text-xl sm:text-2xl font-bold text-red-500">{profile.total_likes_received}</div>
             <div className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">Likes</div>
+          </div>
+          <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 rounded-lg p-3 sm:p-4 text-center">
+            <div className="flex items-center justify-center gap-1 mb-1">
+              <Coins size={16} className="text-yellow-600 dark:text-yellow-400" />
+              <div className="text-xl sm:text-2xl font-bold text-yellow-600 dark:text-yellow-400">
+                {profile.points_balance || 0}
+              </div>
+            </div>
+            <div className="text-xs sm:text-sm text-yellow-700 dark:text-yellow-300">Points</div>
           </div>
         </div>
 
