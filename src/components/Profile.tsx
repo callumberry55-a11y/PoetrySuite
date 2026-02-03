@@ -37,6 +37,8 @@ interface UserBadge {
   name: string;
   description: string;
   icon: string;
+  rank: string;
+  points: number;
   earned_at: string;
 }
 
@@ -135,7 +137,9 @@ export default function Profile() {
         badges (
           name,
           description,
-          icon
+          icon,
+          rank,
+          points
         )
       `)
       .eq('user_id', user.id);
@@ -150,6 +154,8 @@ export default function Profile() {
       name: item.badges.name,
       description: item.badges.description,
       icon: item.badges.icon,
+      rank: item.badges.rank,
+      points: item.badges.points,
       earned_at: item.earned_at
     }));
 
@@ -418,6 +424,11 @@ export default function Profile() {
                 <div className="text-2xl sm:text-3xl mb-2">{badge.icon === 'award' ? '🏆' : badge.icon === 'flame' ? '🔥' : badge.icon === 'heart' ? '❤️' : '🎖️'}</div>
                 <div className="font-semibold text-slate-900 dark:text-white text-xs sm:text-sm">{badge.name}</div>
                 <div className="text-xs text-slate-600 dark:text-slate-400 mt-1 line-clamp-2">{badge.description}</div>
+                {badge.rank && (
+                  <div className="mt-2 text-xs font-medium text-yellow-700 dark:text-yellow-300">
+                    {badge.rank} • {badge.points} pts
+                  </div>
+                )}
               </div>
             ))}
           </div>

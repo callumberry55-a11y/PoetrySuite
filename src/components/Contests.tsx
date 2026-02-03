@@ -1,7 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
-import { Trophy, Clock, Users, ThumbsUp } from 'lucide-react';
+import { Trophy, Clock, Users, ThumbsUp, Award, Medal, Shield } from 'lucide-react';
+
+interface Badge {
+  id: string;
+  name: string;
+  rank: string;
+  points: number;
+}
 
 interface Contest {
   id: string;
@@ -15,6 +22,9 @@ interface Contest {
   status: 'upcoming' | 'active' | 'voting' | 'completed';
   entry_count: number;
   user_has_entered: boolean;
+  winner_badge?: Badge;
+  runner_up_badge?: Badge;
+  participant_badge?: Badge;
 }
 
 export default function Contests() {
@@ -33,7 +43,12 @@ export default function Contests() {
 
     const { data, error } = await supabase
       .from('contests')
-      .select('*')
+      .select(`
+        *,
+        winner_badge:winner_badge_id(id, name, rank, points),
+        runner_up_badge:runner_up_badge_id(id, name, rank, points),
+        participant_badge:participant_badge_id(id, name, rank, points)
+      `)
       .in('status', ['active', 'voting', 'upcoming'])
       .order('start_date', { ascending: true });
 
@@ -154,14 +169,37 @@ export default function Contests() {
                 </div>
               </div>
 
-              {contest.prize_description && (
-                <div className="mb-4 p-3 bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 rounded-lg">
-                  <p className="text-xs sm:text-sm font-medium text-yellow-800 dark:text-yellow-300 mb-1">
-                    Prize
+              {(contest.winner_badge || contest.runner_up_badge || contest.participant_badge) && (
+                <div className="mb-4 p-3 bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/20 dark:to-emerald-800/20 rounded-lg">
+                  <p className="text-xs sm:text-sm font-medium text-emerald-800 dark:text-emerald-300 mb-2">
+                    Badge Rewards
                   </p>
-                  <p className="text-sm sm:text-base text-yellow-900 dark:text-yellow-200">
-                    {contest.prize_description}
-                  </p>
+                  <div className="space-y-2">
+                    {contest.winner_badge && (
+                      <div className="flex items-center gap-2 text-xs sm:text-sm">
+                        <Trophy size={14} className="text-yellow-600 dark:text-yellow-400 flex-shrink-0" />
+                        <span className="text-emerald-900 dark:text-emerald-200">
+                          <strong>1st:</strong> {contest.winner_badge.name} ({contest.winner_badge.rank} • {contest.winner_badge.points} pts)
+                        </span>
+                      </div>
+                    )}
+                    {contest.runner_up_badge && (
+                      <div className="flex items-center gap-2 text-xs sm:text-sm">
+                        <Medal size={14} className="text-slate-400 flex-shrink-0" />
+                        <span className="text-emerald-900 dark:text-emerald-200">
+                          <strong>2nd-3rd:</strong> {contest.runner_up_badge.name} ({contest.runner_up_badge.rank} • {contest.runner_up_badge.points} pts)
+                        </span>
+                      </div>
+                    )}
+                    {contest.participant_badge && (
+                      <div className="flex items-center gap-2 text-xs sm:text-sm">
+                        <Shield size={14} className="text-blue-500 flex-shrink-0" />
+                        <span className="text-emerald-900 dark:text-emerald-200">
+                          <strong>All:</strong> {contest.participant_badge.name} ({contest.participant_badge.rank} • {contest.participant_badge.points} pts)
+                        </span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
 
