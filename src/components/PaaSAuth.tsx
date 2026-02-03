@@ -20,7 +20,7 @@ export default function PaaSAuth() {
   const [loading, setLoading] = useState(false);
 
   const handleAdminLogin = () => {
-    if (adminCode === 'paas-admin-2024') {
+    if (adminCode === '1798') {
       setUserType('admin');
       setError('');
     } else {
