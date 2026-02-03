@@ -53,11 +53,17 @@ export default function PaaSAdmin() {
     totalRevenue: 0,
     apiCalls24h: 0
   });
+  const [subscriptions, setSubscriptions] = useState<any[]>([]);
 
   useEffect(() => {
     if (isAuthenticated) {
       loadData();
+      setupRealtimeSubscriptions();
     }
+
+    return () => {
+      cleanupSubscriptions();
+    };
   }, [isAuthenticated]);
 
   const handleCodeSubmit = (e: React.FormEvent) => {
@@ -141,6 +147,60 @@ export default function PaaSAdmin() {
       loadData();
     } catch (error) {
       console.error('Error suspending developer:', error);
+    }
+  };
+
+  const setupRealtimeSubscriptions = async () => {
+    try {
+      const { supabase } = await import('../lib/supabase');
+
+      const developersChannel = supabase
+        .channel('paas-developers-changes')
+        .on('postgres_changes',
+          { event: '*', schema: 'public', table: 'paas_developers' },
+          () => { loadData(); }
+        )
+        .subscribe();
+
+      const securityChannel = supabase
+        .channel('paas-security-changes')
+        .on('postgres_changes',
+          { event: '*', schema: 'public', table: 'paas_security_events' },
+          () => { loadData(); }
+        )
+        .subscribe();
+
+      const transactionsChannel = supabase
+        .channel('paas-transactions-changes')
+        .on('postgres_changes',
+          { event: '*', schema: 'public', table: 'paas_transactions' },
+          () => { loadData(); }
+        )
+        .subscribe();
+
+      const accountsChannel = supabase
+        .channel('paas-accounts-changes')
+        .on('postgres_changes',
+          { event: '*', schema: 'public', table: 'paas_point_accounts' },
+          () => { loadData(); }
+        )
+        .subscribe();
+
+      setSubscriptions([developersChannel, securityChannel, transactionsChannel, accountsChannel]);
+    } catch (error) {
+      console.error('Error setting up real-time subscriptions:', error);
+    }
+  };
+
+  const cleanupSubscriptions = async () => {
+    try {
+      const { supabase } = await import('../lib/supabase');
+      subscriptions.forEach(sub => {
+        supabase.removeChannel(sub);
+      });
+      setSubscriptions([]);
+    } catch (error) {
+      console.error('Error cleaning up subscriptions:', error);
     }
   };
 
