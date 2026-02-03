@@ -41,14 +41,6 @@ export default function PaaSAuth() {
     try {
       const { supabase } = await import('../lib/supabase');
 
-      const { data: isValidCode, error: codeError } = await supabase.rpc('verify_developer_access_code', {
-        access_code: accessCode
-      });
-
-      if (codeError || !isValidCode) {
-        throw new Error('Invalid or expired access code. Please contact support for a valid code.');
-      }
-
       const { data: authData, error: signupError } = await supabase.auth.signUp({
         email,
         password,
@@ -62,12 +54,23 @@ export default function PaaSAuth() {
       }
 
       if (authData.user) {
+        const { data: codeId, error: codeError } = await supabase.rpc('verify_developer_access_code', {
+          access_code: accessCode,
+          user_id: authData.user.id
+        });
+
+        if (codeError) {
+          await supabase.auth.signOut();
+          throw new Error(codeError.message || 'Invalid or expired access code.');
+        }
+
         const { error: devError } = await supabase.from('paas_developers').insert({
           user_id: authData.user.id,
           email: authData.user.email,
           organization_name: organizationName,
           subscription_status: 'inactive',
-          is_verified: false
+          is_verified: false,
+          access_code_id: codeId
         });
 
         if (devError) {
