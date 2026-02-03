@@ -32,6 +32,7 @@ export default function Settings() {
   const [feedbackMessage, setFeedbackMessage] = useState('');
   const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
   const [feedbackSuccess, setFeedbackSuccess] = useState(false);
+  const [showCurrencyTable, setShowCurrencyTable] = useState(false);
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -329,6 +330,303 @@ export default function Settings() {
             <p className="text-sm text-amber-800 dark:text-amber-200">
               <strong>Developer Note:</strong> For developers using our API, points are deducted based on API usage. Visit the Developer Dashboard to manage your API keys and monitor point consumption.
             </p>
+          </div>
+
+          <div className="mt-6">
+            <button
+              onClick={() => setShowCurrencyTable(!showCurrencyTable)}
+              className="w-full flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors group"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                  <DollarSign className="text-emerald-600 dark:text-emerald-400" size={20} />
+                </div>
+                <span className="font-medium text-slate-900 dark:text-white">
+                  Global Currency Conversion Table
+                </span>
+              </div>
+              {showCurrencyTable ? (
+                <ChevronUp className="text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300" size={20} />
+              ) : (
+                <ChevronDown className="text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300" size={20} />
+              )}
+            </button>
+
+            {showCurrencyTable && (
+              <div className="mt-4 p-6 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
+                <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+                  Point values in different currencies around the world. Exchange rates are approximate and updated periodically.
+                </p>
+
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="text-lg font-semibold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+                      <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                      Europe
+                    </h4>
+                    <div className="overflow-x-auto">
+                      <table className="w-full border-collapse">
+                        <thead>
+                          <tr className="border-b border-slate-200 dark:border-slate-600">
+                            <th className="text-left py-2 px-3 text-sm font-semibold text-slate-900 dark:text-white">Currency</th>
+                            <th className="text-left py-2 px-3 text-sm font-semibold text-slate-900 dark:text-white">Code</th>
+                            <th className="text-right py-2 px-3 text-sm font-semibold text-slate-900 dark:text-white">1 Point Value</th>
+                          </tr>
+                        </thead>
+                        <tbody className="text-sm">
+                          <tr className="border-b border-slate-100 dark:border-slate-600/50">
+                            <td className="py-2 px-3 text-slate-700 dark:text-slate-300">British Pound</td>
+                            <td className="py-2 px-3 text-slate-600 dark:text-slate-400">GBP</td>
+                            <td className="text-right py-2 px-3 font-medium text-slate-900 dark:text-white">£0.75</td>
+                          </tr>
+                          <tr className="border-b border-slate-100 dark:border-slate-600/50">
+                            <td className="py-2 px-3 text-slate-700 dark:text-slate-300">Euro</td>
+                            <td className="py-2 px-3 text-slate-600 dark:text-slate-400">EUR</td>
+                            <td className="text-right py-2 px-3 font-medium text-slate-900 dark:text-white">€0.85</td>
+                          </tr>
+                          <tr className="border-b border-slate-100 dark:border-slate-600/50">
+                            <td className="py-2 px-3 text-slate-700 dark:text-slate-300">Swiss Franc</td>
+                            <td className="py-2 px-3 text-slate-600 dark:text-slate-400">CHF</td>
+                            <td className="text-right py-2 px-3 font-medium text-slate-900 dark:text-white">CHF 0.85</td>
+                          </tr>
+                          <tr className="border-b border-slate-100 dark:border-slate-600/50">
+                            <td className="py-2 px-3 text-slate-700 dark:text-slate-300">Swedish Krona</td>
+                            <td className="py-2 px-3 text-slate-600 dark:text-slate-400">SEK</td>
+                            <td className="text-right py-2 px-3 font-medium text-slate-900 dark:text-white">kr 10.00</td>
+                          </tr>
+                          <tr className="border-b border-slate-100 dark:border-slate-600/50">
+                            <td className="py-2 px-3 text-slate-700 dark:text-slate-300">Norwegian Krone</td>
+                            <td className="py-2 px-3 text-slate-600 dark:text-slate-400">NOK</td>
+                            <td className="text-right py-2 px-3 font-medium text-slate-900 dark:text-white">kr 10.00</td>
+                          </tr>
+                          <tr className="border-b border-slate-100 dark:border-slate-600/50">
+                            <td className="py-2 px-3 text-slate-700 dark:text-slate-300">Danish Krone</td>
+                            <td className="py-2 px-3 text-slate-600 dark:text-slate-400">DKK</td>
+                            <td className="text-right py-2 px-3 font-medium text-slate-900 dark:text-white">kr 6.35</td>
+                          </tr>
+                          <tr className="border-b border-slate-100 dark:border-slate-600/50">
+                            <td className="py-2 px-3 text-slate-700 dark:text-slate-300">Polish Zloty</td>
+                            <td className="py-2 px-3 text-slate-600 dark:text-slate-400">PLN</td>
+                            <td className="text-right py-2 px-3 font-medium text-slate-900 dark:text-white">zł 3.75</td>
+                          </tr>
+                          <tr className="border-b border-slate-100 dark:border-slate-600/50">
+                            <td className="py-2 px-3 text-slate-700 dark:text-slate-300">Czech Koruna</td>
+                            <td className="py-2 px-3 text-slate-600 dark:text-slate-400">CZK</td>
+                            <td className="text-right py-2 px-3 font-medium text-slate-900 dark:text-white">Kč 21.50</td>
+                          </tr>
+                          <tr className="border-b border-slate-100 dark:border-slate-600/50">
+                            <td className="py-2 px-3 text-slate-700 dark:text-slate-300">Hungarian Forint</td>
+                            <td className="py-2 px-3 text-slate-600 dark:text-slate-400">HUF</td>
+                            <td className="text-right py-2 px-3 font-medium text-slate-900 dark:text-white">Ft 340</td>
+                          </tr>
+                          <tr className="border-b border-slate-100 dark:border-slate-600/50">
+                            <td className="py-2 px-3 text-slate-700 dark:text-slate-300">Romanian Leu</td>
+                            <td className="py-2 px-3 text-slate-600 dark:text-slate-400">RON</td>
+                            <td className="text-right py-2 px-3 font-medium text-slate-900 dark:text-white">lei 4.25</td>
+                          </tr>
+                          <tr className="border-b border-slate-100 dark:border-slate-600/50">
+                            <td className="py-2 px-3 text-slate-700 dark:text-slate-300">Turkish Lira</td>
+                            <td className="py-2 px-3 text-slate-600 dark:text-slate-400">TRY</td>
+                            <td className="text-right py-2 px-3 font-medium text-slate-900 dark:text-white">₺ 28.00</td>
+                          </tr>
+                          <tr>
+                            <td className="py-2 px-3 text-slate-700 dark:text-slate-300">Russian Ruble</td>
+                            <td className="py-2 px-3 text-slate-600 dark:text-slate-400">RUB</td>
+                            <td className="text-right py-2 px-3 font-medium text-slate-900 dark:text-white">₽ 90.00</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="text-lg font-semibold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+                      <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                      Americas
+                    </h4>
+                    <div className="overflow-x-auto">
+                      <table className="w-full border-collapse">
+                        <thead>
+                          <tr className="border-b border-slate-200 dark:border-slate-600">
+                            <th className="text-left py-2 px-3 text-sm font-semibold text-slate-900 dark:text-white">Currency</th>
+                            <th className="text-left py-2 px-3 text-sm font-semibold text-slate-900 dark:text-white">Code</th>
+                            <th className="text-right py-2 px-3 text-sm font-semibold text-slate-900 dark:text-white">1 Point Value</th>
+                          </tr>
+                        </thead>
+                        <tbody className="text-sm">
+                          <tr className="border-b border-slate-100 dark:border-slate-600/50">
+                            <td className="py-2 px-3 text-slate-700 dark:text-slate-300">US Dollar</td>
+                            <td className="py-2 px-3 text-slate-600 dark:text-slate-400">USD</td>
+                            <td className="text-right py-2 px-3 font-medium text-slate-900 dark:text-white">$0.95</td>
+                          </tr>
+                          <tr className="border-b border-slate-100 dark:border-slate-600/50">
+                            <td className="py-2 px-3 text-slate-700 dark:text-slate-300">Canadian Dollar</td>
+                            <td className="py-2 px-3 text-slate-600 dark:text-slate-400">CAD</td>
+                            <td className="text-right py-2 px-3 font-medium text-slate-900 dark:text-white">C$ 1.30</td>
+                          </tr>
+                          <tr className="border-b border-slate-100 dark:border-slate-600/50">
+                            <td className="py-2 px-3 text-slate-700 dark:text-slate-300">Mexican Peso</td>
+                            <td className="py-2 px-3 text-slate-600 dark:text-slate-400">MXN</td>
+                            <td className="text-right py-2 px-3 font-medium text-slate-900 dark:text-white">$ 17.00</td>
+                          </tr>
+                          <tr className="border-b border-slate-100 dark:border-slate-600/50">
+                            <td className="py-2 px-3 text-slate-700 dark:text-slate-300">Brazilian Real</td>
+                            <td className="py-2 px-3 text-slate-600 dark:text-slate-400">BRL</td>
+                            <td className="text-right py-2 px-3 font-medium text-slate-900 dark:text-white">R$ 4.75</td>
+                          </tr>
+                          <tr className="border-b border-slate-100 dark:border-slate-600/50">
+                            <td className="py-2 px-3 text-slate-700 dark:text-slate-300">Argentine Peso</td>
+                            <td className="py-2 px-3 text-slate-600 dark:text-slate-400">ARS</td>
+                            <td className="text-right py-2 px-3 font-medium text-slate-900 dark:text-white">$ 950</td>
+                          </tr>
+                          <tr className="border-b border-slate-100 dark:border-slate-600/50">
+                            <td className="py-2 px-3 text-slate-700 dark:text-slate-300">Chilean Peso</td>
+                            <td className="py-2 px-3 text-slate-600 dark:text-slate-400">CLP</td>
+                            <td className="text-right py-2 px-3 font-medium text-slate-900 dark:text-white">$ 930</td>
+                          </tr>
+                          <tr className="border-b border-slate-100 dark:border-slate-600/50">
+                            <td className="py-2 px-3 text-slate-700 dark:text-slate-300">Colombian Peso</td>
+                            <td className="py-2 px-3 text-slate-600 dark:text-slate-400">COP</td>
+                            <td className="text-right py-2 px-3 font-medium text-slate-900 dark:text-white">$ 4,100</td>
+                          </tr>
+                          <tr>
+                            <td className="py-2 px-3 text-slate-700 dark:text-slate-300">Peruvian Sol</td>
+                            <td className="py-2 px-3 text-slate-600 dark:text-slate-400">PEN</td>
+                            <td className="text-right py-2 px-3 font-medium text-slate-900 dark:text-white">S/ 3.60</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="text-lg font-semibold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+                      <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+                      Asia
+                    </h4>
+                    <div className="overflow-x-auto">
+                      <table className="w-full border-collapse">
+                        <thead>
+                          <tr className="border-b border-slate-200 dark:border-slate-600">
+                            <th className="text-left py-2 px-3 text-sm font-semibold text-slate-900 dark:text-white">Currency</th>
+                            <th className="text-left py-2 px-3 text-sm font-semibold text-slate-900 dark:text-white">Code</th>
+                            <th className="text-right py-2 px-3 text-sm font-semibold text-slate-900 dark:text-white">1 Point Value</th>
+                          </tr>
+                        </thead>
+                        <tbody className="text-sm">
+                          <tr className="border-b border-slate-100 dark:border-slate-600/50">
+                            <td className="py-2 px-3 text-slate-700 dark:text-slate-300">Japanese Yen</td>
+                            <td className="py-2 px-3 text-slate-600 dark:text-slate-400">JPY</td>
+                            <td className="text-right py-2 px-3 font-medium text-slate-900 dark:text-white">¥ 140</td>
+                          </tr>
+                          <tr className="border-b border-slate-100 dark:border-slate-600/50">
+                            <td className="py-2 px-3 text-slate-700 dark:text-slate-300">Chinese Yuan</td>
+                            <td className="py-2 px-3 text-slate-600 dark:text-slate-400">CNY</td>
+                            <td className="text-right py-2 px-3 font-medium text-slate-900 dark:text-white">¥ 6.75</td>
+                          </tr>
+                          <tr className="border-b border-slate-100 dark:border-slate-600/50">
+                            <td className="py-2 px-3 text-slate-700 dark:text-slate-300">Indian Rupee</td>
+                            <td className="py-2 px-3 text-slate-600 dark:text-slate-400">INR</td>
+                            <td className="text-right py-2 px-3 font-medium text-slate-900 dark:text-white">₹ 80</td>
+                          </tr>
+                          <tr className="border-b border-slate-100 dark:border-slate-600/50">
+                            <td className="py-2 px-3 text-slate-700 dark:text-slate-300">South Korean Won</td>
+                            <td className="py-2 px-3 text-slate-600 dark:text-slate-400">KRW</td>
+                            <td className="text-right py-2 px-3 font-medium text-slate-900 dark:text-white">₩ 1,280</td>
+                          </tr>
+                          <tr className="border-b border-slate-100 dark:border-slate-600/50">
+                            <td className="py-2 px-3 text-slate-700 dark:text-slate-300">Singapore Dollar</td>
+                            <td className="py-2 px-3 text-slate-600 dark:text-slate-400">SGD</td>
+                            <td className="text-right py-2 px-3 font-medium text-slate-900 dark:text-white">S$ 1.28</td>
+                          </tr>
+                          <tr className="border-b border-slate-100 dark:border-slate-600/50">
+                            <td className="py-2 px-3 text-slate-700 dark:text-slate-300">Hong Kong Dollar</td>
+                            <td className="py-2 px-3 text-slate-600 dark:text-slate-400">HKD</td>
+                            <td className="text-right py-2 px-3 font-medium text-slate-900 dark:text-white">HK$ 7.40</td>
+                          </tr>
+                          <tr className="border-b border-slate-100 dark:border-slate-600/50">
+                            <td className="py-2 px-3 text-slate-700 dark:text-slate-300">Taiwan Dollar</td>
+                            <td className="py-2 px-3 text-slate-600 dark:text-slate-400">TWD</td>
+                            <td className="text-right py-2 px-3 font-medium text-slate-900 dark:text-white">NT$ 30</td>
+                          </tr>
+                          <tr className="border-b border-slate-100 dark:border-slate-600/50">
+                            <td className="py-2 px-3 text-slate-700 dark:text-slate-300">Thai Baht</td>
+                            <td className="py-2 px-3 text-slate-600 dark:text-slate-400">THB</td>
+                            <td className="text-right py-2 px-3 font-medium text-slate-900 dark:text-white">฿ 33</td>
+                          </tr>
+                          <tr className="border-b border-slate-100 dark:border-slate-600/50">
+                            <td className="py-2 px-3 text-slate-700 dark:text-slate-300">Malaysian Ringgit</td>
+                            <td className="py-2 px-3 text-slate-600 dark:text-slate-400">MYR</td>
+                            <td className="text-right py-2 px-3 font-medium text-slate-900 dark:text-white">RM 4.30</td>
+                          </tr>
+                          <tr className="border-b border-slate-100 dark:border-slate-600/50">
+                            <td className="py-2 px-3 text-slate-700 dark:text-slate-300">Indonesian Rupiah</td>
+                            <td className="py-2 px-3 text-slate-600 dark:text-slate-400">IDR</td>
+                            <td className="text-right py-2 px-3 font-medium text-slate-900 dark:text-white">Rp 15,000</td>
+                          </tr>
+                          <tr className="border-b border-slate-100 dark:border-slate-600/50">
+                            <td className="py-2 px-3 text-slate-700 dark:text-slate-300">Philippine Peso</td>
+                            <td className="py-2 px-3 text-slate-600 dark:text-slate-400">PHP</td>
+                            <td className="text-right py-2 px-3 font-medium text-slate-900 dark:text-white">₱ 54</td>
+                          </tr>
+                          <tr className="border-b border-slate-100 dark:border-slate-600/50">
+                            <td className="py-2 px-3 text-slate-700 dark:text-slate-300">Vietnamese Dong</td>
+                            <td className="py-2 px-3 text-slate-600 dark:text-slate-400">VND</td>
+                            <td className="text-right py-2 px-3 font-medium text-slate-900 dark:text-white">₫ 24,000</td>
+                          </tr>
+                          <tr>
+                            <td className="py-2 px-3 text-slate-700 dark:text-slate-300">Israeli Shekel</td>
+                            <td className="py-2 px-3 text-slate-600 dark:text-slate-400">ILS</td>
+                            <td className="text-right py-2 px-3 font-medium text-slate-900 dark:text-white">₪ 3.50</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="text-lg font-semibold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+                      <span className="w-2 h-2 bg-amber-500 rounded-full"></span>
+                      Oceania & Africa
+                    </h4>
+                    <div className="overflow-x-auto">
+                      <table className="w-full border-collapse">
+                        <thead>
+                          <tr className="border-b border-slate-200 dark:border-slate-600">
+                            <th className="text-left py-2 px-3 text-sm font-semibold text-slate-900 dark:text-white">Currency</th>
+                            <th className="text-left py-2 px-3 text-sm font-semibold text-slate-900 dark:text-white">Code</th>
+                            <th className="text-right py-2 px-3 text-sm font-semibold text-slate-900 dark:text-white">1 Point Value</th>
+                          </tr>
+                        </thead>
+                        <tbody className="text-sm">
+                          <tr className="border-b border-slate-100 dark:border-slate-600/50">
+                            <td className="py-2 px-3 text-slate-700 dark:text-slate-300">Australian Dollar</td>
+                            <td className="py-2 px-3 text-slate-600 dark:text-slate-400">AUD</td>
+                            <td className="text-right py-2 px-3 font-medium text-slate-900 dark:text-white">A$ 1.45</td>
+                          </tr>
+                          <tr className="border-b border-slate-100 dark:border-slate-600/50">
+                            <td className="py-2 px-3 text-slate-700 dark:text-slate-300">New Zealand Dollar</td>
+                            <td className="py-2 px-3 text-slate-600 dark:text-slate-400">NZD</td>
+                            <td className="text-right py-2 px-3 font-medium text-slate-900 dark:text-white">NZ$ 1.60</td>
+                          </tr>
+                          <tr>
+                            <td className="py-2 px-3 text-slate-700 dark:text-slate-300">South African Rand</td>
+                            <td className="py-2 px-3 text-slate-600 dark:text-slate-400">ZAR</td>
+                            <td className="text-right py-2 px-3 font-medium text-slate-900 dark:text-white">R 18</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                  <p className="text-xs text-blue-800 dark:text-blue-200">
+                    <strong>Note:</strong> Exchange rates are approximate and may fluctuate. The base rate is 1 point = £0.75 GBP. Actual transaction amounts are calculated at the time of purchase using current exchange rates.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
