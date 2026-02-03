@@ -285,6 +285,39 @@ export default function PointsBank() {
           </div>
         </div>
 
+        <div className="bg-gradient-to-br from-emerald-600 to-teal-600 rounded-2xl p-8 shadow-lg text-white">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                  <Zap className="text-white" size={28} />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold">Weekly User Bonus</h2>
+                  <p className="text-emerald-100">Free points for all community members</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                  <p className="text-emerald-100 text-sm mb-1">Points Per User</p>
+                  <p className="text-3xl font-bold">10</p>
+                  <p className="text-emerald-200 text-xs mt-1">Every week</p>
+                </div>
+                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                  <p className="text-emerald-100 text-sm mb-1">Tax Rate</p>
+                  <p className="text-3xl font-bold">0%</p>
+                  <p className="text-emerald-200 text-xs mt-1">Until next month</p>
+                </div>
+                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                  <p className="text-emerald-100 text-sm mb-1">Zero Balance</p>
+                  <p className="text-2xl font-bold">Tax Free</p>
+                  <p className="text-emerald-200 text-xs mt-1">Always protected</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg border border-slate-200 dark:border-slate-700">
           <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
             <Coins className="text-emerald-600 dark:text-emerald-400" size={24} />
@@ -594,14 +627,26 @@ export default function PointsBank() {
                 <div>
                   <h3 className="font-semibold text-slate-900 dark:text-white mb-1">Dual Tax System</h3>
                   <p className="text-sm text-slate-600 dark:text-slate-400">
-                    5% monthly tax on developer earnings and 1.5% tax on store purchases. Each tax is split 50/50: half deleted to control inflation, half added to reserve fund.
+                    5% monthly tax on developer earnings and 1.5% tax on store purchases. Each tax is split 50/50: half deleted to control inflation, half added to reserve fund. Users with 0 points are never taxed.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 font-bold">
+                  7
+                </div>
+                <div>
+                  <h3 className="font-semibold text-slate-900 dark:text-white mb-1">Weekly User Bonus</h3>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    Every user receives 10 points per week automatically just for being part of the community. These points are tax-free until the beginning of the next month.
                   </p>
                 </div>
               </div>
 
               <div className="flex gap-4">
                 <div className="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold">
-                  7
+                  8
                 </div>
                 <div>
                   <h3 className="font-semibold text-slate-900 dark:text-white mb-1">Secure & Auditable</h3>
