@@ -54,6 +54,7 @@ export default function Profile() {
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState<Partial<UserProfile>>({});
   const [poemCount, setPoemCount] = useState(0);
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -67,6 +68,8 @@ export default function Profile() {
   const loadProfile = async () => {
     if (!user) return;
 
+    setLoadError(false);
+
     const { data, error } = await supabase
       .from('user_profiles')
       .select('*')
@@ -75,11 +78,50 @@ export default function Profile() {
 
     if (error) {
       console.error('Error loading profile:', error);
+      setLoadError(true);
+      return;
+    }
+
+    if (!data) {
+      await createProfile();
       return;
     }
 
     setProfile(data);
     setEditForm(data);
+  };
+
+  const createProfile = async () => {
+    if (!user) return;
+
+    const username = user.email?.split('@')[0] || 'user';
+    const newProfile = {
+      user_id: user.id,
+      username,
+      bio: '',
+      avatar_url: '',
+      location: '',
+      website: '',
+      favorite_forms: [],
+      writing_style: '',
+      follower_count: 0,
+      following_count: 0,
+      total_likes_received: 0,
+      is_editor: false,
+      is_mentor: false
+    };
+
+    const { error } = await supabase
+      .from('user_profiles')
+      .insert(newProfile);
+
+    if (error) {
+      console.error('Error creating profile:', error);
+      setLoadError(true);
+      return;
+    }
+
+    await loadProfile();
   };
 
   const loadBadges = async () => {
@@ -165,11 +207,30 @@ export default function Profile() {
     loadProfile();
   };
 
+  if (loadError) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 sm:p-6 text-center">
+          <p className="text-red-800 dark:text-red-200 mb-4">
+            Unable to load your profile. Please try refreshing the page.
+          </p>
+          <button
+            onClick={loadProfile}
+            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (!profile) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+          <p className="mt-4 text-slate-600 dark:text-slate-400">Loading your profile...</p>
         </div>
       </div>
     );
