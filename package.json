@@ -1,7 +1,7 @@
 {
   "name": "poetry-suite",
   "description": "A modern poetry writing and management application with helpful writing resources",
-  "version": "119.5.5-beta.3",
+  "version": "120.1.1-Beta.1",
   "type": "module",
   "author": "",
   "license": "MIT",
