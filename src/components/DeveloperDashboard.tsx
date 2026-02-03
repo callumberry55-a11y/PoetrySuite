@@ -71,34 +71,11 @@ export default function DeveloperDashboard() {
         return;
       }
 
-      const [
-        { data: devData, error: devError },
-        { data: accountData },
-        { data: keysData },
-        { data: txData }
-      ] = await Promise.all([
-        supabase
-          .from('paas_developers')
-          .select('*')
-          .eq('id', user.id)
-          .maybeSingle(),
-        supabase
-          .from('paas_point_accounts')
-          .select('*')
-          .eq('developer_id', user.id)
-          .maybeSingle(),
-        supabase
-          .from('paas_api_keys')
-          .select('*')
-          .eq('developer_id', user.id)
-          .order('created_at', { ascending: false }),
-        supabase
-          .from('paas_transactions')
-          .select('*')
-          .eq('developer_id', user.id)
-          .order('created_at', { ascending: false })
-          .limit(20)
-      ]);
+      const { data: devData, error: devError } = await supabase
+        .from('paas_developers')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
 
       if (devError || !devData) {
         setError('Developer profile not found');
@@ -106,6 +83,29 @@ export default function DeveloperDashboard() {
         setRefreshing(false);
         return;
       }
+
+      const [
+        { data: accountData },
+        { data: keysData },
+        { data: txData }
+      ] = await Promise.all([
+        supabase
+          .from('paas_point_accounts')
+          .select('*')
+          .eq('developer_id', devData.id)
+          .maybeSingle(),
+        supabase
+          .from('paas_api_keys')
+          .select('*')
+          .eq('developer_id', devData.id)
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('paas_transactions')
+          .select('*')
+          .eq('developer_id', devData.id)
+          .order('created_at', { ascending: false })
+          .limit(20)
+      ]);
 
       setProfile(devData);
       setPointAccount(accountData || null);

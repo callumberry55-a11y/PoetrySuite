@@ -49,7 +49,7 @@ export default function PaaSAuth() {
 
       if (authData.user) {
         const { error: devError } = await supabase.from('paas_developers').insert({
-          id: authData.user.id,
+          user_id: authData.user.id,
           email: authData.user.email,
           organization_name: organizationName,
           subscription_status: 'inactive',
