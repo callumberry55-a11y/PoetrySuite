@@ -2,9 +2,8 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { Moon, Sun, User, Mail, Download, Smartphone, FileText, ChevronDown, ChevronUp, Clock, Trash2, AlertTriangle, Bell, BellOff, MessageSquare, Send } from 'lucide-react';
-import { db, functions } from '../lib/firebase';
+import { functions } from '../lib/firebase';
 import { httpsCallable } from 'firebase/functions';
-import { collection, addDoc } from "firebase/firestore"; 
 import { subscribeToNotifications, unsubscribeFromNotifications, isSubscribed } from '../utils/notifications';
 import packageJson from '../../package.json';
 
@@ -164,13 +163,18 @@ export default function Settings() {
     setFeedbackSuccess(false);
 
     try {
-      await addDoc(collection(db, 'feedback'), {
-        user_id: user.uid,
-        category: feedbackCategory,
-        title: feedbackTitle.trim(),
-        message: feedbackMessage.trim(),
-        createdAt: new Date(),
-      });
+      const { supabase } = await import('../lib/supabase');
+
+      const { error } = await supabase
+        .from('feedback')
+        .insert({
+          user_id: user.id,
+          category: feedbackCategory,
+          title: feedbackTitle.trim(),
+          message: feedbackMessage.trim(),
+        });
+
+      if (error) throw error;
 
       setFeedbackSuccess(true);
       setFeedbackTitle('');
