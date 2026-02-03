@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Key, Copy, Plus, Trash2, Activity, Coins, TrendingUp, AlertCircle, CheckCircle, Eye, EyeOff, RefreshCw } from 'lucide-react';
+import { Key, Copy, Plus, Trash2, Activity, Coins, TrendingUp, AlertCircle, CheckCircle, RefreshCw } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 interface ApiKey {
@@ -73,9 +73,9 @@ export default function DeveloperDashboard() {
 
       const [
         { data: devData, error: devError },
-        { data: accountData, error: accountError },
-        { data: keysData, error: keysError },
-        { data: txData, error: txError }
+        { data: accountData },
+        { data: keysData },
+        { data: txData }
       ] = await Promise.all([
         supabase
           .from('paas_developers')
@@ -131,7 +131,7 @@ export default function DeveloperDashboard() {
 
       const keyPrefix = fullKey.substring(0, 12);
 
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('paas_api_keys')
         .insert({
           developer_id: profile.id,
@@ -204,7 +204,7 @@ export default function DeveloperDashboard() {
           <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">Unable to Load Dashboard</h2>
           <p className="text-slate-600 dark:text-slate-400 mb-4">{error || 'Developer profile not found'}</p>
           <button
-            onClick={loadDeveloperData}
+            onClick={() => loadDeveloperData()}
             className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
           >
             Try Again

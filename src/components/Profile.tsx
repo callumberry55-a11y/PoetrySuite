@@ -158,7 +158,7 @@ export default function Profile() {
       loadStreak();
       loadPoemCount();
     }
-  }, [user, loadProfile, loadBadges]);
+  }, [user]);
 
   const loadStreak = async () => {
     if (!user) return;

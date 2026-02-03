@@ -151,7 +151,7 @@ function Library({ onNewPoem, onEditPoem }: LibraryProps) {
     if (user) {
       Promise.all([loadPoems(), loadCollections(), loadPoemCollections()]);
     }
-  }, [user, loadPoems, loadCollections, loadPoemCollections]);
+  }, [user]);
 
   const fetchInternetPoems = useCallback(async (action: string, params: Record<string, string> = {}) => {
     if (!user) return;
@@ -230,7 +230,7 @@ function Library({ onNewPoem, onEditPoem }: LibraryProps) {
       }, 0);
       return () => clearTimeout(timer);
     }
-  }, [activeTab, internetPoems.length, loadingInternet, loadRandomPoems]);
+  }, [activeTab, internetPoems.length, loadingInternet]);
 
   const addPoemToCollection = useCallback(async (poemId: string, collectionId: string) => {
     const { error } = await supabase

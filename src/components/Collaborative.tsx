@@ -110,13 +110,13 @@ export default function Collaborative() {
     if (user) {
       loadPoems();
     }
-  }, [user, loadPoems]);
+  }, [user]);
 
   useEffect(() => {
     if (selectedPoem) {
       loadContributions(selectedPoem);
     }
-  }, [selectedPoem, loadContributions]);
+  }, [selectedPoem]);
 
   const createPoem = async () => {
     if (!user || !newPoem.title.trim()) return;

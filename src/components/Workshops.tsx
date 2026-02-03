@@ -127,13 +127,13 @@ export default function Workshops() {
     if (user) {
       loadWorkshops();
     }
-  }, [user, loadWorkshops]);
+  }, [user]);
 
   useEffect(() => {
     if (selectedWorkshop) {
       loadSubmissions(selectedWorkshop);
     }
-  }, [selectedWorkshop, loadSubmissions]);
+  }, [selectedWorkshop]);
 
   const createWorkshop = async () => {
     if (!user || !newWorkshop.name.trim()) return;

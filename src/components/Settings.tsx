@@ -41,18 +41,19 @@ export default function Settings() {
 
     window.addEventListener('beforeinstallprompt', handler);
 
-    if (window.matchMedia('(display-mode: standalone)').matches) {
-      setIsInstalled(true);
-    }
+    setTimeout(() => {
+      if (window.matchMedia('(display-mode: standalone)').matches) {
+        setIsInstalled(true);
+      }
+
+      isSubscribed().then(setNotificationsEnabled);
+      loadNotificationPreference();
+    }, 0);
 
     window.addEventListener('appinstalled', () => {
       setIsInstalled(true);
       setDeferredPrompt(null);
     });
-
-    isSubscribed().then(setNotificationsEnabled);
-
-    loadNotificationPreference();
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handler);

@@ -27,10 +27,13 @@ export default function Discover() {
       setSecurityStatus(result ? 'active' : 'inactive');
     };
 
-    performCheck();
+    const timer = setTimeout(performCheck, 0);
     const interval = setInterval(performCheck, 5000);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearTimeout(timer);
+      clearInterval(interval);
+    };
   }, []);
 
   const handleAIAssistant = async () => {

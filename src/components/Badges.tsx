@@ -65,7 +65,7 @@ export default function Badges() {
     if (user) {
       loadBadges();
     }
-  }, [user, loadBadges]);
+  }, [user]);
 
   const getRankColor = (rank: string) => {
     switch (rank) {

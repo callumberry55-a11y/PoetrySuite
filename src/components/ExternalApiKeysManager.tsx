@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Key, Copy, Plus, Trash2, Activity, Clock, CheckCircle, XCircle, Eye, Settings, TrendingUp } from 'lucide-react';
+import { Key, Copy, Plus, Trash2, Activity, Clock, CheckCircle, XCircle, Eye, TrendingUp } from 'lucide-react';
 
 interface ApiKey {
   id: string;
@@ -56,7 +56,6 @@ export default function ExternalApiKeysManager() {
     read_workshops: false
   });
   const [newlyCreatedKey, setNewlyCreatedKey] = useState<string | null>(null);
-  const [selectedKeyId, setSelectedKeyId] = useState<string | null>(null);
   const [showUsageModal, setShowUsageModal] = useState(false);
 
   useEffect(() => {
@@ -129,7 +128,6 @@ export default function ExternalApiKeysManager() {
 
       if (data) {
         setUsageRecords(data);
-        setSelectedKeyId(keyId);
         setShowUsageModal(true);
       }
     } catch (error) {

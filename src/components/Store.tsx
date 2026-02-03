@@ -97,7 +97,7 @@ export default function Store() {
       loadStore();
       loadProfile();
     }
-  }, [user, loadStore, loadProfile]);
+  }, [user]);
 
   const purchaseItem = async (itemId: string, price: number) => {
     if (!user || !profile) return;
