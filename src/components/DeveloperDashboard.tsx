@@ -666,7 +666,7 @@ export default function DeveloperDashboard() {
               <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
                 <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">How Points Work</h4>
                 <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
-                  <li>• 1 point = £0.0001</li>
+                  <li>• 1 point = £0.75</li>
                   <li>• Points are deducted for each API call based on usage</li>
                   <li>• Add more points to continue using the platform</li>
                   <li>• Contact support for bulk point purchases</li>
