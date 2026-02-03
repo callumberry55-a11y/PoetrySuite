@@ -11,7 +11,8 @@ import {
   Check,
   Lock,
   Sparkles,
-  Package
+  Package,
+  DollarSign
 } from 'lucide-react';
 
 interface StoreItem {
@@ -32,10 +33,15 @@ interface UserProfile {
   points_earned_total: number;
 }
 
+interface TaxSettings {
+  purchase_tax_rate: number;
+}
+
 export default function Store() {
   const { user } = useAuth();
   const [items, setItems] = useState<StoreItem[]>([]);
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [taxSettings, setTaxSettings] = useState<TaxSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [purchasing, setPurchasing] = useState<string | null>(null);
   const [filter, setFilter] = useState<string>('all');
@@ -92,10 +98,25 @@ export default function Store() {
     setLoading(false);
   }, [user]);
 
+  const loadTaxSettings = useCallback(async () => {
+    const { data } = await supabase
+      .from('tax_settings')
+      .select('purchase_tax_rate')
+      .eq('is_active', true)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (data) {
+      setTaxSettings(data);
+    }
+  }, []);
+
   useEffect(() => {
     if (user) {
       loadStore();
       loadProfile();
+      loadTaxSettings();
     }
   }, [user]);
 
@@ -206,6 +227,20 @@ export default function Store() {
         </div>
       </div>
 
+      {taxSettings && taxSettings.purchase_tax_rate > 0 && (
+        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mb-6">
+          <div className="flex items-start gap-3">
+            <DollarSign className="text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" size={20} />
+            <div>
+              <h4 className="font-semibold text-amber-900 dark:text-amber-100 mb-1">Purchase Tax Applied</h4>
+              <p className="text-sm text-amber-700 dark:text-amber-300">
+                A {taxSettings.purchase_tax_rate}% tax is applied to all purchases. This helps maintain a balanced economy - 50% is removed from circulation and 50% goes to the reserve fund.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="mb-6 flex gap-2 overflow-x-auto pb-2">
         {categories.map((cat) => (
           <button
@@ -235,7 +270,10 @@ export default function Store() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredItems.map((item) => {
             const CategoryIcon = getCategoryIcon(item.category);
-            const canAfford = (profile?.points_balance || 0) >= item.price;
+            const taxRate = taxSettings?.purchase_tax_rate || 1.5;
+            const taxAmount = Math.ceil(item.price * (taxRate / 100));
+            const totalCost = item.price + taxAmount;
+            const canAfford = (profile?.points_balance || 0) >= totalCost;
             const outOfStock = item.stock === 0;
 
             return (
@@ -264,11 +302,18 @@ export default function Store() {
                   <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mb-3">
                     {item.description}
                   </p>
-                  <div className="inline-flex items-center gap-1 px-3 py-1 bg-slate-100 dark:bg-slate-700 rounded-full">
-                    <Coins size={14} className="text-yellow-500" />
-                    <span className="font-bold text-slate-900 dark:text-white">
-                      {item.price.toLocaleString()}
-                    </span>
+                  <div className="space-y-2">
+                    <div className="inline-flex items-center gap-1 px-3 py-1 bg-slate-100 dark:bg-slate-700 rounded-full">
+                      <Coins size={14} className="text-yellow-500" />
+                      <span className="font-bold text-slate-900 dark:text-white">
+                        {item.price.toLocaleString()}
+                      </span>
+                    </div>
+                    {taxAmount > 0 && (
+                      <div className="text-xs text-slate-500 dark:text-slate-400">
+                        + {taxAmount.toLocaleString()} tax ({taxRate}%) = <span className="font-semibold">{totalCost.toLocaleString()} total</span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -279,7 +324,7 @@ export default function Store() {
                 )}
 
                 <button
-                  onClick={() => purchaseItem(item.id, item.price)}
+                  onClick={() => purchaseItem(item.id, totalCost)}
                   disabled={item.owned || !canAfford || outOfStock || purchasing === item.id}
                   className={`w-full px-4 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base ${
                     item.owned

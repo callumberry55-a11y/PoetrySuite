@@ -20,6 +20,7 @@ interface EconomyFund {
 
 interface TaxSettings {
   tax_rate: number;
+  purchase_tax_rate: number;
   collection_frequency: string;
   is_active: boolean;
 }
@@ -260,19 +261,24 @@ export default function PointsBank() {
                 </div>
                 <div>
                   <h2 className="text-2xl font-bold">Tax System</h2>
-                  <p className="text-amber-100">Automatic monthly collection</p>
+                  <p className="text-amber-100">Balanced economy through taxation</p>
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-                  <p className="text-amber-100 text-sm mb-1">Tax Rate</p>
+                  <p className="text-amber-100 text-sm mb-1">Monthly Tax</p>
                   <p className="text-3xl font-bold">{taxSettings?.tax_rate || 5}%</p>
-                  <p className="text-amber-200 text-xs mt-1">Applied to all earnings</p>
+                  <p className="text-amber-200 text-xs mt-1">On earnings monthly</p>
                 </div>
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-                  <p className="text-amber-100 text-sm mb-1">Collection Frequency</p>
-                  <p className="text-3xl font-bold capitalize">{taxSettings?.collection_frequency || 'Monthly'}</p>
-                  <p className="text-amber-200 text-xs mt-1">Automatic deduction</p>
+                  <p className="text-amber-100 text-sm mb-1">Purchase Tax</p>
+                  <p className="text-3xl font-bold">{taxSettings?.purchase_tax_rate || 1.5}%</p>
+                  <p className="text-amber-200 text-xs mt-1">On store purchases</p>
+                </div>
+                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                  <p className="text-amber-100 text-sm mb-1">Tax Distribution</p>
+                  <p className="text-2xl font-bold">50/50</p>
+                  <p className="text-amber-200 text-xs mt-1">Deleted / Reserve</p>
                 </div>
               </div>
             </div>
@@ -586,9 +592,9 @@ export default function PointsBank() {
                   6
                 </div>
                 <div>
-                  <h3 className="font-semibold text-slate-900 dark:text-white mb-1">Automatic Tax System</h3>
+                  <h3 className="font-semibold text-slate-900 dark:text-white mb-1">Dual Tax System</h3>
                   <p className="text-sm text-slate-600 dark:text-slate-400">
-                    A 5% tax is automatically collected monthly from all developer earnings to fund grants, rewards, and maintain system reserves.
+                    5% monthly tax on developer earnings and 1.5% tax on store purchases. Each tax is split 50/50: half deleted to control inflation, half added to reserve fund.
                   </p>
                 </div>
               </div>
