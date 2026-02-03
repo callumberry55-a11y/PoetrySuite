@@ -217,10 +217,10 @@ export default function PaaSAdmin() {
         <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm">
           <div className="flex items-center justify-between mb-2">
             <DollarSign className="text-green-600 dark:text-green-400" size={24} />
-            <span className="text-2xl font-bold text-slate-900 dark:text-white">£{stats.totalRevenue.toFixed(0)}</span>
+            <span className="text-2xl font-bold text-slate-900 dark:text-white">£{stats.totalRevenue.toFixed(2)}</span>
           </div>
           <p className="text-sm text-slate-600 dark:text-slate-400">Total Revenue</p>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">From API usage</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">£0.75 per point spent</p>
         </div>
 
         <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm">
