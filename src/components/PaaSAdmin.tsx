@@ -234,51 +234,51 @@ export default function PaaSAdmin() {
       </div>
 
       <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm mb-8">
-        <div className="border-b border-slate-200 dark:border-slate-700">
-          <div className="flex gap-4 px-6">
+        <div className="border-b border-slate-200 dark:border-slate-700 overflow-x-auto">
+          <div className="flex gap-2 px-4 md:gap-4 md:px-6 min-w-max md:min-w-0">
             <button
               onClick={() => setActiveTab('overview')}
-              className={`py-4 px-2 border-b-2 font-medium transition-colors ${
+              className={`py-3 px-3 md:py-4 md:px-4 border-b-2 font-medium transition-colors whitespace-nowrap flex items-center gap-2 ${
                 activeTab === 'overview'
                   ? 'border-blue-500 text-blue-600 dark:text-blue-400'
                   : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
-              <Activity className="inline mr-2" size={18} />
-              Overview
+              <Activity size={18} />
+              <span>Overview</span>
             </button>
             <button
               onClick={() => setActiveTab('developers')}
-              className={`py-4 px-2 border-b-2 font-medium transition-colors ${
+              className={`py-3 px-3 md:py-4 md:px-4 border-b-2 font-medium transition-colors whitespace-nowrap flex items-center gap-2 ${
                 activeTab === 'developers'
                   ? 'border-blue-500 text-blue-600 dark:text-blue-400'
                   : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
-              <Users className="inline mr-2" size={18} />
-              Developers
+              <Users size={18} />
+              <span>Developers</span>
             </button>
             <button
               onClick={() => setActiveTab('security')}
-              className={`py-4 px-2 border-b-2 font-medium transition-colors ${
+              className={`py-3 px-3 md:py-4 md:px-4 border-b-2 font-medium transition-colors whitespace-nowrap flex items-center gap-2 ${
                 activeTab === 'security'
                   ? 'border-blue-500 text-blue-600 dark:text-blue-400'
                   : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
-              <AlertTriangle className="inline mr-2" size={18} />
-              Security
+              <AlertTriangle size={18} />
+              <span>Security</span>
             </button>
             <button
               onClick={() => setActiveTab('transactions')}
-              className={`py-4 px-2 border-b-2 font-medium transition-colors ${
+              className={`py-3 px-3 md:py-4 md:px-4 border-b-2 font-medium transition-colors whitespace-nowrap flex items-center gap-2 ${
                 activeTab === 'transactions'
                   ? 'border-blue-500 text-blue-600 dark:text-blue-400'
                   : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
-              <Coins className="inline mr-2" size={18} />
-              Transactions
+              <Coins size={18} />
+              <span>Transactions</span>
             </button>
           </div>
         </div>
