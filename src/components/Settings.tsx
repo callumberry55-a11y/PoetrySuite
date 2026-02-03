@@ -53,10 +53,31 @@ export default function Settings() {
 
     isSubscribed().then(setNotificationsEnabled);
 
+    loadNotificationPreference();
+
     return () => {
       window.removeEventListener('beforeinstallprompt', handler);
     };
   }, []);
+
+  const loadNotificationPreference = async () => {
+    if (!user) return;
+
+    try {
+      const { supabase } = await import('../lib/supabase');
+      const { data } = await supabase
+        .from('user_preferences')
+        .select('notifications_enabled')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (data && typeof data.notifications_enabled === 'boolean') {
+        setNotificationsEnabled(data.notifications_enabled);
+      }
+    } catch (error) {
+      console.warn('Error loading notification preference:', error);
+    }
+  };
 
   const handleInstall = async () => {
     if (!deferredPrompt) return;
@@ -99,9 +120,11 @@ export default function Settings() {
       if (notificationsEnabled) {
         await unsubscribeFromNotifications();
         setNotificationsEnabled(false);
+        await saveNotificationPreference(false);
       } else {
         await subscribeToNotifications();
         setNotificationsEnabled(true);
+        await saveNotificationPreference(true);
       }
     } catch (error) {
       console.error('Error toggling notifications:', error);
@@ -110,6 +133,25 @@ export default function Settings() {
       );
     } finally {
       setIsTogglingNotifications(false);
+    }
+  };
+
+  const saveNotificationPreference = async (enabled: boolean) => {
+    if (!user) return;
+
+    try {
+      const { supabase } = await import('../lib/supabase');
+      await supabase
+        .from('user_preferences')
+        .upsert({
+          user_id: user.id,
+          notifications_enabled: enabled,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'user_id'
+        });
+    } catch (error) {
+      console.warn('Error saving notification preference:', error);
     }
   };
 
