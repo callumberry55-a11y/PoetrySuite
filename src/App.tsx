@@ -22,6 +22,7 @@ const Contests = lazy(() => import('@/components/Contests'));
 const Badges = lazy(() => import('@/components/Badges'));
 const Store = lazy(() => import('@/components/Store'));
 const PaaSAuth = lazy(() => import('@/components/PaaSAuth'));
+const PointsBank = lazy(() => import('@/components/PointsBank'));
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -45,7 +46,7 @@ function AppContent() {
 }
 
 function MainApp() {
-    const [currentView, setCurrentView] = useState<'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'profile' | 'feed' | 'workshops' | 'collaborative' | 'challenges' | 'goals' | 'contests' | 'badges' | 'store' | 'paas-admin'>('library');
+    const [currentView, setCurrentView] = useState<'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'profile' | 'feed' | 'workshops' | 'collaborative' | 'challenges' | 'goals' | 'contests' | 'badges' | 'store' | 'paas-admin' | 'points-bank'>('library');
     const [selectedPoemId, setSelectedPoemId] = useState<string | null>(null);
 
     const handleNewPoem = useCallback(() => {
@@ -111,6 +112,7 @@ function MainApp() {
           {currentView === 'badges' && <Badges />}
           {currentView === 'store' && <Store />}
           {currentView === 'paas-admin' && <PaaSAuth />}
+          {currentView === 'points-bank' && <PointsBank />}
         </Suspense>
       </Layout>
     )
