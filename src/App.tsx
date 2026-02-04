@@ -101,14 +101,7 @@ function MainApp() {
             />
           )}
           {currentView === 'discover' && <Discover />}
-          {currentView === 'prompts' && (
-            <Prompts
-              onUsePrompt={() => {
-                setCurrentView('write');
-                setSelectedPoemId(null);
-              }}
-            />
-          )}
+          {currentView === 'prompts' && <Prompts />}
           {currentView === 'forms' && (
             <Forms
               onSelectForm={() => {
