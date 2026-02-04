@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document describes the dual tax system, daily point distribution, and automatic annual tax inflation implemented in the application.
+This document describes the dual tax system, daily point distribution, and automatic annual tax inflation implemented in the application. All distributions and tax collections are automated using PostgreSQL's pg_cron scheduler.
 
 ## Tax System
 
@@ -18,7 +18,7 @@ This document describes the dual tax system, daily point distribution, and autom
 
 **Important Rules:**
 - Users with 0 points are NEVER taxed
-- Tax is calculated at the beginning of each month
+- Tax is calculated automatically on the 2nd of every month at 00:00 UTC
 - Tracked in `user_tax_transactions` table
 
 ### 2. Purchase Tax (2%)
@@ -42,7 +42,7 @@ This document describes the dual tax system, daily point distribution, and autom
 
 **Amount:** 20 points per user
 
-**Frequency:** Every day
+**Frequency:** Every day at 00:00 UTC (automated)
 
 **Eligibility:** All registered users
 
@@ -55,11 +55,11 @@ This document describes the dual tax system, daily point distribution, and autom
 
 ### How It Works
 
-1. Every day, the system distributes 20 points to each user
+1. Every day at 00:00 UTC, the system automatically distributes 20 points to each user
 2. Points are added to `points_balance` in `user_profiles`
 3. Distribution is tracked in `daily_distributions` table
 4. Users can spend these points immediately with only the 2% purchase tax
-5. At the beginning of next month, if balance > 0, the 10% monthly tax applies
+5. On the 2nd of each month at 00:00 UTC, if balance > 0, the 10% monthly tax applies
 
 ## Automatic Tax Inflation
 
@@ -108,13 +108,42 @@ Users can view projected tax rates for future years:
 - All rate changes are publicly visible and auditable
 - Historical adjustments are preserved for transparency
 
+## Automated Scheduling
+
+All key economic operations are automated using PostgreSQL's pg_cron extension:
+
+### Daily Operations
+- **Daily Point Distribution** - Runs at 00:00 UTC every day
+  - Function: `distribute_daily_points()`
+  - Distributes 20 points to all registered users
+  - Job name: `daily-point-distribution`
+
+### Monthly Operations
+- **Grant Funding** - Runs at 00:00 UTC on the 1st of every month
+  - Function: `process_monthly_grant_funding()`
+  - Processes grant payments and funding distributions
+  - Job name: `monthly-grant-funding`
+
+- **Tax Collection** - Runs at 00:00 UTC on the 2nd of every month
+  - Function: `calculate_monthly_taxes_users()`
+  - Collects 10% tax from all users with positive balances
+  - Job name: `monthly-tax-collection`
+
+### Viewing Scheduled Jobs
+
+Authenticated users can view scheduled jobs by querying:
+```sql
+SELECT * FROM cron.job;
+```
+
 ## Database Functions
 
 ### For Users (Regular Points)
 
-- `distribute_daily_points()` - Distributes 20 points to all users daily
+- `distribute_daily_points()` - Distributes 20 points to all users daily (automated)
 - `distribute_weekly_points()` - Legacy function name (calls distribute_daily_points)
-- `calculate_monthly_taxes_users()` - Calculates and applies monthly tax to users with positive balance
+- `calculate_monthly_taxes_users()` - Calculates and applies monthly tax to users with positive balance (automated on 2nd of month)
+- `process_monthly_grant_funding()` - Processes grant funding and distributions (automated on 1st of month)
 
 ### For Developers (PaaS Economy)
 
@@ -192,32 +221,35 @@ Users are protected from taxation in the following scenarios:
 
 - `user_tax_transactions` - Tracks all tax transactions for regular users
 - `tax_transactions` - Tracks tax transactions for PaaS developers
-- `weekly_distributions` - Tracks weekly point distributions
+- `daily_distributions` - Tracks daily point distributions (formerly weekly_distributions)
 - `tax_settings` - Stores current tax rates, settings, and next adjustment year
 - `tax_rate_adjustments` - Historical record of all tax rate increases
+- `cron.job` - PostgreSQL cron jobs for automated scheduling
 
 ### Security
 
 - All tax and distribution functions use `SECURITY DEFINER`
 - Row Level Security (RLS) enabled on all tables
 - Users can only view their own tax transactions
-- Weekly distribution can only be triggered by authorized functions
+- Daily distribution runs automatically via pg_cron (no manual triggers needed)
+- Cron jobs are managed at the database level with proper permissions
 
 ### Realtime Updates
 
 - Tax transactions support realtime subscriptions
 - Users receive immediate notification of tax deductions
-- Weekly distributions are logged with timestamps
+- Daily distributions are logged with timestamps
+- All automated operations are logged and auditable
 
 ## Future Enhancements
 
-1. Admin dashboard for manual weekly distribution triggers
-2. Tax holiday periods during special events
-3. Graduated tax rates based on balance tiers
-4. Tax refund system for special circumstances
-5. Detailed tax reporting and analytics
-6. Automated scheduled execution of annual tax inflation adjustments
-7. Community voting mechanism for inflation rate changes
-8. Dynamic inflation rates based on economic indicators
-9. Tax rate caps to prevent excessive taxation over time
-10. Notification system to alert users before tax adjustments
+1. Tax holiday periods during special events
+2. Graduated tax rates based on balance tiers
+3. Tax refund system for special circumstances
+4. Detailed tax reporting and analytics
+5. Automated scheduled execution of annual tax inflation adjustments
+6. Community voting mechanism for inflation rate changes
+7. Dynamic inflation rates based on economic indicators
+8. Tax rate caps to prevent excessive taxation over time
+9. Notification system to alert users before tax adjustments
+10. Email/push notifications when scheduled operations complete

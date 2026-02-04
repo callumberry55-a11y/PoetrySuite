@@ -356,7 +356,7 @@ export default function PointsBank() {
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
                   <p className="text-emerald-100 text-sm mb-1">Tax Rate</p>
                   <p className="text-3xl font-bold">0%</p>
-                  <p className="text-emerald-200 text-xs mt-1">Until next month</p>
+                  <p className="text-emerald-200 text-xs mt-1">Until 2nd of month</p>
                 </div>
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
                   <p className="text-emerald-100 text-sm mb-1">Zero Balance</p>
@@ -729,7 +729,7 @@ export default function PointsBank() {
                 <div>
                   <h3 className="font-semibold text-slate-900 dark:text-white mb-1">Dual Tax System</h3>
                   <p className="text-sm text-slate-600 dark:text-slate-400">
-                    10% monthly tax on positive balances and 2% tax on store purchases. Your tax points are split equally: 50% rewards PaaS developers who build features for the community, and 50% goes to the reserve fund for economic stability. Users with 0 points are never taxed.
+                    10% monthly tax on positive balances (collected automatically on the 2nd of each month) and 2% tax on store purchases. Your tax points are split equally: 50% rewards PaaS developers who build features for the community, and 50% goes to the reserve fund for economic stability. Users with 0 points are never taxed.
                   </p>
                 </div>
               </div>
@@ -741,7 +741,7 @@ export default function PointsBank() {
                 <div>
                   <h3 className="font-semibold text-slate-900 dark:text-white mb-1">Daily User Bonus</h3>
                   <p className="text-sm text-slate-600 dark:text-slate-400">
-                    Every user receives 20 points per day automatically just for being part of the community. These points are tax-free until the beginning of the next month.
+                    Every user receives 20 points per day automatically at 00:00 UTC just for being part of the community. Grant funding is distributed on the 1st of each month. These points are tax-free until the monthly tax collection on the 2nd of the following month.
                   </p>
                 </div>
               </div>
