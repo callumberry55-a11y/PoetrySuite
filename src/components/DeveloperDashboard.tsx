@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Key, Copy, Plus, Trash2, Activity, Coins, TrendingUp, AlertCircle, CheckCircle, RefreshCw, MessageSquare } from 'lucide-react';
+import { Key, Copy, Plus, Trash2, Activity, Coins, TrendingUp, AlertCircle, CheckCircle, RefreshCw, MessageSquare, Send, Search, Gift } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 interface ApiKey {
@@ -58,11 +58,20 @@ export default function DeveloperDashboard() {
   const [showNewKeyModal, setShowNewKeyModal] = useState(false);
   const [newKeyName, setNewKeyName] = useState('');
   const [newlyCreatedKey, setNewlyCreatedKey] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'overview' | 'keys' | 'usage' | 'billing'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'keys' | 'usage' | 'billing' | 'admin'>('overview');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [realtimeConnected, setRealtimeConnected] = useState(false);
+
+  const [recipientEmail, setRecipientEmail] = useState('');
+  const [recipientType, setRecipientType] = useState<'user' | 'developer'>('user');
+  const [pointsToGrant, setPointsToGrant] = useState('');
+  const [grantReason, setGrantReason] = useState('');
+  const [grantStatus, setGrantStatus] = useState<{ type: 'success' | 'error', message: string } | null>(null);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [selectedRecipient, setSelectedRecipient] = useState<any>(null);
 
   useEffect(() => {
     loadDeveloperData();
@@ -331,6 +340,148 @@ export default function DeveloperDashboard() {
     navigator.clipboard.writeText(text);
   };
 
+  const searchRecipients = async () => {
+    if (!recipientEmail.trim()) return;
+
+    try {
+      setIsSearching(true);
+      setSearchResults([]);
+      setSelectedRecipient(null);
+
+      if (recipientType === 'user') {
+        const { data, error } = await supabase
+          .from('user_profiles')
+          .select('user_id, username')
+          .or(`username.ilike.%${recipientEmail}%`)
+          .limit(10);
+
+        if (error) throw error;
+        setSearchResults(data || []);
+      } else {
+        const { data, error } = await supabase
+          .from('paas_developers')
+          .select('id, email, organization_name, is_verified')
+          .ilike('email', `%${recipientEmail}%`)
+          .limit(10);
+
+        if (error) throw error;
+        setSearchResults(data || []);
+      }
+    } catch (error) {
+      console.error('Error searching recipients:', error);
+      setGrantStatus({ type: 'error', message: 'Failed to search recipients' });
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const grantPointsManually = async () => {
+    if (!selectedRecipient || !pointsToGrant || !grantReason.trim()) {
+      setGrantStatus({ type: 'error', message: 'Please fill all required fields' });
+      return;
+    }
+
+    const points = parseFloat(pointsToGrant);
+    if (isNaN(points) || points <= 0) {
+      setGrantStatus({ type: 'error', message: 'Please enter a valid positive number' });
+      return;
+    }
+
+    try {
+      const recipientId = recipientType === 'user' ? selectedRecipient.user_id : selectedRecipient.id;
+
+      if (recipientType === 'user') {
+        const { data: userProfile, error: profileError } = await supabase
+          .from('user_profiles')
+          .select('points_balance, points_earned_total')
+          .eq('user_id', recipientId)
+          .maybeSingle();
+
+        if (profileError) throw profileError;
+
+        if (!userProfile) {
+          setGrantStatus({ type: 'error', message: 'User profile not found' });
+          return;
+        }
+
+        const newBalance = (userProfile.points_balance || 0) + points;
+        const newLifetimeEarned = (userProfile.points_earned_total || 0) + points;
+
+        const { error: updateError } = await supabase
+          .from('user_profiles')
+          .update({
+            points_balance: newBalance,
+            points_earned_total: newLifetimeEarned
+          })
+          .eq('user_id', recipientId);
+
+        if (updateError) throw updateError;
+
+        setGrantStatus({
+          type: 'success',
+          message: `Successfully granted ${points} points to @${selectedRecipient.username}`
+        });
+      } else {
+        const { data: devAccount, error: accountError } = await supabase
+          .from('paas_point_accounts')
+          .select('*')
+          .eq('developer_id', recipientId)
+          .maybeSingle();
+
+        if (accountError) throw accountError;
+
+        if (!devAccount) {
+          await supabase.from('paas_point_accounts').insert({
+            developer_id: recipientId,
+            balance_points: points,
+            balance_gbp: points * 0.75,
+            total_earned: points,
+            total_spent: 0
+          });
+        } else {
+          const newBalance = parseFloat(devAccount.balance_points) + points;
+          const newTotalEarned = parseFloat(devAccount.total_earned) + points;
+
+          await supabase
+            .from('paas_point_accounts')
+            .update({
+              balance_points: newBalance,
+              balance_gbp: newBalance * 0.75,
+              total_earned: newTotalEarned
+            })
+            .eq('developer_id', recipientId);
+        }
+
+        await supabase.from('paas_transactions').insert({
+          developer_id: recipientId,
+          transaction_type: 'admin_grant',
+          amount_points: points,
+          endpoint: '/admin/manual-grant',
+          metadata: {
+            reason: grantReason,
+            granted_by: profile?.email
+          }
+        });
+
+        setGrantStatus({
+          type: 'success',
+          message: `Successfully granted ${points} points to ${selectedRecipient.organization_name || selectedRecipient.email}`
+        });
+      }
+
+      setRecipientEmail('');
+      setPointsToGrant('');
+      setGrantReason('');
+      setSelectedRecipient(null);
+      setSearchResults([]);
+
+      setTimeout(() => setGrantStatus(null), 5000);
+    } catch (error) {
+      console.error('Error granting points:', error);
+      setGrantStatus({ type: 'error', message: 'Failed to grant points. Please try again.' });
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
@@ -442,6 +593,16 @@ export default function DeveloperDashboard() {
             }`}
           >
             Billing
+          </button>
+          <button
+            onClick={() => setActiveTab('admin')}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap ${
+              activeTab === 'admin'
+                ? 'bg-blue-600 text-white'
+                : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
+            }`}
+          >
+            Admin
           </button>
         </div>
 
@@ -762,6 +923,216 @@ export default function DeveloperDashboard() {
                   <li>• Add more points to continue using the platform</li>
                   <li>• Contact support for bulk point purchases</li>
                 </ul>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'admin' && (
+          <div className="space-y-6">
+            <div className="flex items-center gap-3 mb-2">
+              <Gift className="text-blue-600 dark:text-blue-400" size={28} />
+              <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Manual Point Distribution</h2>
+            </div>
+            <p className="text-sm text-slate-600 dark:text-slate-400">Grant points directly to users or developers</p>
+
+            {grantStatus && (
+              <div className={`p-4 rounded-lg border ${
+                grantStatus.type === 'success'
+                  ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
+                  : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+              }`}>
+                <div className="flex items-center gap-2">
+                  {grantStatus.type === 'success' ? (
+                    <CheckCircle className="text-green-600 dark:text-green-400" size={20} />
+                  ) : (
+                    <AlertCircle className="text-red-600 dark:text-red-400" size={20} />
+                  )}
+                  <p className={`text-sm font-medium ${
+                    grantStatus.type === 'success'
+                      ? 'text-green-900 dark:text-green-100'
+                      : 'text-red-900 dark:text-red-100'
+                  }`}>
+                    {grantStatus.message}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-6 border border-slate-200 dark:border-slate-700">
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    Recipient Type
+                  </label>
+                  <div className="flex gap-4">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        value="user"
+                        checked={recipientType === 'user'}
+                        onChange={(e) => {
+                          setRecipientType(e.target.value as 'user' | 'developer');
+                          setSearchResults([]);
+                          setSelectedRecipient(null);
+                        }}
+                        className="text-blue-600 focus:ring-blue-500"
+                      />
+                      <span className="text-slate-700 dark:text-slate-300">Regular User</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        value="developer"
+                        checked={recipientType === 'developer'}
+                        onChange={(e) => {
+                          setRecipientType(e.target.value as 'user' | 'developer');
+                          setSearchResults([]);
+                          setSelectedRecipient(null);
+                        }}
+                        className="text-blue-600 focus:ring-blue-500"
+                      />
+                      <span className="text-slate-700 dark:text-slate-300">Developer</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    Search {recipientType === 'user' ? 'User' : 'Developer'}
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={recipientEmail}
+                      onChange={(e) => setRecipientEmail(e.target.value)}
+                      placeholder={recipientType === 'user' ? 'Username' : 'Email or organization'}
+                      className="flex-1 px-4 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white"
+                      onKeyDown={(e) => e.key === 'Enter' && searchRecipients()}
+                    />
+                    <button
+                      onClick={searchRecipients}
+                      disabled={isSearching || !recipientEmail.trim()}
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-400 dark:disabled:bg-slate-600 text-white rounded-lg transition-colors flex items-center gap-2"
+                    >
+                      <Search size={18} />
+                      Search
+                    </button>
+                  </div>
+
+                  {searchResults.length > 0 && (
+                    <div className="mt-3 border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
+                      <div className="max-h-60 overflow-y-auto">
+                        {searchResults.map((result) => (
+                          <button
+                            key={recipientType === 'user' ? result.user_id : result.id}
+                            onClick={() => {
+                              setSelectedRecipient(result);
+                              setSearchResults([]);
+                            }}
+                            className="w-full px-4 py-3 text-left hover:bg-slate-50 dark:hover:bg-slate-700/50 border-b border-slate-200 dark:border-slate-700 last:border-b-0 transition-colors"
+                          >
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="font-medium text-slate-900 dark:text-white">
+                                  {recipientType === 'user'
+                                    ? `@${result.username}`
+                                    : (result.organization_name || result.email)}
+                                </p>
+                                {recipientType === 'developer' && (
+                                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                                    {result.email}
+                                  </p>
+                                )}
+                              </div>
+                              {recipientType === 'developer' && result.is_verified && (
+                                <CheckCircle className="text-blue-600 dark:text-blue-400" size={18} />
+                              )}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedRecipient && (
+                    <div className="mt-3 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium text-blue-900 dark:text-blue-100">Selected:</p>
+                          <p className="text-sm text-blue-700 dark:text-blue-300">
+                            {recipientType === 'user'
+                              ? `@${selectedRecipient.username}`
+                              : `${selectedRecipient.organization_name || selectedRecipient.email}`}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => setSelectedRecipient(null)}
+                          className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm"
+                        >
+                          Change
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    Points to Grant
+                  </label>
+                  <input
+                    type="number"
+                    value={pointsToGrant}
+                    onChange={(e) => setPointsToGrant(e.target.value)}
+                    placeholder="Enter amount"
+                    min="0"
+                    step="1"
+                    className="w-full px-4 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white"
+                  />
+                  {pointsToGrant && !isNaN(parseFloat(pointsToGrant)) && (
+                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                      ≈ £{(parseFloat(pointsToGrant) * 0.75).toFixed(2)} GBP
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    Reason for Grant
+                  </label>
+                  <textarea
+                    value={grantReason}
+                    onChange={(e) => setGrantReason(e.target.value)}
+                    placeholder="Enter reason for granting points (required for audit trail)"
+                    rows={3}
+                    className="w-full px-4 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white resize-none"
+                  />
+                </div>
+
+                <button
+                  onClick={grantPointsManually}
+                  disabled={!selectedRecipient || !pointsToGrant || !grantReason.trim()}
+                  className="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-400 dark:disabled:bg-slate-600 text-white rounded-lg transition-colors flex items-center justify-center gap-2 font-medium disabled:cursor-not-allowed"
+                >
+                  <Send size={18} />
+                  Grant Points
+                </button>
+
+                <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" size={18} />
+                    <div className="text-sm text-yellow-700 dark:text-yellow-300">
+                      <p className="font-semibold mb-1">Important Notes:</p>
+                      <ul className="space-y-1 list-disc list-inside">
+                        <li>Points are granted immediately and cannot be revoked</li>
+                        <li>All transactions are logged for audit purposes</li>
+                        <li>Provide a clear reason for accountability</li>
+                        <li>1 point = £0.75 GBP value</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
