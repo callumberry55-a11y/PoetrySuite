@@ -11,7 +11,7 @@ interface PoemEditorProps {
 
 export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) {
   const { user } = useAuth();
-  const [currentPoemId, setCurrentPoemId] = useState<string | null>(selectedPoemId);
+  const [currentPoemId, setCurrentPoemId] = useState<string | null>(null);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [isPublic, setIsPublic] = useState(false);
@@ -169,13 +169,11 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
 
   useEffect(() => {
     if (selectedPoemId) {
-      if (currentPoemId !== selectedPoemId) {
-        loadPoem(selectedPoemId);
-      }
+      loadPoem(selectedPoemId);
     } else {
       resetEditor();
     }
-  }, [selectedPoemId, currentPoemId, loadPoem, resetEditor]);
+  }, [selectedPoemId, loadPoem, resetEditor]);
 
   useEffect(() => {
     if (content.trim() || title.trim()) {
