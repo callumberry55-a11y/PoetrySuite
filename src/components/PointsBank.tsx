@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { DollarSign, TrendingUp, Users, Activity, Calendar, ArrowUpRight, Coins, Database, Zap, Clock } from 'lucide-react';
+import { DollarSign, TrendingUp, Users, Activity, Calendar, ArrowUpRight, Coins, Database, Zap, Clock, Info } from 'lucide-react';
 import { GrantFundingGraph } from './GrantFundingGraph';
 
 interface PointsStats {
@@ -291,7 +291,7 @@ export default function PointsBank() {
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
                   <p className="text-amber-100 text-sm mb-1">Monthly Tax</p>
                   <p className="text-2xl sm:text-3xl font-bold">{taxSettings?.tax_rate || 10}%</p>
-                  <p className="text-amber-200 text-xs mt-1">On earnings monthly</p>
+                  <p className="text-amber-200 text-xs mt-1">On positive balances</p>
                 </div>
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
                   <p className="text-amber-100 text-sm mb-1">Purchase Tax</p>
@@ -301,7 +301,34 @@ export default function PointsBank() {
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 sm:col-span-2 md:col-span-1">
                   <p className="text-amber-100 text-sm mb-1">Tax Distribution</p>
                   <p className="text-2xl font-bold">50/50</p>
-                  <p className="text-amber-200 text-xs mt-1">Developers / Reserve</p>
+                  <p className="text-amber-200 text-xs mt-1">Developer Rewards / Reserve</p>
+                </div>
+              </div>
+
+              <div className="mt-6 bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                  <Info className="w-5 h-5" />
+                  Where Your Tax Points Go
+                </h3>
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-start gap-2">
+                    <div className="w-6 h-6 rounded-full bg-blue-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Users className="w-3.5 h-3.5" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-amber-50">50% to Developer Rewards Pool</p>
+                      <p className="text-amber-200 text-xs">Funds rewards for PaaS developers who build features and tools for the community</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <div className="w-6 h-6 rounded-full bg-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Database className="w-3.5 h-3.5" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-amber-50">50% to Reserve Fund</p>
+                      <p className="text-amber-200 text-xs">Maintains economic stability and provides emergency buffer for the community</p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -702,7 +729,7 @@ export default function PointsBank() {
                 <div>
                   <h3 className="font-semibold text-slate-900 dark:text-white mb-1">Dual Tax System</h3>
                   <p className="text-sm text-slate-600 dark:text-slate-400">
-                    10% monthly tax on earnings and 2% tax on store purchases. Each tax is split 50/50: half funds developers, half added to reserve fund. Users with 0 points are never taxed.
+                    10% monthly tax on positive balances and 2% tax on store purchases. Your tax points are split equally: 50% rewards PaaS developers who build features for the community, and 50% goes to the reserve fund for economic stability. Users with 0 points are never taxed.
                   </p>
                 </div>
               </div>

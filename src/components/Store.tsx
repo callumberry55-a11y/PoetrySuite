@@ -234,7 +234,7 @@ export default function Store() {
             <div>
               <h4 className="font-semibold text-amber-900 dark:text-amber-100 mb-1">Purchase Tax Applied</h4>
               <p className="text-sm text-amber-700 dark:text-amber-300">
-                A {taxSettings.purchase_tax_rate}% tax is applied to all purchases. This helps maintain a balanced economy - 50% is removed from circulation and 50% goes to the reserve fund.
+                A {taxSettings.purchase_tax_rate}% tax is applied to all purchases. Your tax points are split equally: 50% rewards PaaS developers who build features for the community, and 50% goes to the reserve fund for economic stability.
               </p>
             </div>
           </div>

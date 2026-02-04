@@ -6,30 +6,30 @@ This document describes the dual tax system, daily point distribution, and autom
 
 ## Tax System
 
-### 1. Monthly Tax (5%)
+### 1. Monthly Tax (10%)
 
 **Applies to:** All users with positive point balances
 
-**Rate:** 5% of current balance
+**Rate:** 10% of current balance
 
 **Distribution:**
-- 50% (2.5%) deleted from circulation to control inflation
-- 50% (2.5%) added to reserve fund
+- 50% (5%) goes to developer rewards pool to fund PaaS developers
+- 50% (5%) added to reserve fund for economic stability
 
 **Important Rules:**
 - Users with 0 points are NEVER taxed
 - Tax is calculated at the beginning of each month
 - Tracked in `user_tax_transactions` table
 
-### 2. Purchase Tax (1.5%)
+### 2. Purchase Tax (2%)
 
 **Applies to:** All store purchases
 
-**Rate:** 1.5% of purchase price
+**Rate:** 2% of purchase price
 
 **Distribution:**
-- 50% (0.75%) deleted from circulation
-- 50% (0.75%) added to reserve fund
+- 50% (1%) goes to developer rewards pool to fund PaaS developers
+- 50% (1%) added to reserve fund for economic stability
 
 **Important Rules:**
 - Applied automatically during checkout
