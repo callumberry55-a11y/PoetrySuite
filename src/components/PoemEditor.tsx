@@ -34,19 +34,6 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
 
     try {
-      let generatedTags = tags;
-      try {
-        const result = await generateTags({ poemContent: content });
-        const data = result.data as { tags?: string[] };
-        if (data && Array.isArray(data.tags)) {
-          generatedTags = data.tags;
-          setTags(generatedTags);
-        }
-      } catch (tagError) {
-        console.warn('Could not generate tags:', tagError);
-        // Do not block saving if tag generation fails
-      }
-
       const poemData = {
         user_id: user.id,
         title: title.trim() || 'Untitled Poem',
@@ -57,6 +44,8 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
         updated_at: new Date().toISOString(),
       };
 
+      let poemId = currentPoemId;
+
       if (currentPoemId) {
         const { error } = await supabase.from('poems').update(poemData).eq('id', currentPoemId);
         if (error) throw error;
@@ -64,7 +53,61 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
         const { data, error } = await supabase.from('poems').insert(poemData).select('id').single();
         if (error) throw error;
         if (data) {
+          poemId = data.id;
           setCurrentPoemId(data.id);
+        }
+      }
+
+      if (poemId && content.trim()) {
+        try {
+          const result = await generateTags({ poemContent: content });
+          const data = result.data as { tags?: string[] };
+          if (data && Array.isArray(data.tags) && data.tags.length > 0) {
+            await supabase.from('poem_tags').delete().eq('poem_id', poemId);
+
+            for (const tagName of data.tags) {
+              let tagId: string | null = null;
+
+              const { data: existingTag } = await supabase
+                .from('tags')
+                .select('id')
+                .eq('name', tagName)
+                .eq('user_id', user.id)
+                .maybeSingle();
+
+              if (existingTag) {
+                tagId = existingTag.id;
+              } else {
+                const { data: newTag, error: tagError } = await supabase
+                  .from('tags')
+                  .insert({ name: tagName, user_id: user.id })
+                  .select('id')
+                  .single();
+
+                if (!tagError && newTag) {
+                  tagId = newTag.id;
+                }
+              }
+
+              if (tagId) {
+                await supabase.from('poem_tags').insert({ poem_id: poemId, tag_id: tagId });
+              }
+            }
+
+            const { data: poemTagsData } = await supabase
+              .from('poem_tags')
+              .select('tag_id, tags(name)')
+              .eq('poem_id', poemId);
+
+            if (poemTagsData) {
+              const tagNames = poemTagsData
+                .map(pt => (pt.tags as unknown as { name: string })?.name)
+                .filter(Boolean);
+              setTags(tagNames);
+            }
+          }
+        } catch (tagError) {
+          console.warn('Could not generate or save tags:', tagError);
         }
       }
 
@@ -75,7 +118,7 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
     } finally {
       setSaving(false);
     }
-  }, [user, content, title, isPublic, favorited, wordCount, currentPoemId, tags]);
+  }, [user, content, title, isPublic, favorited, wordCount, currentPoemId]);
 
   const resetEditor = useCallback(() => {
     setTitle('');
@@ -100,10 +143,23 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
         setContent(data.content);
         setIsPublic(data.is_public);
         setFavorited(data.favorited);
-        setTags([]);
         setLastSaved(null);
         setError(null);
         setCurrentPoemId(poemId);
+
+        const { data: poemTagsData } = await supabase
+          .from('poem_tags')
+          .select('tag_id, tags(name)')
+          .eq('poem_id', poemId);
+
+        if (poemTagsData && poemTagsData.length > 0) {
+          const tagNames = poemTagsData
+            .map(pt => (pt.tags as unknown as { name: string })?.name)
+            .filter(Boolean);
+          setTags(tagNames);
+        } else {
+          setTags([]);
+        }
       }
     } catch (err) {
       console.error(err);
