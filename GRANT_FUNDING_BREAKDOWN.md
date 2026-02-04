@@ -21,6 +21,39 @@ The Poetry Suite economy has been allocated **4.0 billion points** for 2026. Thi
 
 ---
 
+## Economy Funds Breakdown
+
+The system maintains three separate funding pools in GBP currency:
+
+| Fund Type | Allocated Amount | Status |
+|-----------|------------------|--------|
+| **Grant Fund** | £3,000,000,000 (3.0B) | 100% Available |
+| **Rewards Fund** | £2,800,000,000 (2.8B) | 100% Available |
+| **Reserve Fund** | £1,500,000,000 (1.5B) | 100% Available |
+| **Total Funds** | **£7,300,000,000 (7.3B)** | **100% Available** |
+
+### Fund Purposes
+
+**Grant Fund (3.0B GBP)**
+- Primary funding for user grants
+- Community initiatives
+- Special projects and events
+- Largest allocation for direct user support
+
+**Rewards Fund (2.8B GBP)**
+- Badge achievement rewards
+- Contest prizes
+- Weekly user bonuses
+- Engagement incentives
+
+**Reserve Fund (1.5B GBP)**
+- Emergency buffer
+- Economic stability
+- Tax revenue accumulation
+- Long-term sustainability
+
+---
+
 ## Monthly Distribution Graph
 
 ```
@@ -105,6 +138,21 @@ The Poetry Suite economy has been allocated **4.0 billion points** for 2026. Thi
 - Better aligned with actual usage patterns
 - Reduces inflation risk
 - Maintains sufficient funding for all features
+
+### Economy Funds Changes
+
+| Fund | Old Amount | New Amount | Change |
+|------|------------|------------|--------|
+| Grant Fund | £3.0B | £3.0B | No change |
+| Rewards Fund | £1.4B | £2.8B | +£1.4B (+100%) |
+| Reserve Fund | £750M | £1.5B | +£750M (+100%) |
+| **Total** | **£5.15B** | **£7.3B** | **+£2.15B (+42%)** |
+
+**Fund Increases:**
+- Reserve and Rewards funds doubled for enhanced stability
+- Stronger economic foundation
+- Increased capacity for user rewards
+- Better emergency reserves
 
 ---
 
