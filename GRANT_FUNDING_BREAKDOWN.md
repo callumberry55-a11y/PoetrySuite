@@ -43,7 +43,7 @@ The system maintains three separate funding pools in GBP currency:
 **Rewards Fund (2.8B GBP)**
 - Badge achievement rewards
 - Contest prizes
-- Weekly user bonuses
+- Daily user bonuses (20 points per day per user)
 - Engagement incentives
 
 **Reserve Fund (1.5B GBP)**
@@ -103,8 +103,9 @@ The system maintains three separate funding pools in GBP currency:
 
 ### Usage Scenarios
 
-1. **Weekly User Bonuses**
-   - 10 points per user per week
+1. **Daily User Bonuses**
+   - 20 points per user per day
+   - 140 points per user per week
    - Funded from monthly allocation
    - Encourages consistent engagement
 

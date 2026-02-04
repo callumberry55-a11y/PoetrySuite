@@ -21,9 +21,9 @@ The Poetry Suite points economy is fully operational with:
 | Source | Amount | Status |
 |--------|--------|--------|
 | Initial UBI (350 per user) | 2,450 points | ✅ Distributed |
-| Weekly Distribution (10 per user) | 70 points | ✅ Distributed |
+| Daily Distribution (20 per user per day) | 140 points | ✅ Distributed |
 | Badge Rewards | 0 points | ⏳ Awaiting user achievements |
-| **TOTAL EARNED** | **2,520 points** | |
+| **TOTAL EARNED** | **2,590 points** | |
 
 ### Point Sinks (Where Points Go)
 | Sink | Amount | Status |
@@ -35,10 +35,10 @@ The Poetry Suite points economy is fully operational with:
 
 ### Current Balance Check
 ```
-Total Earned:        2,520 points
+Total Earned:        2,590 points
 Total Spent/Taxed:     -390 points
 ─────────────────────────────────
-Current Circulation: 2,130 points ✅
+Current Circulation: 2,200 points ✅
 ```
 
 **Math Verified:** ✅ All transactions balanced correctly
@@ -119,14 +119,16 @@ Current Circulation: 2,130 points ✅
 
 ---
 
-## 6. Weekly Distribution System
+## 6. Daily Distribution System
 
 | Distribution ID | Date | Points per User | Users | Total Distributed |
 |----------------|------|-----------------|-------|-------------------|
-| 9fc19ff8... | Feb 4, 2026 | 10 | 7 | 70 points |
+| Latest | Feb 4, 2026 | 20 | 7 | 140 points |
 
 **Status:** ✅ Working perfectly
+**Frequency:** Daily (20 points per user per day)
 **Protection:** ✅ Prevents duplicate distributions on same day
+**Weekly Total:** 140 points per user (20 × 7 days)
 
 ---
 
@@ -228,7 +230,9 @@ The 4.0 billion point budget is divided equally across 12 months:
 
 ### Distribution Functions
 ```sql
--- Distribute 10 points to all users
+-- Distribute 20 points to all users daily
+SELECT distribute_daily_points();
+-- OR use the legacy function name (calls the same function)
 SELECT distribute_weekly_points();
 
 -- Collect 10% monthly tax from all users
@@ -318,6 +322,14 @@ All systems are operational and functioning as designed.
 ---
 
 ## 14. Change Log
+
+### February 4, 2026 (Update 4)
+- ✅ Changed distribution from weekly to daily
+- ✅ Increased points per distribution from 10 to 20
+- ✅ Users now receive 20 points per day (140 per week)
+- ✅ Renamed distribute_weekly_points() to distribute_daily_points()
+- ✅ Updated all UI components to reflect daily distribution
+- ✅ Maintained backward compatibility with old function name
 
 ### February 4, 2026 (Update 3)
 - ✅ Doubled Reserve Fund from £750M to £1.5B (+100%)

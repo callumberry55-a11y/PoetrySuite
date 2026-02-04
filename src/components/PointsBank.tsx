@@ -9,7 +9,7 @@ interface PointsStats {
   totalReserve: number;
   activeDevs: number;
   monthlyDistribution: number;
-  weeklyDistribution: number;
+  dailyDistribution: number;
 }
 
 interface EconomyFund {
@@ -44,7 +44,7 @@ export default function PointsBank() {
     totalReserve: 4000000000,
     activeDevs: 0,
     monthlyDistribution: 0,
-    weeklyDistribution: 0,
+    dailyDistribution: 0,
   });
   const [funds, setFunds] = useState<EconomyFund[]>([]);
   const [taxSettings, setTaxSettings] = useState<TaxSettings | null>(null);
@@ -91,11 +91,11 @@ export default function PointsBank() {
       }, 0) || 0;
 
       const now = new Date();
-      const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
       const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-      const weeklyDistribution = transactions?.reduce((sum, tx) => {
-        if (tx.transaction_type === 'mint' && new Date(tx.created_at) >= oneWeekAgo) {
+      const dailyDistribution = transactions?.reduce((sum, tx) => {
+        if (tx.transaction_type === 'mint' && new Date(tx.created_at) >= oneDayAgo) {
           return sum + tx.amount;
         }
         return sum;
@@ -114,7 +114,7 @@ export default function PointsBank() {
         totalReserve: 4000000000 - totalDistributed,
         activeDevs: developers?.length || 0,
         monthlyDistribution,
-        weeklyDistribution,
+        dailyDistribution,
       });
 
       if (economyFunds) {
@@ -316,15 +316,15 @@ export default function PointsBank() {
                   <Zap className="text-white" size={24} />
                 </div>
                 <div>
-                  <h2 className="text-xl sm:text-2xl font-bold">Weekly User Bonus</h2>
+                  <h2 className="text-xl sm:text-2xl font-bold">Daily User Bonus</h2>
                   <p className="text-sm sm:text-base text-emerald-100">Free points for all community members</p>
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 mt-6">
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
                   <p className="text-emerald-100 text-sm mb-1">Points Per User</p>
-                  <p className="text-3xl font-bold">10</p>
-                  <p className="text-emerald-200 text-xs mt-1">Every week</p>
+                  <p className="text-3xl font-bold">20</p>
+                  <p className="text-emerald-200 text-xs mt-1">Every day</p>
                 </div>
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
                   <p className="text-emerald-100 text-sm mb-1">Tax Rate</p>
@@ -477,13 +477,13 @@ export default function PointsBank() {
                     <Calendar className="text-blue-600 dark:text-blue-400" size={20} />
                   </div>
                   <div>
-                    <p className="font-medium text-slate-900 dark:text-white">Weekly</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-500">Last 7 days</p>
+                    <p className="font-medium text-slate-900 dark:text-white">Daily</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-500">Last 24 hours</p>
                   </div>
                 </div>
                 <div className="text-right">
                   <p className="text-xl font-bold text-slate-900 dark:text-white">
-                    {formatNumber(stats.weeklyDistribution)}
+                    {formatNumber(stats.dailyDistribution)}
                   </p>
                   <p className="text-xs text-slate-500 dark:text-slate-500">points</p>
                 </div>
@@ -712,9 +712,9 @@ export default function PointsBank() {
                   7
                 </div>
                 <div>
-                  <h3 className="font-semibold text-slate-900 dark:text-white mb-1">Weekly User Bonus</h3>
+                  <h3 className="font-semibold text-slate-900 dark:text-white mb-1">Daily User Bonus</h3>
                   <p className="text-sm text-slate-600 dark:text-slate-400">
-                    Every user receives 10 points per week automatically just for being part of the community. These points are tax-free until the beginning of the next month.
+                    Every user receives 20 points per day automatically just for being part of the community. These points are tax-free until the beginning of the next month.
                   </p>
                 </div>
               </div>

@@ -1,8 +1,8 @@
-# Tax and Weekly Distribution System
+# Tax and Daily Distribution System
 
 ## Overview
 
-This document describes the dual tax system, weekly point distribution, and automatic annual tax inflation implemented in the application.
+This document describes the dual tax system, daily point distribution, and automatic annual tax inflation implemented in the application.
 
 ## Tax System
 
@@ -36,13 +36,13 @@ This document describes the dual tax system, weekly point distribution, and auto
 - Total cost = item price + tax
 - Tax amount shown separately to users
 
-## Weekly Point Distribution
+## Daily Point Distribution
 
-### Automatic Weekly Bonus
+### Automatic Daily Bonus
 
-**Amount:** 10 points per user
+**Amount:** 20 points per user
 
-**Frequency:** Every week
+**Frequency:** Every day
 
 **Eligibility:** All registered users
 
@@ -51,13 +51,15 @@ This document describes the dual tax system, weekly point distribution, and auto
 - They enter the user's balance immediately
 - They become subject to monthly tax starting the next month
 
+**Weekly Equivalent:** 140 points per user (20 × 7 days)
+
 ### How It Works
 
-1. Every week, the system distributes 10 points to each user
+1. Every day, the system distributes 20 points to each user
 2. Points are added to `points_balance` in `user_profiles`
-3. Distribution is tracked in `weekly_distributions` table
-4. Users can spend these points immediately with only the 1.5% purchase tax
-5. At the beginning of next month, if balance > 0, the 5% monthly tax applies
+3. Distribution is tracked in `daily_distributions` table
+4. Users can spend these points immediately with only the 2% purchase tax
+5. At the beginning of next month, if balance > 0, the 10% monthly tax applies
 
 ## Automatic Tax Inflation
 
@@ -110,7 +112,8 @@ Users can view projected tax rates for future years:
 
 ### For Users (Regular Points)
 
-- `distribute_weekly_points()` - Distributes 10 points to all users
+- `distribute_daily_points()` - Distributes 20 points to all users daily
+- `distribute_weekly_points()` - Legacy function name (calls distribute_daily_points)
 - `calculate_monthly_taxes_users()` - Calculates and applies monthly tax to users with positive balance
 
 ### For Developers (PaaS Economy)
@@ -139,19 +142,19 @@ Users are protected from taxation in the following scenarios:
 
 ### Scenario 1: New User
 
-- Week 1: User receives 10 points (balance: 10)
-- Week 2: User receives 10 points (balance: 20)
-- Week 3: User receives 10 points (balance: 30)
-- Week 4: User receives 10 points (balance: 40)
+- Day 1-7: User receives 20 points/day × 7 days = 140 points (balance: 140)
+- Day 8-14: User receives 20 points/day × 7 days = 140 points (balance: 280)
+- Day 15-21: User receives 20 points/day × 7 days = 140 points (balance: 420)
+- Day 22-30: User receives 20 points/day × 9 days = 180 points (balance: 600)
 - End of Month 1: No tax applied (these are the current month's earnings)
-- Beginning of Month 2: 5% tax applied = 2 points (balance: 38)
+- Beginning of Month 2: 10% tax applied = 60 points (balance: 540)
 
 ### Scenario 2: User with Zero Balance
 
 - User has 0 points
 - Monthly tax runs
 - User is skipped (no tax applied)
-- User receives 10 points weekly bonus
+- User receives 20 points daily bonus (140 per week)
 - Still no monthly tax until next month
 
 ### Scenario 3: Store Purchase
@@ -166,22 +169,22 @@ Users are protected from taxation in the following scenarios:
 
 **Year 1:**
 - User starts with 0 points
-- Receives 10 points per week × 52 weeks = 520 points earned
-- Tax rate: 5%
-- End of year balance after monthly taxes: ~450 points
+- Receives 20 points per day × 365 days = 7,300 points earned
+- Tax rate: 10% monthly
+- End of year balance after monthly taxes: ~6,200 points
 
 **Year 2:**
-- Tax rate increases to 5.5% (automatic 0.5% inflation)
-- Receives 10 points per week × 52 weeks = 520 points earned
-- Starting balance: 450 + 520 = 970 points
-- End of year balance after monthly taxes: ~870 points
+- Tax rate increases to 11% (automatic 1% inflation)
+- Receives 20 points per day × 365 days = 7,300 points earned
+- Starting balance: 6,200 + 7,300 = 13,500 points
+- End of year balance after monthly taxes: ~11,800 points
 
 **Year 3:**
-- Tax rate increases to 6.0%
+- Tax rate increases to 12%
 - Pattern continues with gradually increasing tax rates
 - User is incentivized to spend points rather than hoard
 
-**Key Takeaway:** The automatic inflation system ensures points remain active in the economy while protecting users who actively participate (via weekly bonuses that offset inflation).
+**Key Takeaway:** The automatic inflation system ensures points remain active in the economy while protecting users who actively participate (via daily bonuses that offset inflation).
 
 ## Implementation Notes
 
