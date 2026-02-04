@@ -84,25 +84,33 @@ function Library({ onNewPoem, onEditPoem }: LibraryProps) {
       return;
     }
 
-    const poemsWithCounts = await Promise.all(
+    const poemsWithCounts = await Promise.allSettled(
       (data || []).map(async (poem) => {
-        const { count: likeCount } = await supabase
-          .from('reactions')
-          .select('id', { count: 'exact', head: true })
-          .eq('poem_id', poem.id);
+        try {
+          const { count: likeCount } = await supabase
+            .from('reactions')
+            .select('id', { count: 'exact', head: true })
+            .eq('poem_id', poem.id);
 
-        const { count: commentCount } = await supabase
-          .from('comments')
-          .select('id', { count: 'exact', head: true })
-          .eq('poem_id', poem.id);
+          const { count: commentCount } = await supabase
+            .from('comments')
+            .select('id', { count: 'exact', head: true })
+            .eq('poem_id', poem.id);
 
-        return {
-          ...poem,
-          like_count: likeCount || 0,
-          comment_count: commentCount || 0,
-        };
+          return {
+            ...poem,
+            like_count: likeCount || 0,
+            comment_count: commentCount || 0,
+          };
+        } catch {
+          return {
+            ...poem,
+            like_count: 0,
+            comment_count: 0,
+          };
+        }
       })
-    );
+    ).then(results => results.map(r => r.status === 'fulfilled' ? r.value : null).filter(Boolean) as Poem[]);
 
     setPoems(poemsWithCounts);
   }, [user]);
@@ -149,7 +157,14 @@ function Library({ onNewPoem, onEditPoem }: LibraryProps) {
 
   useEffect(() => {
     if (user) {
-      Promise.all([loadPoems(), loadCollections(), loadPoemCollections()]);
+      const loadData = async () => {
+        try {
+          await Promise.all([loadPoems(), loadCollections(), loadPoemCollections()]);
+        } catch (error) {
+          console.error('Error loading library data:', error);
+        }
+      };
+      loadData();
     }
   }, [user, loadPoems, loadCollections, loadPoemCollections]);
 

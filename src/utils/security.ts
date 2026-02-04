@@ -22,7 +22,7 @@ export const runSecurityChecks = async (userInput: string): Promise<boolean> => 
     const isMalicious = result.data.status === 'malicious';
 
     if (isMalicious) {
-      console.warn(`Security Alert: Malicious input detected: ${userInput}`);
+      console.warn(`Security Alert: Malicious input detected (length: ${userInput.length} characters)`);
     }
 
     return isMalicious;

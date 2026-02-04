@@ -65,7 +65,12 @@ Respond with ONLY a JSON object in this exact format:
     const result = await callGeminiAPI(systemPrompt, userPrompt, { temperature: 0.3 });
     const jsonMatch = result.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
-      return JSON.parse(jsonMatch[0]);
+      try {
+        return JSON.parse(jsonMatch[0]);
+      } catch (parseError) {
+        console.error('Failed to parse JSON response:', parseError);
+        throw new Error('Invalid JSON in response');
+      }
     }
     throw new Error('Invalid response format');
   } catch (error) {
@@ -120,7 +125,12 @@ Respond with ONLY a JSON object in this exact format:
     const result = await callGeminiAPI(systemPrompt, userPrompt, { temperature: 0.3 });
     const jsonMatch = result.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
-      return JSON.parse(jsonMatch[0]);
+      try {
+        return JSON.parse(jsonMatch[0]);
+      } catch (parseError) {
+        console.error('Failed to parse JSON response:', parseError);
+        throw new Error('Invalid JSON in response');
+      }
     }
     throw new Error('Invalid response format');
   } catch (error) {
@@ -157,7 +167,12 @@ Respond with ONLY a JSON object in this exact format:
     const result = await callGeminiAPI(systemPrompt, userPrompt, { temperature: 0.2 });
     const jsonMatch = result.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
-      return JSON.parse(jsonMatch[0]);
+      try {
+        return JSON.parse(jsonMatch[0]);
+      } catch (parseError) {
+        console.error('Failed to parse JSON response:', parseError);
+        throw new Error('Invalid JSON in response');
+      }
     }
     throw new Error('Invalid response format');
   } catch (error) {

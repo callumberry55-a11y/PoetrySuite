@@ -57,7 +57,16 @@ async function verifyAPIKey(apiKey: string, supabase: any) {
 }
 
 async function verifyBiometric(token: string) {
-  return token && token.length > 20;
+  // TODO: Implement proper biometric verification with a trusted service
+  // This is a placeholder implementation for development only
+  // In production, verify the token against a biometric service provider
+  if (!token || token.length < 32) {
+    return false;
+  }
+
+  // Verify token format (should be a valid JWT or signed token)
+  const tokenPattern = /^[A-Za-z0-9\-_]+\.[A-Za-z0-9\-_]+\.[A-Za-z0-9\-_]+$/;
+  return tokenPattern.test(token);
 }
 
 Deno.serve(async (req: Request) => {
@@ -117,7 +126,7 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    if (verification.balance! < amount) {
+    if ((verification.balance ?? 0) < amount) {
       return new Response(
         JSON.stringify({ error: 'Insufficient balance' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -141,7 +150,7 @@ Deno.serve(async (req: Request) => {
       .from('paas_point_accounts')
       .select('balance_points')
       .eq('developer_id', verification.developerId)
-      .single();
+      .maybeSingle();
 
     const senderBalanceBefore = parseFloat(senderAccount?.balance_points || 0);
     const senderBalanceAfter = senderBalanceBefore - amount;
@@ -161,7 +170,7 @@ Deno.serve(async (req: Request) => {
       .from('paas_point_accounts')
       .select('balance_points')
       .eq('developer_id', recipientDeveloperId)
-      .single();
+      .maybeSingle();
 
     const recipientBalanceBefore = parseFloat(recipientAccount?.balance_points || 0);
     const recipientBalanceAfter = recipientBalanceBefore + amount;

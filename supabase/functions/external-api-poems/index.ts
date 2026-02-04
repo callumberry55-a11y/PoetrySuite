@@ -141,8 +141,8 @@ Deno.serve(async (req: Request) => {
     }
 
     const url = new URL(req.url);
-    const limit = parseInt(url.searchParams.get('limit') || '50');
-    const offset = parseInt(url.searchParams.get('offset') || '0');
+    const limit = Math.min(parseInt(url.searchParams.get('limit') || '50', 10), 1000);
+    const offset = parseInt(url.searchParams.get('offset') || '0', 10);
     const isPublic = url.searchParams.get('public') === 'true';
 
     let query = supabase

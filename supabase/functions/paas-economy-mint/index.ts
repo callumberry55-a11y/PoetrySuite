@@ -28,7 +28,11 @@ const MILESTONE_GRANTS: any = {
 };
 
 async function verifyAdminKey(apiKey: string) {
-  const adminKey = Deno.env.get('PAAS_ADMIN_KEY') || 'admin-key-placeholder';
+  const adminKey = Deno.env.get('PAAS_ADMIN_KEY');
+
+  if (!adminKey) {
+    throw new Error('PAAS_ADMIN_KEY environment variable is not configured');
+  }
 
   if (apiKey !== adminKey) {
     return { valid: false, error: 'Unauthorized: Admin access required' };
@@ -56,7 +60,7 @@ Deno.serve(async (req: Request) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const verification = await verifyAdminKey(apiKey, supabase);
+    const verification = await verifyAdminKey(apiKey);
     if (!verification.valid) {
       await supabase.from('paas_security_events').insert({
         event_type: 'blocked',
