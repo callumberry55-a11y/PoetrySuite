@@ -698,8 +698,21 @@ function Library({ onNewPoem, onEditPoem }: LibraryProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {loadingInternet ? (
             <div className="col-span-full text-center py-12">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+              <div className="inline-flex items-center justify-center">
+                <div className="text-6xl animate-walk">🐦</div>
+              </div>
               <p className="text-slate-500 dark:text-slate-400 mt-4">Loading poems...</p>
+              <style>{`
+                @keyframes walk {
+                  0%, 100% { transform: translateY(0px) rotate(-5deg); }
+                  25% { transform: translateY(-8px) rotate(0deg); }
+                  50% { transform: translateY(0px) rotate(5deg); }
+                  75% { transform: translateY(-8px) rotate(0deg); }
+                }
+                .animate-walk {
+                  animation: walk 0.6s ease-in-out infinite;
+                }
+              `}</style>
             </div>
           ) : internetPoems.length === 0 ? (
             <div className="col-span-full text-center py-12">
