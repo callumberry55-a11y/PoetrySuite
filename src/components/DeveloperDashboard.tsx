@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Key, Copy, Plus, Trash2, Activity, Coins, TrendingUp, AlertCircle, CheckCircle, RefreshCw } from 'lucide-react';
+import { Key, Copy, Plus, Trash2, Activity, Coins, TrendingUp, AlertCircle, CheckCircle, RefreshCw, MessageSquare } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 interface ApiKey {
@@ -36,11 +36,25 @@ interface DeveloperProfile {
   is_verified: boolean;
 }
 
+interface Feedback {
+  id: string;
+  user_id: string;
+  category: string;
+  title: string;
+  message: string;
+  status: string;
+  created_at: string;
+  user_profiles: {
+    display_name: string;
+  } | null;
+}
+
 export default function DeveloperDashboard() {
   const [profile, setProfile] = useState<DeveloperProfile | null>(null);
   const [pointAccount, setPointAccount] = useState<PointAccount | null>(null);
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [feedback, setFeedback] = useState<Feedback[]>([]);
   const [showNewKeyModal, setShowNewKeyModal] = useState(false);
   const [newKeyName, setNewKeyName] = useState('');
   const [newlyCreatedKey, setNewlyCreatedKey] = useState<string | null>(null);
@@ -143,6 +157,25 @@ export default function DeveloperDashboard() {
           }
         }
       )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'feedback'
+        },
+        async () => {
+          const { data: feedbackData } = await supabase
+            .from('feedback')
+            .select('*, user_profiles(display_name)')
+            .order('created_at', { ascending: false })
+            .limit(50);
+          if (feedbackData) {
+            setFeedback(feedbackData);
+            console.log('New feedback received');
+          }
+        }
+      )
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
           setRealtimeConnected(true);
@@ -193,7 +226,8 @@ export default function DeveloperDashboard() {
       const [
         { data: accountData },
         { data: keysData },
-        { data: txData }
+        { data: txData },
+        { data: feedbackData }
       ] = await Promise.all([
         supabase
           .from('paas_point_accounts')
@@ -210,13 +244,19 @@ export default function DeveloperDashboard() {
           .select('*')
           .eq('developer_id', devData.id)
           .order('created_at', { ascending: false })
-          .limit(20)
+          .limit(20),
+        supabase
+          .from('feedback')
+          .select('*, user_profiles(display_name)')
+          .order('created_at', { ascending: false })
+          .limit(50)
       ]);
 
       setProfile(devData);
       setPointAccount(accountData || null);
       setApiKeys(keysData || []);
       setTransactions(txData || []);
+      setFeedback(feedbackData || []);
       setLoading(false);
       setRefreshing(false);
     } catch (error) {
@@ -465,42 +505,93 @@ export default function DeveloperDashboard() {
               </div>
             </div>
 
-            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-6 border border-slate-200 dark:border-slate-700">
-              <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-4">Getting Started</h2>
-              <div className="space-y-4">
-                <div className="flex items-start gap-3 p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
-                  <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
-                    1
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-6 border border-slate-200 dark:border-slate-700">
+                <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-4">Getting Started</h2>
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3 p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
+                    <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
+                      1
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-slate-900 dark:text-white">Create an API Key</h3>
+                      <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                        Generate your first API key to start making requests to our platform.
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-slate-900 dark:text-white">Create an API Key</h3>
-                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                      Generate your first API key to start making requests to our platform.
-                    </p>
+                  <div className="flex items-start gap-3 p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
+                    <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
+                      2
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-slate-900 dark:text-white">Read the Documentation</h3>
+                      <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                        Check out our API documentation to learn how to integrate with our services.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
+                    <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
+                      3
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-slate-900 dark:text-white">Monitor Your Usage</h3>
+                      <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                        Track your API calls and point consumption in the Usage tab.
+                      </p>
+                    </div>
                   </div>
                 </div>
-                <div className="flex items-start gap-3 p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
-                  <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
-                    2
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-slate-900 dark:text-white">Read the Documentation</h3>
-                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                      Check out our API documentation to learn how to integrate with our services.
-                    </p>
-                  </div>
+              </div>
+
+              <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-6 border border-slate-200 dark:border-slate-700">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                    <MessageSquare size={20} />
+                    User Feedback
+                  </h2>
+                  <span className="px-2 py-1 text-xs font-semibold bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full">
+                    {feedback.length}
+                  </span>
                 </div>
-                <div className="flex items-start gap-3 p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
-                  <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
-                    3
+                {feedback.length === 0 ? (
+                  <div className="text-center py-8">
+                    <MessageSquare className="mx-auto mb-3 text-slate-300 dark:text-slate-600" size={40} />
+                    <p className="text-slate-600 dark:text-slate-400">No feedback yet</p>
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-slate-900 dark:text-white">Monitor Your Usage</h3>
-                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                      Track your API calls and point consumption in the Usage tab.
-                    </p>
+                ) : (
+                  <div className="space-y-3 max-h-[400px] overflow-y-auto">
+                    {feedback.map((item) => (
+                      <div key={item.id} className="p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg border border-slate-200 dark:border-slate-600">
+                        <div className="flex items-start justify-between gap-3 mb-2">
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-slate-900 dark:text-white text-sm line-clamp-1">
+                              {item.title}
+                            </h3>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                              {item.user_profiles?.display_name || 'Anonymous'} • {new Date(item.created_at).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <span className={`px-2 py-0.5 text-xs rounded whitespace-nowrap ${
+                            item.category === 'bug'
+                              ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
+                              : item.category === 'feature'
+                              ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+                              : item.category === 'improvement'
+                              ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                              : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-400'
+                          }`}>
+                            {item.category}
+                          </span>
+                        </div>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2">
+                          {item.message}
+                        </p>
+                      </div>
+                    ))}
                   </div>
-                </div>
+                )}
               </div>
             </div>
           </div>
