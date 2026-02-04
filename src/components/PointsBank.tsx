@@ -54,6 +54,25 @@ export default function PointsBank() {
 
   useEffect(() => {
     fetchStats();
+
+    const economyChannel = supabase
+      .channel('economy_funds_realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'economy_funds',
+        },
+        () => {
+          fetchStats();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(economyChannel);
+    };
   }, []);
 
   const fetchStats = async () => {
@@ -108,10 +127,13 @@ export default function PointsBank() {
         return sum;
       }, 0) || 0;
 
+      const totalAllocated = economyFunds?.reduce((sum, fund) => sum + Number(fund.allocated_amount), 0) || 7300000000;
+      const totalRemaining = economyFunds?.reduce((sum, fund) => sum + Number(fund.remaining_amount), 0) || 7300000000;
+
       setStats({
-        totalAllocated: 4000000000,
-        totalDistributed,
-        totalReserve: 4000000000 - totalDistributed,
+        totalAllocated,
+        totalDistributed: totalAllocated - totalRemaining,
+        totalReserve: totalRemaining,
         activeDevs: developers?.length || 0,
         monthlyDistribution,
         dailyDistribution,

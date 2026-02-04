@@ -18,35 +18,50 @@ interface DistributionProgressData {
   completed_at?: string;
 }
 
+interface EconomyFund {
+  fund_type: string;
+  remaining_amount: number;
+}
+
 export function DistributionProgress() {
   const [progress, setProgress] = useState<DistributionProgressData | null>(null);
+  const [economyFunds, setEconomyFunds] = useState<EconomyFund[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch latest distribution progress
-    const fetchProgress = async () => {
+    // Fetch latest distribution progress and economy funds
+    const fetchData = async () => {
       try {
-        const { data, error } = await supabase
-          .from('distribution_progress')
-          .select('*')
-          .order('started_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
+        const [progressResult, fundsResult] = await Promise.all([
+          supabase
+            .from('distribution_progress')
+            .select('*')
+            .order('started_at', { ascending: false })
+            .limit(1)
+            .maybeSingle(),
+          supabase
+            .from('economy_funds')
+            .select('fund_type, remaining_amount')
+            .order('fund_type')
+        ]);
 
-        if (error) throw error;
-        setProgress(data);
+        if (progressResult.error) throw progressResult.error;
+        if (fundsResult.error) throw fundsResult.error;
+
+        setProgress(progressResult.data);
+        setEconomyFunds(fundsResult.data || []);
       } catch (error) {
-        console.error('Error fetching distribution progress:', error);
+        console.error('Error fetching data:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProgress();
+    fetchData();
 
-    // Subscribe to real-time updates
+    // Subscribe to real-time updates for both tables
     const channel = supabase
-      .channel('distribution_progress_changes')
+      .channel('distribution_realtime')
       .on(
         'postgres_changes',
         {
@@ -57,6 +72,21 @@ export function DistributionProgress() {
         (payload) => {
           setProgress(payload.new as DistributionProgressData);
           setLoading(false);
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'economy_funds',
+        },
+        async () => {
+          const { data } = await supabase
+            .from('economy_funds')
+            .select('fund_type, remaining_amount')
+            .order('fund_type');
+          if (data) setEconomyFunds(data);
         }
       )
       .subscribe();
@@ -167,6 +197,32 @@ export function DistributionProgress() {
             </p>
           </div>
         </div>
+
+        {/* Economy Funds Status */}
+        {economyFunds.length > 0 && (
+          <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+            <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+              Economy Fund Balance (Real-Time)
+            </p>
+            <div className="grid grid-cols-3 gap-3">
+              {economyFunds.map((fund) => (
+                <div key={fund.fund_type} className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 capitalize mb-1">
+                    {fund.fund_type}
+                  </p>
+                  <p className="text-sm font-bold text-gray-900 dark:text-white">
+                    £{(Number(fund.remaining_amount) / 1000000000).toFixed(2)}B
+                  </p>
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3">
+              <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                Total Annual Budget: £{(economyFunds.reduce((sum, f) => sum + Number(f.remaining_amount), 0) / 1000000000).toFixed(2)}B remaining
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Error Message */}
         {isFailed && progress.error_message && (
