@@ -229,6 +229,97 @@ Respond ONLY with a JSON object in this format:
     const adjustmentFactor = Math.max(0.5, Math.min(1.5, aiDecision.adjustmentFactor || 1.0));
     const finalCost = usageSummary.baseCost * adjustmentFactor;
 
+    // Get developer's reserve pools
+    const { data: reserves } = await supabase
+      .from('paas_developer_reserves')
+      .select(`
+        *,
+        paas_reserve_categories (
+          name,
+          display_name
+        )
+      `)
+      .eq('developer_id', updatedPeriod.developer_id)
+      .eq('is_active', true);
+
+    // Analyze reserve needs and recommend allocations
+    const reserveAnalysisPrompt = `You are an AI Banker analyzing a developer's reserve pool needs.
+
+**Developer's Current Reserve Pools:**
+${reserves?.map(r => `- ${r.paas_reserve_categories.display_name}: ${parseFloat(r.balance_points || 0).toFixed(2)} points (${r.allocation_percentage}% allocation)`).join('\n')}
+
+**Recent Usage Pattern:**
+- Total API Calls: ${usageSummary.totalRequests}
+- Data Transfer: ${usageSummary.totalDataMB.toFixed(2)} MB
+- Most Used Endpoints: ${Object.entries(endpointCounts).slice(0, 3).map(([k, v]) => `${k}`).join(', ')}
+- Calculated Cost: ${finalCost.toFixed(2)} points
+
+**Available Reserve Categories:**
+- api_usage: For API call costs and data transfer
+- billing: For monthly billing and payment processing
+- infrastructure: For hosting and compute resources
+- development: For development tools
+- emergency: Emergency reserve
+
+Based on this developer's usage patterns, recommend what percentage of incoming funds should go to each reserve pool.
+Consider:
+- Which pools are running low?
+- What is their usage pattern (API-heavy vs infrastructure-heavy)?
+- Should they maintain larger emergency reserves?
+- Are they a new developer who needs more flexibility?
+
+Respond ONLY with a JSON object:
+{
+  "api_usage": 0-100,
+  "billing": 0-100,
+  "infrastructure": 0-100,
+  "development": 0-100,
+  "emergency": 0-100,
+  "reasoning": "Brief explanation of allocation strategy"
+}
+
+Note: Percentages should add up to 100.`;
+
+    const reserveResponse = await callGeminiAI(reserveAnalysisPrompt);
+
+    let reserveRecommendation: any = null;
+    try {
+      const jsonMatch = reserveResponse.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        reserveRecommendation = JSON.parse(jsonMatch[0]);
+      }
+    } catch (e) {
+      // Use default allocations if AI fails
+      reserveRecommendation = {
+        api_usage: 40,
+        billing: 30,
+        infrastructure: 15,
+        development: 10,
+        emergency: 5,
+        reasoning: 'Using default allocation percentages'
+      };
+    }
+
+    // Store AI recommendation for reserves
+    if (reserveRecommendation && reserves && reserves.length > 0) {
+      await supabase
+        .from('paas_reserve_ai_recommendations')
+        .insert({
+          developer_id: updatedPeriod.developer_id,
+          recommendation_date: new Date().toISOString(),
+          usage_analysis: usageSummary,
+          recommended_allocations: {
+            api_usage: reserveRecommendation.api_usage || 40,
+            billing: reserveRecommendation.billing || 30,
+            infrastructure: reserveRecommendation.infrastructure || 15,
+            development: reserveRecommendation.development || 10,
+            emergency: reserveRecommendation.emergency || 5
+          },
+          reasoning: reserveRecommendation.reasoning || 'AI-generated allocation recommendation',
+          confidence_score: 0.85
+        });
+    }
+
     // Store AI decision
     const { data: aiRecord } = await supabase
       .from('paas_ai_banker_decisions')

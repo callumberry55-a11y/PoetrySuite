@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Shield, Users, Key, Coins, Activity, AlertTriangle, CheckCircle, XCircle, TrendingUp, DollarSign, Search, Download, RefreshCw, Eye, Ban, CreditCard } from 'lucide-react';
+import { Shield, Users, Key, Coins, Activity, AlertTriangle, CheckCircle, XCircle, TrendingUp, DollarSign, Search, Download, RefreshCw, Eye, Ban, CreditCard, Wallet } from 'lucide-react';
 import ExternalApiKeysManager from './ExternalApiKeysManager';
 import PaaSBilling from './PaaSBilling';
+import DeveloperReserves from './DeveloperReserves';
 
 interface Developer {
   id: string;
@@ -59,7 +60,7 @@ interface PaaSAdminProps {
 
 export default function PaaSAdmin({ onLogout }: PaaSAdminProps) {
   const [isAuthenticated] = useState(true);
-  const [activeTab, setActiveTab] = useState<'overview' | 'developers' | 'security' | 'transactions' | 'api-keys' | 'billing'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'developers' | 'security' | 'transactions' | 'api-keys' | 'billing' | 'reserves'>('overview');
   const [developers, setDevelopers] = useState<Developer[]>([]);
   const [securityEvents, setSecurityEvents] = useState<SecurityEvent[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -450,6 +451,17 @@ export default function PaaSAdmin({ onLogout }: PaaSAdminProps) {
               <CreditCard size={18} />
               <span>Billing</span>
             </button>
+            <button
+              onClick={() => setActiveTab('reserves')}
+              className={`py-3 px-3 md:py-4 md:px-4 border-b-2 font-medium transition-colors whitespace-nowrap flex items-center gap-2 ${
+                activeTab === 'reserves'
+                  ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <Wallet size={18} />
+              <span>Reserves</span>
+            </button>
           </div>
         </div>
 
@@ -666,6 +678,8 @@ export default function PaaSAdmin({ onLogout }: PaaSAdminProps) {
           {activeTab === 'api-keys' && <ExternalApiKeysManager />}
 
           {activeTab === 'billing' && <PaaSBilling />}
+
+          {activeTab === 'reserves' && <DeveloperReserves />}
         </div>
       </div>
 
