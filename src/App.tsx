@@ -30,9 +30,16 @@ function AppContent() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          <div className="text-on-background">Loading...</div>
+        <div className="flex flex-col items-center gap-6">
+          <div className="relative w-20 h-20">
+            <div className="absolute inset-0 rounded-full border-4 border-primary/20"></div>
+            <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-primary animate-spin"></div>
+            <div className="absolute inset-2 rounded-full border-4 border-transparent border-t-primary animate-spin [animation-duration:1.5s] [animation-direction:reverse]"></div>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+            </div>
+          </div>
+          <div className="text-on-background font-medium animate-pulse">Loading...</div>
         </div>
       </div>
     );
@@ -68,7 +75,17 @@ function MainApp() {
         <Layout currentView={currentView} onViewChange={setCurrentView}>
         <Suspense fallback={
           <div className="flex items-center justify-center h-full">
-            <div className="text-on-background">Loading...</div>
+            <div className="flex flex-col items-center gap-4">
+              <div className="relative w-16 h-16">
+                <div className="absolute inset-0 rounded-full border-4 border-primary/20"></div>
+                <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-primary animate-spin"></div>
+                <div className="absolute inset-2 rounded-full border-4 border-transparent border-t-primary animate-spin [animation-duration:1.5s] [animation-direction:reverse]"></div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                </div>
+              </div>
+              <div className="text-on-background text-sm font-medium animate-pulse">Loading...</div>
+            </div>
           </div>
         }>
           {currentView === 'write' && (
