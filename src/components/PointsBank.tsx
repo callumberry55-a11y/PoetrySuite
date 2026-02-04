@@ -38,9 +38,9 @@ interface TaxRateAdjustment {
 
 export default function PointsBank() {
   const [stats, setStats] = useState<PointsStats>({
-    totalAllocated: 5400000000,
+    totalAllocated: 10800000000,
     totalDistributed: 0,
-    totalReserve: 5400000000,
+    totalReserve: 10800000000,
     activeDevs: 0,
     monthlyDistribution: 0,
     weeklyDistribution: 0,
@@ -108,9 +108,9 @@ export default function PointsBank() {
       }, 0) || 0;
 
       setStats({
-        totalAllocated: 5400000000,
+        totalAllocated: 10800000000,
         totalDistributed,
-        totalReserve: 5400000000 - totalDistributed,
+        totalReserve: 10800000000 - totalDistributed,
         activeDevs: developers?.length || 0,
         monthlyDistribution,
         weeklyDistribution,
@@ -163,24 +163,24 @@ export default function PointsBank() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-emerald-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-4xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-blue-600 flex items-center justify-center">
-                <Database className="text-white" size={28} />
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900 dark:text-white flex items-center gap-2 sm:gap-3">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-blue-600 flex items-center justify-center flex-shrink-0">
+                <Database className="text-white" size={24} />
               </div>
               Points Bank
             </h1>
-            <p className="text-slate-600 dark:text-slate-400 mt-2">
+            <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 mt-2">
               Global Developer Economy Reserve
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 overflow-x-auto pb-2 sm:pb-0">
             {(['day', 'week', 'month', 'year'] as const).map((period) => (
               <button
                 key={period}
                 onClick={() => setSelectedPeriod(period)}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors capitalize ${
+                className={`px-3 sm:px-4 py-2 rounded-lg font-medium transition-colors capitalize whitespace-nowrap ${
                   selectedPeriod === period
                     ? 'bg-blue-600 text-white'
                     : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
@@ -205,10 +205,10 @@ export default function PointsBank() {
             </div>
             <div className="space-y-1">
               <p className="text-sm text-slate-600 dark:text-slate-400">Total Allocated</p>
-              <p className="text-3xl font-bold text-slate-900 dark:text-white">
+              <p className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white break-words">
                 {formatNumber(stats.totalAllocated)}
               </p>
-              <p className="text-xs text-slate-500 dark:text-slate-500">5.4 Billion Points / Year</p>
+              <p className="text-xs text-slate-500 dark:text-slate-500">10.8B Points / Year</p>
             </div>
           </div>
 
@@ -224,7 +224,7 @@ export default function PointsBank() {
             </div>
             <div className="space-y-1">
               <p className="text-sm text-slate-600 dark:text-slate-400">Total Distributed</p>
-              <p className="text-3xl font-bold text-slate-900 dark:text-white">
+              <p className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white break-words">
                 {formatNumber(stats.totalDistributed)}
               </p>
               <p className="text-xs text-slate-500 dark:text-slate-500">
@@ -245,7 +245,7 @@ export default function PointsBank() {
             </div>
             <div className="space-y-1">
               <p className="text-sm text-slate-600 dark:text-slate-400">Available Reserve</p>
-              <p className="text-3xl font-bold text-slate-900 dark:text-white">
+              <p className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white break-words">
                 {formatNumber(stats.totalReserve)}
               </p>
               <p className="text-xs text-slate-500 dark:text-slate-500">
@@ -266,7 +266,7 @@ export default function PointsBank() {
             </div>
             <div className="space-y-1">
               <p className="text-sm text-slate-600 dark:text-slate-400">Active Developers</p>
-              <p className="text-3xl font-bold text-slate-900 dark:text-white">
+              <p className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white break-words">
                 {stats.activeDevs}
               </p>
               <p className="text-xs text-slate-500 dark:text-slate-500">Registered API users</p>
@@ -274,52 +274,52 @@ export default function PointsBank() {
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-amber-600 to-orange-600 rounded-2xl p-8 shadow-lg text-white">
+        <div className="bg-gradient-to-br from-amber-600 to-orange-600 rounded-2xl p-4 sm:p-6 md:p-8 shadow-lg text-white">
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                  <DollarSign className="text-white" size={28} />
+              <div className="flex items-center gap-2 sm:gap-3 mb-4">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
+                  <DollarSign className="text-white" size={24} />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold">Tax System</h2>
-                  <p className="text-amber-100">Balanced economy through taxation</p>
+                  <h2 className="text-xl sm:text-2xl font-bold">Tax System</h2>
+                  <p className="text-sm sm:text-base text-amber-100">Balanced economy through taxation</p>
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 mt-6">
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
                   <p className="text-amber-100 text-sm mb-1">Monthly Tax</p>
-                  <p className="text-3xl font-bold">{taxSettings?.tax_rate || 5}%</p>
+                  <p className="text-2xl sm:text-3xl font-bold">{taxSettings?.tax_rate || 10}%</p>
                   <p className="text-amber-200 text-xs mt-1">On earnings monthly</p>
                 </div>
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
                   <p className="text-amber-100 text-sm mb-1">Purchase Tax</p>
-                  <p className="text-3xl font-bold">{taxSettings?.purchase_tax_rate || 1.5}%</p>
+                  <p className="text-2xl sm:text-3xl font-bold">{taxSettings?.purchase_tax_rate || 2}%</p>
                   <p className="text-amber-200 text-xs mt-1">On store purchases</p>
                 </div>
-                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 sm:col-span-2 md:col-span-1">
                   <p className="text-amber-100 text-sm mb-1">Tax Distribution</p>
                   <p className="text-2xl font-bold">50/50</p>
-                  <p className="text-amber-200 text-xs mt-1">Deleted / Reserve</p>
+                  <p className="text-amber-200 text-xs mt-1">Developers / Reserve</p>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-emerald-600 to-teal-600 rounded-2xl p-8 shadow-lg text-white">
+        <div className="bg-gradient-to-br from-emerald-600 to-teal-600 rounded-2xl p-4 sm:p-6 md:p-8 shadow-lg text-white">
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                  <Zap className="text-white" size={28} />
+              <div className="flex items-center gap-2 sm:gap-3 mb-4">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
+                  <Zap className="text-white" size={24} />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold">Weekly User Bonus</h2>
-                  <p className="text-emerald-100">Free points for all community members</p>
+                  <h2 className="text-xl sm:text-2xl font-bold">Weekly User Bonus</h2>
+                  <p className="text-sm sm:text-base text-emerald-100">Free points for all community members</p>
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 mt-6">
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
                   <p className="text-emerald-100 text-sm mb-1">Points Per User</p>
                   <p className="text-3xl font-bold">10</p>
@@ -340,19 +340,19 @@ export default function PointsBank() {
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-rose-600 to-pink-600 rounded-2xl p-8 shadow-lg text-white">
+        <div className="bg-gradient-to-br from-rose-600 to-pink-600 rounded-2xl p-4 sm:p-6 md:p-8 shadow-lg text-white">
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                  <TrendingUp className="text-white" size={28} />
+              <div className="flex items-center gap-2 sm:gap-3 mb-4">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
+                  <TrendingUp className="text-white" size={24} />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold">Automatic Tax Inflation</h2>
-                  <p className="text-rose-100">Annual adjustment to maintain economic balance</p>
+                  <h2 className="text-xl sm:text-2xl font-bold">Automatic Tax Inflation</h2>
+                  <p className="text-sm sm:text-base text-rose-100">Annual adjustment to maintain economic balance</p>
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 mt-6">
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
                   <p className="text-rose-100 text-sm mb-1">Annual Increase</p>
                   <p className="text-3xl font-bold">+0.5%</p>
@@ -585,37 +585,37 @@ export default function PointsBank() {
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-blue-600 to-emerald-600 rounded-2xl p-8 shadow-lg text-white">
+        <div className="bg-gradient-to-br from-blue-600 to-emerald-600 rounded-2xl p-4 sm:p-6 md:p-8 shadow-lg text-white">
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                  <DollarSign className="text-white" size={28} />
+              <div className="flex items-center gap-2 sm:gap-3 mb-4">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
+                  <DollarSign className="text-white" size={24} />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold">Developer Economy Fund</h2>
-                  <p className="text-blue-100">Sustainable API monetization for the community</p>
+                  <h2 className="text-xl sm:text-2xl font-bold">Developer Economy Fund</h2>
+                  <p className="text-sm sm:text-base text-blue-100">Sustainable API monetization for the community</p>
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mt-6">
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
                   <p className="text-blue-100 text-sm mb-1">Points Budget</p>
-                  <p className="text-3xl font-bold">5.4B</p>
+                  <p className="text-2xl sm:text-3xl font-bold">10.8B</p>
                   <p className="text-blue-200 text-xs mt-1">Points per year</p>
                 </div>
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
                   <p className="text-blue-100 text-sm mb-1">Grant Fund</p>
-                  <p className="text-3xl font-bold">£3B</p>
+                  <p className="text-2xl sm:text-3xl font-bold">£3B</p>
                   <p className="text-blue-200 text-xs mt-1">Annual grants</p>
                 </div>
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
                   <p className="text-blue-100 text-sm mb-1">Rewards</p>
-                  <p className="text-3xl font-bold">£1.4B</p>
+                  <p className="text-2xl sm:text-3xl font-bold">£1.4B</p>
                   <p className="text-blue-200 text-xs mt-1">Developer rewards</p>
                 </div>
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
                   <p className="text-blue-100 text-sm mb-1">Reserve</p>
-                  <p className="text-3xl font-bold">£750M</p>
+                  <p className="text-2xl sm:text-3xl font-bold">£750M</p>
                   <p className="text-blue-200 text-xs mt-1">System reserve</p>
                 </div>
               </div>
@@ -637,7 +637,7 @@ export default function PointsBank() {
                 <div>
                   <h3 className="font-semibold text-slate-900 dark:text-white mb-1">Annual Allocation</h3>
                   <p className="text-sm text-slate-600 dark:text-slate-400">
-                    5.4 billion points are allocated to the developer economy each year, ensuring sustainable growth and fair compensation.
+                    10.8 billion points are allocated to the developer economy each year, ensuring sustainable growth and fair compensation.
                   </p>
                 </div>
               </div>
@@ -699,7 +699,7 @@ export default function PointsBank() {
                 <div>
                   <h3 className="font-semibold text-slate-900 dark:text-white mb-1">Dual Tax System</h3>
                   <p className="text-sm text-slate-600 dark:text-slate-400">
-                    5% monthly tax on developer earnings and 1.5% tax on store purchases. Each tax is split 50/50: half deleted to control inflation, half added to reserve fund. Users with 0 points are never taxed.
+                    10% monthly tax on earnings and 2% tax on store purchases. Each tax is split 50/50: half funds developers, half added to reserve fund. Users with 0 points are never taxed.
                   </p>
                 </div>
               </div>
