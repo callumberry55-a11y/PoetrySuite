@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { DollarSign, TrendingUp, Users, Activity, Calendar, ArrowUpRight, Coins, Database, Zap, Clock } from 'lucide-react';
+import { GrantFundingGraph } from './GrantFundingGraph';
 
 interface PointsStats {
   totalAllocated: number;
@@ -38,9 +39,9 @@ interface TaxRateAdjustment {
 
 export default function PointsBank() {
   const [stats, setStats] = useState<PointsStats>({
-    totalAllocated: 10800000000,
+    totalAllocated: 4000000000,
     totalDistributed: 0,
-    totalReserve: 10800000000,
+    totalReserve: 4000000000,
     activeDevs: 0,
     monthlyDistribution: 0,
     weeklyDistribution: 0,
@@ -108,9 +109,9 @@ export default function PointsBank() {
       }, 0) || 0;
 
       setStats({
-        totalAllocated: 10800000000,
+        totalAllocated: 4000000000,
         totalDistributed,
-        totalReserve: 10800000000 - totalDistributed,
+        totalReserve: 4000000000 - totalDistributed,
         activeDevs: developers?.length || 0,
         monthlyDistribution,
         weeklyDistribution,
@@ -208,7 +209,7 @@ export default function PointsBank() {
               <p className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white break-words">
                 {formatNumber(stats.totalAllocated)}
               </p>
-              <p className="text-xs text-slate-500 dark:text-slate-500">10.8B Points / Year</p>
+              <p className="text-xs text-slate-500 dark:text-slate-500">4.0B Points / Year</p>
             </div>
           </div>
 
@@ -355,7 +356,7 @@ export default function PointsBank() {
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 mt-6">
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
                   <p className="text-rose-100 text-sm mb-1">Annual Increase</p>
-                  <p className="text-3xl font-bold">+0.5%</p>
+                  <p className="text-3xl font-bold">+1.0%</p>
                   <p className="text-rose-200 text-xs mt-1">Every year</p>
                 </div>
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
@@ -365,8 +366,8 @@ export default function PointsBank() {
                 </div>
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
                   <p className="text-rose-100 text-sm mb-1">Projected (5yr)</p>
-                  <p className="text-2xl font-bold">{((taxSettings?.tax_rate || 5) + 2.5).toFixed(1)}%</p>
-                  <p className="text-rose-200 text-xs mt-1">Monthly tax rate</p>
+                  <p className="text-2xl font-bold">{Math.min(((taxSettings?.tax_rate || 10) + 5), 26).toFixed(1)}%</p>
+                  <p className="text-rose-200 text-xs mt-1">Monthly tax rate (max 26%)</p>
                 </div>
               </div>
 
@@ -457,6 +458,8 @@ export default function PointsBank() {
             })}
           </div>
         </div>
+
+        <GrantFundingGraph />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg border border-slate-200 dark:border-slate-700">
