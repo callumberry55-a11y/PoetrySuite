@@ -667,7 +667,7 @@ export default function PointsBank() {
                 <div>
                   <h3 className="font-semibold text-slate-900 dark:text-white mb-1">Annual Allocation</h3>
                   <p className="text-sm text-slate-600 dark:text-slate-400">
-                    10.8 billion points are allocated to the developer economy each year, ensuring sustainable growth and fair compensation.
+                    4.0 billion points are allocated annually (333.33M per month), with £7.3B in economy funds ensuring sustainable growth and fair compensation.
                   </p>
                 </div>
               </div>
