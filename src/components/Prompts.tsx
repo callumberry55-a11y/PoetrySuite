@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Lightbulb, Calendar } from 'lucide-react';
+import { Lightbulb, Calendar, Sparkles } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
+import { generateWritingPrompt } from '@/utils/ai';
 
 interface Prompt {
   id: string;
@@ -16,6 +17,8 @@ export default function Prompts() {
   const { user } = useAuth();
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [loading, setLoading] = useState(true);
+  const [generatingAI, setGeneratingAI] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'theme' | 'form' | 'word' | 'image'>('all');
 
   const loadPrompts = useCallback(async () => {
@@ -68,6 +71,18 @@ export default function Prompts() {
     }
   }, [user, loadPrompts]);
 
+  const generateAIPrompt = async () => {
+    setGeneratingAI(true);
+    try {
+      const prompt = await generateWritingPrompt();
+      setAiPrompt(prompt);
+    } catch (error) {
+      console.error('Failed to generate AI prompt:', error);
+    } finally {
+      setGeneratingAI(false);
+    }
+  };
+
   const filteredPrompts = filter === 'all'
     ? prompts
     : prompts.filter(p => p.category === filter);
@@ -75,8 +90,38 @@ export default function Prompts() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-4 sm:py-8 pb-24">
       <div className="mb-6">
-        <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mb-2">Writing Prompts</h2>
-        <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400">Get inspired and overcome writer's block</p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+          <div>
+            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mb-2">Writing Prompts</h2>
+            <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400">Get inspired and overcome writer's block</p>
+          </div>
+          <button
+            onClick={generateAIPrompt}
+            disabled={generatingAI}
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-medium hover:from-purple-600 hover:to-pink-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
+          >
+            <Sparkles size={20} />
+            {generatingAI ? 'Generating...' : 'AI Prompt'}
+          </button>
+        </div>
+
+        {aiPrompt && (
+          <div className="mb-6 p-4 sm:p-6 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-2 border-purple-300 dark:border-purple-700 rounded-xl">
+            <div className="flex items-start gap-3">
+              <Sparkles size={24} className="text-purple-600 dark:text-purple-400 flex-shrink-0 mt-1" />
+              <div className="flex-1">
+                <h3 className="font-bold text-purple-900 dark:text-purple-100 mb-2">AI-Generated Prompt</h3>
+                <p className="text-slate-700 dark:text-slate-300 leading-relaxed">{aiPrompt}</p>
+                <button
+                  onClick={() => setAiPrompt(null)}
+                  className="mt-3 text-sm text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-medium"
+                >
+                  Dismiss
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="flex gap-2 flex-wrap mb-6">

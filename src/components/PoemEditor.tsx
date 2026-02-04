@@ -2,7 +2,8 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { generateTags } from '@/lib/functions';
-import { Save, Star, Globe, Lock, ArrowLeft, Tags } from 'lucide-react';
+import { Save, Star, Globe, Lock, ArrowLeft, Tags, Sparkles, X } from 'lucide-react';
+import AIAssistant from './AIAssistant';
 
 interface PoemEditorProps {
   selectedPoemId: string | null;
@@ -20,6 +21,7 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showAI, setShowAI] = useState(false);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const wordCount = content.trim() ? content.trim().split(/\s+/).length : 0;
@@ -185,9 +187,17 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
     };
   }, [title, content, savePoem]);
 
+  const handleInsertText = (text: string) => {
+    setContent(content + text);
+  };
+
+  const handleReplaceText = (text: string) => {
+    setContent(text);
+  };
+
   return (
-    <div className="h-full flex flex-col bg-background flex-1">
-      <div className="flex-1 overflow-y-auto">
+    <div className="h-full flex bg-background flex-1">
+      <div className="flex-1 flex flex-col overflow-hidden">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
           <button
             onClick={onBack}
@@ -267,6 +277,20 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
                     {isPublic ? <Globe size={18} aria-hidden="true" /> : <Lock size={18} aria-hidden="true" />}
                     <span className="text-sm">{isPublic ? 'Public' : 'Private'}</span>
                   </button>
+
+                  <button
+                    onClick={() => setShowAI(!showAI)}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors w-full sm:w-auto justify-center ${
+                      showAI
+                        ? 'bg-primary text-on-primary'
+                        : 'bg-secondary-container text-on-secondary-container hover:bg-secondary-container/80'
+                    }`}
+                    aria-pressed={showAI}
+                    aria-label={showAI ? 'Close AI Assistant' : 'Open AI Assistant'}
+                  >
+                    <Sparkles size={18} aria-hidden="true" />
+                    <span className="text-sm">AI Assistant</span>
+                  </button>
                 </div>
 
                 <div className="mt-2 sm:mt-0 sm:ml-auto flex items-center justify-center gap-4 text-sm text-on-surface-variant bg-surface-variant px-4 py-2 rounded-lg" role="status" aria-live="polite">
@@ -299,6 +323,26 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
           </div>
         </div>
       </div>
+
+      {showAI && (
+        <div className="w-full lg:w-96 border-l border-outline/30 bg-surface flex-shrink-0 overflow-hidden flex flex-col">
+          <div className="lg:hidden flex justify-between items-center p-4 border-b border-outline/30">
+            <h3 className="font-semibold text-on-surface">AI Assistant</h3>
+            <button
+              onClick={() => setShowAI(false)}
+              className="p-2 hover:bg-surface-variant rounded-lg transition-colors"
+              aria-label="Close AI Assistant"
+            >
+              <X size={20} />
+            </button>
+          </div>
+          <AIAssistant
+            content={content}
+            onInsertText={handleInsertText}
+            onReplaceText={handleReplaceText}
+          />
+        </div>
+      )}
     </div>
   );
 }
