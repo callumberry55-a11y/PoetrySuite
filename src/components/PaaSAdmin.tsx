@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Shield, Users, Key, Coins, Activity, AlertTriangle, CheckCircle, XCircle, TrendingUp, DollarSign, Search, Download, RefreshCw, Eye, Ban } from 'lucide-react';
+import { Shield, Users, Key, Coins, Activity, AlertTriangle, CheckCircle, XCircle, TrendingUp, DollarSign, Search, Download, RefreshCw, Eye, Ban, CreditCard } from 'lucide-react';
 import ExternalApiKeysManager from './ExternalApiKeysManager';
+import PaaSBilling from './PaaSBilling';
 
 interface Developer {
   id: string;
@@ -58,7 +59,7 @@ interface PaaSAdminProps {
 
 export default function PaaSAdmin({ onLogout }: PaaSAdminProps) {
   const [isAuthenticated] = useState(true);
-  const [activeTab, setActiveTab] = useState<'overview' | 'developers' | 'security' | 'transactions' | 'api-keys'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'developers' | 'security' | 'transactions' | 'api-keys' | 'billing'>('overview');
   const [developers, setDevelopers] = useState<Developer[]>([]);
   const [securityEvents, setSecurityEvents] = useState<SecurityEvent[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -438,6 +439,17 @@ export default function PaaSAdmin({ onLogout }: PaaSAdminProps) {
               <Key size={18} />
               <span>External API</span>
             </button>
+            <button
+              onClick={() => setActiveTab('billing')}
+              className={`py-3 px-3 md:py-4 md:px-4 border-b-2 font-medium transition-colors whitespace-nowrap flex items-center gap-2 ${
+                activeTab === 'billing'
+                  ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <CreditCard size={18} />
+              <span>Billing</span>
+            </button>
           </div>
         </div>
 
@@ -652,6 +664,8 @@ export default function PaaSAdmin({ onLogout }: PaaSAdminProps) {
           )}
 
           {activeTab === 'api-keys' && <ExternalApiKeysManager />}
+
+          {activeTab === 'billing' && <PaaSBilling />}
         </div>
       </div>
 

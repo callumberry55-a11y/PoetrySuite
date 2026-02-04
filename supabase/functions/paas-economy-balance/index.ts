@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { trackUsage, getRequestSize, getResponseSize } from "../_shared/usage-tracker.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -48,6 +49,8 @@ Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 200, headers: corsHeaders });
   }
+
+  const startTime = Date.now();
 
   try {
     const apiKey = req.headers.get('X-API-Key');
@@ -128,11 +131,23 @@ Deno.serve(async (req: Request) => {
       })) || []
     };
 
+    const executionTime = Date.now() - startTime;
+    const responseData = { success: true, data: balanceData };
+
+    // Track usage for billing
+    await trackUsage(
+      supabase,
+      verification.apiKeyId,
+      verification.developerId,
+      '/v1/economy/balance',
+      200,
+      executionTime,
+      getRequestSize(req),
+      getResponseSize(responseData)
+    );
+
     return new Response(
-      JSON.stringify({
-        success: true,
-        data: balanceData
-      }),
+      JSON.stringify(responseData),
       {
         status: 200,
         headers: {

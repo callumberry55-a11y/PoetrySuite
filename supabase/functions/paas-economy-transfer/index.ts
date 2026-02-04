@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { trackUsage, getRequestSize, getResponseSize } from "../_shared/usage-tracker.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -73,6 +74,8 @@ Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 200, headers: corsHeaders });
   }
+
+  const startTime = Date.now();
 
   try {
     const apiKey = req.headers.get('X-API-Key');
@@ -195,19 +198,35 @@ Deno.serve(async (req: Request) => {
       request_id: crypto.randomUUID()
     });
 
+    const executionTime = Date.now() - startTime;
+    const responseData = {
+      success: true,
+      data: {
+        transferId: crypto.randomUUID(),
+        amount,
+        amountGBP: amount * 0.75,
+        sender: verification.developerId,
+        recipient: recipientDeveloperId,
+        newBalance: senderBalanceAfter,
+        timestamp: new Date().toISOString()
+      }
+    };
+
+    // Track usage for billing
+    await trackUsage(
+      supabase,
+      verification.apiKeyId,
+      verification.developerId,
+      '/v1/economy/transfer',
+      200,
+      executionTime,
+      getRequestSize(req),
+      getResponseSize(responseData),
+      { recipient: recipientDeveloperId, amount }
+    );
+
     return new Response(
-      JSON.stringify({
-        success: true,
-        data: {
-          transferId: crypto.randomUUID(),
-          amount,
-          amountGBP: amount * 0.75,
-          sender: verification.developerId,
-          recipient: recipientDeveloperId,
-          newBalance: senderBalanceAfter,
-          timestamp: new Date().toISOString()
-        }
-      }),
+      JSON.stringify(responseData),
       {
         status: 200,
         headers: {
