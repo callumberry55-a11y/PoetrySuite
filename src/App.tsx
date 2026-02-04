@@ -31,16 +31,63 @@ function AppContent() {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="flex flex-col items-center gap-6">
-          <div className="relative w-20 h-20">
-            <div className="absolute inset-0 rounded-full border-4 border-primary/20"></div>
-            <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-primary animate-spin"></div>
-            <div className="absolute inset-2 rounded-full border-4 border-transparent border-t-primary animate-spin [animation-duration:1.5s] [animation-direction:reverse]"></div>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-            </div>
+          <div className="relative w-24 h-24">
+            <svg
+              viewBox="0 0 100 100"
+              className="w-full h-full animate-[walk_0.8s_ease-in-out_infinite]"
+            >
+              {/* Pigeon body */}
+              <ellipse cx="50" cy="55" rx="20" ry="18" fill="currentColor" className="text-primary opacity-90" />
+
+              {/* Pigeon head */}
+              <circle cx="65" cy="45" r="12" fill="currentColor" className="text-primary" />
+
+              {/* Pigeon beak */}
+              <path d="M 75 45 L 82 43 L 82 47 Z" fill="currentColor" className="text-primary/70" />
+
+              {/* Pigeon eye */}
+              <circle cx="70" cy="43" r="2" fill="currentColor" className="text-background" />
+
+              {/* Pigeon wing */}
+              <ellipse cx="45" cy="55" rx="12" ry="15" fill="currentColor" className="text-primary/60" transform="rotate(-20 45 55)" />
+
+              {/* Pigeon tail */}
+              <ellipse cx="32" cy="58" rx="8" ry="12" fill="currentColor" className="text-primary/80" transform="rotate(25 32 58)" />
+
+              {/* Pigeon legs - animated */}
+              <g className="animate-[step-left_0.8s_ease-in-out_infinite]">
+                <line x1="45" y1="70" x2="45" y2="80" stroke="currentColor" strokeWidth="2" className="text-primary/90" />
+                <path d="M 45 80 L 42 82 M 45 80 L 48 82" stroke="currentColor" strokeWidth="2" className="text-primary/90" />
+              </g>
+              <g className="animate-[step-right_0.8s_ease-in-out_infinite]">
+                <line x1="55" y1="70" x2="55" y2="80" stroke="currentColor" strokeWidth="2" className="text-primary/90" />
+                <path d="M 55 80 L 52 82 M 55 80 L 58 82" stroke="currentColor" strokeWidth="2" className="text-primary/90" />
+              </g>
+            </svg>
           </div>
           <div className="text-on-background font-medium animate-pulse">Loading...</div>
         </div>
+
+        <style>{`
+          @keyframes walk {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+          }
+
+          @keyframes step-left {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            25% { transform: translateY(-3px) rotate(-10deg); }
+            50% { transform: translateY(0px) rotate(0deg); }
+            75% { transform: translateY(0px) rotate(0deg); }
+          }
+
+          @keyframes step-right {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            25% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(0px) rotate(0deg); }
+            75% { transform: translateY(-3px) rotate(10deg); }
+          }
+        `}</style>
       </div>
     );
   }
@@ -76,13 +123,26 @@ function MainApp() {
         <Suspense fallback={
           <div className="flex items-center justify-center h-full">
             <div className="flex flex-col items-center gap-4">
-              <div className="relative w-16 h-16">
-                <div className="absolute inset-0 rounded-full border-4 border-primary/20"></div>
-                <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-primary animate-spin"></div>
-                <div className="absolute inset-2 rounded-full border-4 border-transparent border-t-primary animate-spin [animation-duration:1.5s] [animation-direction:reverse]"></div>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-                </div>
+              <div className="relative w-20 h-20">
+                <svg
+                  viewBox="0 0 100 100"
+                  className="w-full h-full animate-[walk_0.8s_ease-in-out_infinite]"
+                >
+                  <ellipse cx="50" cy="55" rx="20" ry="18" fill="currentColor" className="text-primary opacity-90" />
+                  <circle cx="65" cy="45" r="12" fill="currentColor" className="text-primary" />
+                  <path d="M 75 45 L 82 43 L 82 47 Z" fill="currentColor" className="text-primary/70" />
+                  <circle cx="70" cy="43" r="2" fill="currentColor" className="text-background" />
+                  <ellipse cx="45" cy="55" rx="12" ry="15" fill="currentColor" className="text-primary/60" transform="rotate(-20 45 55)" />
+                  <ellipse cx="32" cy="58" rx="8" ry="12" fill="currentColor" className="text-primary/80" transform="rotate(25 32 58)" />
+                  <g className="animate-[step-left_0.8s_ease-in-out_infinite]">
+                    <line x1="45" y1="70" x2="45" y2="80" stroke="currentColor" strokeWidth="2" className="text-primary/90" />
+                    <path d="M 45 80 L 42 82 M 45 80 L 48 82" stroke="currentColor" strokeWidth="2" className="text-primary/90" />
+                  </g>
+                  <g className="animate-[step-right_0.8s_ease-in-out_infinite]">
+                    <line x1="55" y1="70" x2="55" y2="80" stroke="currentColor" strokeWidth="2" className="text-primary/90" />
+                    <path d="M 55 80 L 52 82 M 55 80 L 58 82" stroke="currentColor" strokeWidth="2" className="text-primary/90" />
+                  </g>
+                </svg>
               </div>
               <div className="text-on-background text-sm font-medium animate-pulse">Loading...</div>
             </div>
