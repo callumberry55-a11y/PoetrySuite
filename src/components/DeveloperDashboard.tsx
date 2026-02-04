@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Key, Copy, Plus, Trash2, Activity, Coins, TrendingUp, AlertCircle, CheckCircle, RefreshCw, MessageSquare, Send, Search, Gift } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { DistributionProgress } from './DistributionProgress';
 
 interface ApiKey {
   id: string;
@@ -930,6 +931,9 @@ export default function DeveloperDashboard() {
 
         {activeTab === 'admin' && (
           <div className="space-y-6">
+            {/* Real-Time Distribution Progress */}
+            <DistributionProgress />
+
             <div className="flex items-center gap-3 mb-2">
               <Gift className="text-blue-600 dark:text-blue-400" size={28} />
               <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Manual Point Distribution</h2>
