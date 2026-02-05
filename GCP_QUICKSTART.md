@@ -285,9 +285,52 @@ gcloud container images list --repository=gcr.io/$PROJECT_ID
 gcloud container images delete gcr.io/$PROJECT_ID/poetry-suite
 ```
 
+## Custom Domain & Private DNS
+
+### Public Custom Domain
+
+Use your own domain name:
+
+```bash
+# 1. Set domain in .env.gcp.local
+CUSTOM_DOMAIN=poetry.yourdomain.com
+
+# 2. Run setup script
+npm run gcp:setup-domain
+```
+
+See [CUSTOM_DOMAIN_SETUP.md](./CUSTOM_DOMAIN_SETUP.md) for full details.
+
+### Private DNS (Internal Access Only)
+
+For internal/VPC-only access:
+
+```bash
+# Quick setup
+export PRIVATE_DOMAIN="poetry.internal"
+
+# Create private DNS zone
+gcloud dns managed-zones create poetry-private-zone \
+  --dns-name=$PRIVATE_DOMAIN \
+  --networks=default \
+  --visibility=private
+
+# Add CNAME to Cloud Run service
+CLOUD_RUN_URL=$(gcloud run services describe poetry-suite \
+  --region=us-central1 --format="value(status.url)")
+
+gcloud dns record-sets transaction start --zone=poetry-private-zone
+gcloud dns record-sets transaction add $(echo $CLOUD_RUN_URL | sed 's|https://||'). \
+  --name=$PRIVATE_DOMAIN. --ttl=300 --type=CNAME --zone=poetry-private-zone
+gcloud dns record-sets transaction execute --zone=poetry-private-zone
+```
+
+See [PRIVATE_DNS_GUIDE.md](./PRIVATE_DNS_GUIDE.md) for complete private DNS setup.
+
 ## Next Steps
 
-- Set up CI/CD pipeline for automated deployments
+- Set up custom domain (public or private DNS)
+- Configure CI/CD pipeline for automated deployments
 - Configure Cloud CDN for better performance
 - Set up Cloud SQL for production database
 - Implement Cloud Armor for DDoS protection

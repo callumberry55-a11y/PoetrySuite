@@ -215,8 +215,31 @@ Features:
 - Production-ready nginx configuration
 - Automatic health checks
 - HTTPS support
+- Custom domain support
 
 See [GCP_QUICKSTART.md](./GCP_QUICKSTART.md) for detailed setup instructions.
+
+#### Custom Domain Setup
+
+To use your own domain (public or private DNS):
+
+```bash
+# 1. Set your domain in .env.gcp.local
+CUSTOM_DOMAIN=poetry.yourdomain.com
+
+# 2. Run the setup script
+npm run gcp:setup-domain
+```
+
+The script will guide you through:
+- Domain verification with Google
+- DNS record configuration
+- SSL certificate provisioning
+- Private DNS setup (optional)
+
+See comprehensive guides:
+- [CUSTOM_DOMAIN_SETUP.md](./CUSTOM_DOMAIN_SETUP.md) - Full custom domain configuration
+- [PRIVATE_DNS_GUIDE.md](./PRIVATE_DNS_GUIDE.md) - Quick private DNS setup for internal access
 
 ### Deploy to Vercel
 

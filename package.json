@@ -26,6 +26,7 @@
     "deploy:gcp": "./deploy-to-gcp.sh",
     "gcp:build": "gcloud builds submit --config=cloudbuild.yaml",
     "gcp:logs": "gcloud run services logs read poetry-suite --limit=100",
+    "gcp:setup-domain": "./scripts/setup-custom-domain.sh",
     "cap:add:android": "npx cap add android",
     "cap:sync": "npx cap sync",
     "cap:open:android": "npx cap open android",
