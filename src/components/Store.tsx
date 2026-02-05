@@ -211,15 +211,15 @@ export default function Store() {
   const getCategoryColor = (category: string) => {
     switch (category) {
       case 'badge':
-        return 'from-yellow-400 to-yellow-600';
+        return 'from-purple-400 to-violet-600';
       case 'theme':
-        return 'from-blue-400 to-blue-600';
+        return 'from-cyan-400 to-blue-500';
       case 'title':
-        return 'from-purple-400 to-purple-600';
+        return 'from-violet-500 to-purple-600';
       case 'boost':
-        return 'from-orange-400 to-orange-600';
+        return 'from-sky-400 to-cyan-500';
       case 'feature':
-        return 'from-green-400 to-green-600';
+        return 'from-indigo-400 to-blue-500';
       default:
         return 'from-slate-400 to-slate-600';
     }
@@ -250,20 +250,20 @@ export default function Store() {
         </p>
       </div>
 
-      <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-4 sm:p-6 mb-6 text-white">
+      <div className="bg-gradient-to-br from-purple-500 via-violet-500 to-blue-500 rounded-lg p-4 sm:p-6 mb-6 text-white shadow-lg">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
               <Coins size={24} />
               <h3 className="text-lg sm:text-xl font-bold">Your Points</h3>
             </div>
-            <p className="text-blue-100 text-sm">Earned from badges and activities</p>
+            <p className="text-purple-100 text-sm">Earned from badges and activities</p>
           </div>
           <div className="text-right">
             <div className="text-3xl sm:text-4xl font-bold">
               {profile?.points_balance?.toLocaleString() || 0}
             </div>
-            <div className="text-blue-100 text-sm">
+            <div className="text-purple-100 text-sm">
               {profile?.points_earned_total?.toLocaleString() || 0} total earned
             </div>
           </div>
@@ -271,32 +271,32 @@ export default function Store() {
       </div>
 
       {items.some(item => item.discount_percentage && item.discount_percentage > 0 && item.sale_ends_at && new Date(item.sale_ends_at) > new Date()) && (
-        <div className="bg-gradient-to-r from-red-500 via-orange-500 to-red-500 rounded-lg p-6 mb-6 text-white shadow-lg">
+        <div className="bg-gradient-to-r from-purple-500 via-violet-500 to-blue-500 rounded-lg p-6 mb-6 text-white shadow-lg">
           <div className="flex items-center gap-3 mb-3">
             <Tag size={32} className="flex-shrink-0" />
             <div>
               <h3 className="text-2xl font-bold">Monthly Sale Event!</h3>
-              <p className="text-red-100">Huge discounts on selected items - Limited time only!</p>
+              <p className="text-purple-100">Huge discounts on selected items - Limited time only!</p>
             </div>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
             <div className="bg-white/20 backdrop-blur-sm rounded-lg p-3 text-center">
               <div className="text-3xl font-bold">75%</div>
-              <div className="text-xs text-red-100">Max Discount</div>
+              <div className="text-xs text-purple-100">Max Discount</div>
             </div>
             <div className="bg-white/20 backdrop-blur-sm rounded-lg p-3 text-center">
               <div className="text-3xl font-bold">{items.filter(item => item.discount_percentage && item.discount_percentage > 0 && item.sale_ends_at && new Date(item.sale_ends_at) > new Date()).length}</div>
-              <div className="text-xs text-red-100">Items on Sale</div>
+              <div className="text-xs text-purple-100">Items on Sale</div>
             </div>
             <div className="bg-white/20 backdrop-blur-sm rounded-lg p-3 text-center">
               <div className="text-3xl font-bold">
                 {Math.ceil((new Date(items.find(item => item.sale_ends_at)?.sale_ends_at || new Date()).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))}
               </div>
-              <div className="text-xs text-red-100">Days Left</div>
+              <div className="text-xs text-purple-100">Days Left</div>
             </div>
             <div className="bg-white/20 backdrop-blur-sm rounded-lg p-3 text-center">
               <div className="text-2xl font-bold">Save Big</div>
-              <div className="text-xs text-red-100">Limited Stock</div>
+              <div className="text-xs text-purple-100">Limited Stock</div>
             </div>
           </div>
         </div>
@@ -323,8 +323,8 @@ export default function Store() {
             onClick={() => setFilter(cat.id)}
             className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
               filter === cat.id
-                ? 'bg-blue-500 text-white'
-                : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
+                ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-md'
+                : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600'
             }`}
           >
             {cat.label}
@@ -334,7 +334,7 @@ export default function Store() {
 
       {loading ? (
         <div className="text-center py-12">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
         </div>
       ) : filteredItems.length === 0 ? (
         <div className="text-center py-12 bg-white dark:bg-slate-800 rounded-lg">
@@ -361,7 +361,7 @@ export default function Store() {
                 key={item.id}
                 className={`bg-white dark:bg-slate-800 rounded-lg shadow-sm p-4 sm:p-6 relative overflow-hidden ${
                   item.owned ? 'ring-2 ring-green-500' : ''
-                } ${isOnSale && saleActive ? 'ring-2 ring-red-500' : ''}`}
+                } ${isOnSale && saleActive ? 'ring-2 ring-purple-500' : ''}`}
               >
                 {item.owned && (
                   <div className="absolute top-3 right-3">
@@ -373,14 +373,14 @@ export default function Store() {
 
                 {isOnSale && saleActive && !item.owned && (
                   <div className="absolute top-3 left-3 z-10">
-                    <div className="bg-gradient-to-r from-red-500 to-orange-500 text-white px-3 py-1 rounded-full flex items-center gap-1 shadow-lg animate-pulse">
+                    <div className="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-3 py-1 rounded-full flex items-center gap-1 shadow-lg animate-pulse">
                       <Tag size={14} />
                       <span className="font-bold text-sm">{item.discount_percentage}% OFF</span>
                     </div>
                   </div>
                 )}
 
-                <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br ${getCategoryColor(item.category)} flex items-center justify-center mx-auto mb-4 ${isOnSale && saleActive ? 'ring-4 ring-red-500/30' : ''}`}>
+                <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br ${getCategoryColor(item.category)} flex items-center justify-center mx-auto mb-4 ${isOnSale && saleActive ? 'ring-4 ring-purple-500/30' : ''}`}>
                   <CategoryIcon className="text-white" size={32} />
                 </div>
 
@@ -401,7 +401,7 @@ export default function Store() {
                           </span>
                         </div>
                       )}
-                      <div className={`inline-flex items-center gap-1 px-3 py-1 rounded-full ${isOnSale && saleActive ? 'bg-gradient-to-r from-red-500 to-orange-500 text-white' : 'bg-slate-100 dark:bg-slate-700'}`}>
+                      <div className={`inline-flex items-center gap-1 px-3 py-1 rounded-full ${isOnSale && saleActive ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white' : 'bg-slate-100 dark:bg-slate-700'}`}>
                         <Coins size={14} className={isOnSale && saleActive ? 'text-white' : 'text-yellow-500'} />
                         <span className={`font-bold ${isOnSale && saleActive ? 'text-white' : 'text-slate-900 dark:text-white'}`}>
                           {item.price.toLocaleString()}
@@ -409,7 +409,7 @@ export default function Store() {
                       </div>
                     </div>
                     {isOnSale && saleActive && item.original_price && (
-                      <div className="text-xs font-semibold text-red-600 dark:text-red-400">
+                      <div className="text-xs font-semibold text-purple-600 dark:text-purple-400">
                         Save {(item.original_price - item.price).toLocaleString()} points!
                       </div>
                     )}
@@ -419,7 +419,7 @@ export default function Store() {
                       </div>
                     )}
                     {isOnSale && saleActive && daysRemaining > 0 && (
-                      <div className="flex items-center justify-center gap-1 text-xs text-orange-600 dark:text-orange-400 font-medium">
+                      <div className="flex items-center justify-center gap-1 text-xs text-blue-600 dark:text-blue-400 font-medium">
                         <Clock size={12} />
                         <span>Sale ends in {daysRemaining} {daysRemaining === 1 ? 'day' : 'days'}</span>
                       </div>
@@ -446,7 +446,7 @@ export default function Store() {
                       : purchasing === item.id
                       ? 'bg-blue-400 text-white cursor-wait'
                       : isOnSale && saleActive
-                      ? 'bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white'
+                      ? 'bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white'
                       : 'bg-blue-500 hover:bg-blue-600 text-white'
                   }`}
                 >
