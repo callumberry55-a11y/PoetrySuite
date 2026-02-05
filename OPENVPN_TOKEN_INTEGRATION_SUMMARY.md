@@ -350,10 +350,12 @@ npm run gcp:build
 ### Quick References
 1. **OPENVPN_TOKEN_GUIDE.md** - 5 min read, get started fast
 2. **GCP_QUICKSTART.md** - 15 min setup, includes token step
+3. **TOKEN_SETUP_INSTRUCTIONS.txt** - Your token and quick commands
 
 ### Comprehensive Guides
 1. **OPENVPN_SETUP.md** - Complete VPN integration guide
-2. **VPC_DEPLOYMENT_GUIDE.md** - Full GCP deployment details
+2. **VPN_NETWORK_CONFIGURATION.md** - Network subnets and routing
+3. **VPC_DEPLOYMENT_GUIDE.md** - Full GCP deployment details
 
 ### Configuration
 1. **.env.gcp.local.example** - Environment variable template
@@ -361,7 +363,9 @@ npm run gcp:build
 
 ### Scripts
 1. **scripts/setup-openvpn-token.sh** - Token setup automation
-2. **deploy-to-gcp.sh** - Full deployment automation
+2. **scripts/setup-vpn-routes.sh** - Configure GCP routes for VPN subnets
+3. **scripts/configure-openvpn-subnets.sh** - Configure OpenVPN server subnets
+4. **deploy-to-gcp.sh** - Full deployment automation
 
 ## Support
 

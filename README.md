@@ -223,6 +223,7 @@ Features:
 See detailed guides:
 - **OpenVPN Token Setup**: [OPENVPN_TOKEN_GUIDE.md](./OPENVPN_TOKEN_GUIDE.md) (Quick token setup)
 - **OpenVPN Complete Guide**: [OPENVPN_SETUP.md](./OPENVPN_SETUP.md) (Comprehensive VPN guide)
+- **VPN Network Config**: [VPN_NETWORK_CONFIGURATION.md](./VPN_NETWORK_CONFIGURATION.md) (Subnets & routing)
 - **Quick Start**: [GCP_QUICKSTART.md](./GCP_QUICKSTART.md) (15-30 min setup)
 - **Comprehensive Guide**: [VPC_DEPLOYMENT_GUIDE.md](./VPC_DEPLOYMENT_GUIDE.md)
 - **Setup Summary**: [GCP_VPC_SETUP_SUMMARY.md](./GCP_VPC_SETUP_SUMMARY.md)

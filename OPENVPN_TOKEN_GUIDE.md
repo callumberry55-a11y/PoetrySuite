@@ -8,6 +8,18 @@ Format: `o+BsyIXFJpN+3BYVlRu02RYNGmguyRVygY6vk/+owwE=33b79ce2d9df73a3b121eb3650d
 
 This token will be securely stored in GCP Secret Manager and made available to your Cloud Run service.
 
+## Your VPN Network
+
+**WPC Allocated Subnets:**
+- IPv4: `100.96.0.0/11` (2,097,152 IPs)
+- IPv6: `fd:0:0:8000::/49`
+
+**Domain Routing Subnets:**
+- IPv4: `100.80.0.0/12` (1,048,576 IPs)
+- IPv6: `fd:0:0:4000::/50`
+
+These subnets are used for VPN client allocation and inter-domain routing.
+
 ## Quick Setup (3 Steps)
 
 ### Step 1: Store Token Securely

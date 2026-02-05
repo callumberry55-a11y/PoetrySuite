@@ -125,6 +125,30 @@ This will:
 
 See detailed guide: [OPENVPN_SETUP.md](./OPENVPN_SETUP.md)
 
+### Configure VPN Network Routes
+
+If you're using WPC subnets (100.96.0.0/11, 100.80.0.0/12), set up routing:
+
+```bash
+# Configure GCP routes for VPN subnets
+npm run gcp:setup-vpn-routes
+
+# Then configure OpenVPN server (run on the server)
+# SSH into your OpenVPN server:
+gcloud compute ssh openvpn-server --zone=us-central1-a
+
+# Copy and run the subnet configuration script
+sudo bash configure-openvpn-subnets.sh
+```
+
+**Your VPN Subnets:**
+- WPC Allocated (IPv4): `100.96.0.0/11` (2M+ IPs)
+- WPC Allocated (IPv6): `fd:0:0:8000::/49`
+- Domain Routing (IPv4): `100.80.0.0/12` (1M+ IPs)
+- Domain Routing (IPv6): `fd:0:0:4000::/50`
+
+See complete network details: [VPN_NETWORK_CONFIGURATION.md](./VPN_NETWORK_CONFIGURATION.md)
+
 ### If You Have OpenVPN Running
 
 Your app will automatically use the VPC connector to communicate with resources in your VPC network where OpenVPN is running.
