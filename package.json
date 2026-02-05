@@ -26,6 +26,7 @@
     "deploy:gcp": "./deploy-to-gcp.sh",
     "gcp:setup-vpc": "./scripts/setup-vpc-connector.sh",
     "gcp:setup-firewall": "./scripts/setup-firewall-rules.sh",
+    "gcp:setup-openvpn": "./scripts/setup-openvpn-token.sh",
     "gcp:build": "gcloud builds submit --config=cloudbuild.yaml",
     "gcp:logs": "gcloud run services logs read poetry-suite --limit=100",
     "cap:add:android": "npx cap add android",

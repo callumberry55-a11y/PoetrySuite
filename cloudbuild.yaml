@@ -53,6 +53,8 @@ steps:
       - '512Mi'
       - '--max-instances'
       - '10'
+      - '--set-secrets'
+      - 'OPENVPN_TOKEN=openvpn-auth-token:latest'
 
 images:
   - 'gcr.io/$PROJECT_ID/poetry-suite:$COMMIT_SHA'

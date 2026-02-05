@@ -105,6 +105,26 @@ gcloud builds submit --config=cloudbuild.yaml
 
 ## OpenVPN Integration
 
+### Store Your OpenVPN Token Securely
+
+If you have an OpenVPN authentication token, store it securely in GCP Secret Manager:
+
+```bash
+# Automated setup
+npm run gcp:setup-openvpn
+
+# Or manually
+chmod +x scripts/setup-openvpn-token.sh
+./scripts/setup-openvpn-token.sh
+```
+
+This will:
+- Store your token in GCP Secret Manager
+- Configure proper IAM permissions
+- Optionally update your Cloud Run service
+
+See detailed guide: [OPENVPN_SETUP.md](./OPENVPN_SETUP.md)
+
 ### If You Have OpenVPN Running
 
 Your app will automatically use the VPC connector to communicate with resources in your VPC network where OpenVPN is running.
