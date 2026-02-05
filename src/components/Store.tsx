@@ -12,7 +12,9 @@ import {
   Lock,
   Sparkles,
   Package,
-  DollarSign
+  DollarSign,
+  Tag,
+  Clock
 } from 'lucide-react';
 
 interface StoreItem {
@@ -25,6 +27,9 @@ interface StoreItem {
   icon: string;
   metadata: any;
   is_active: boolean;
+  discount_percentage?: number;
+  original_price?: number;
+  sale_ends_at?: string;
   owned?: boolean;
 }
 
@@ -118,6 +123,44 @@ export default function Store() {
       loadProfile();
       loadTaxSettings();
     }
+
+    // Real-time subscription for store items
+    const storeChannel = supabase
+      .channel('store_items_realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'store_items',
+        },
+        () => {
+          loadStore();
+        }
+      )
+      .subscribe();
+
+    // Real-time subscription for user profile (points balance)
+    const profileChannel = supabase
+      .channel('user_profiles_store_realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'user_profiles',
+          filter: user ? `user_id=eq.${user.id}` : undefined,
+        },
+        () => {
+          loadProfile();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(storeChannel);
+      supabase.removeChannel(profileChannel);
+    };
   }, [user, loadStore, loadProfile, loadTaxSettings]);
 
   const purchaseItem = async (itemId: string, price: number) => {
@@ -227,6 +270,38 @@ export default function Store() {
         </div>
       </div>
 
+      {items.some(item => item.discount_percentage && item.discount_percentage > 0 && item.sale_ends_at && new Date(item.sale_ends_at) > new Date()) && (
+        <div className="bg-gradient-to-r from-red-500 via-orange-500 to-red-500 rounded-lg p-6 mb-6 text-white shadow-lg">
+          <div className="flex items-center gap-3 mb-3">
+            <Tag size={32} className="flex-shrink-0" />
+            <div>
+              <h3 className="text-2xl font-bold">Monthly Sale Event!</h3>
+              <p className="text-red-100">Huge discounts on selected items - Limited time only!</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
+            <div className="bg-white/20 backdrop-blur-sm rounded-lg p-3 text-center">
+              <div className="text-3xl font-bold">75%</div>
+              <div className="text-xs text-red-100">Max Discount</div>
+            </div>
+            <div className="bg-white/20 backdrop-blur-sm rounded-lg p-3 text-center">
+              <div className="text-3xl font-bold">{items.filter(item => item.discount_percentage && item.discount_percentage > 0 && item.sale_ends_at && new Date(item.sale_ends_at) > new Date()).length}</div>
+              <div className="text-xs text-red-100">Items on Sale</div>
+            </div>
+            <div className="bg-white/20 backdrop-blur-sm rounded-lg p-3 text-center">
+              <div className="text-3xl font-bold">
+                {Math.ceil((new Date(items.find(item => item.sale_ends_at)?.sale_ends_at || new Date()).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))}
+              </div>
+              <div className="text-xs text-red-100">Days Left</div>
+            </div>
+            <div className="bg-white/20 backdrop-blur-sm rounded-lg p-3 text-center">
+              <div className="text-2xl font-bold">Save Big</div>
+              <div className="text-xs text-red-100">Limited Stock</div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {taxSettings && taxSettings.purchase_tax_rate > 0 && (
         <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mb-6">
           <div className="flex items-start gap-3">
@@ -275,13 +350,18 @@ export default function Store() {
             const totalCost = item.price + taxAmount;
             const canAfford = (profile?.points_balance || 0) >= totalCost;
             const outOfStock = item.stock === 0;
+            const isOnSale = item.discount_percentage && item.discount_percentage > 0 && item.sale_ends_at;
+            const saleEndsAt = item.sale_ends_at ? new Date(item.sale_ends_at) : null;
+            const now = new Date();
+            const saleActive = saleEndsAt && saleEndsAt > now;
+            const daysRemaining = saleEndsAt ? Math.ceil((saleEndsAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)) : 0;
 
             return (
               <div
                 key={item.id}
                 className={`bg-white dark:bg-slate-800 rounded-lg shadow-sm p-4 sm:p-6 relative overflow-hidden ${
                   item.owned ? 'ring-2 ring-green-500' : ''
-                }`}
+                } ${isOnSale && saleActive ? 'ring-2 ring-red-500' : ''}`}
               >
                 {item.owned && (
                   <div className="absolute top-3 right-3">
@@ -291,7 +371,16 @@ export default function Store() {
                   </div>
                 )}
 
-                <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br ${getCategoryColor(item.category)} flex items-center justify-center mx-auto mb-4`}>
+                {isOnSale && saleActive && !item.owned && (
+                  <div className="absolute top-3 left-3 z-10">
+                    <div className="bg-gradient-to-r from-red-500 to-orange-500 text-white px-3 py-1 rounded-full flex items-center gap-1 shadow-lg animate-pulse">
+                      <Tag size={14} />
+                      <span className="font-bold text-sm">{item.discount_percentage}% OFF</span>
+                    </div>
+                  </div>
+                )}
+
+                <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br ${getCategoryColor(item.category)} flex items-center justify-center mx-auto mb-4 ${isOnSale && saleActive ? 'ring-4 ring-red-500/30' : ''}`}>
                   <CategoryIcon className="text-white" size={32} />
                 </div>
 
@@ -303,15 +392,36 @@ export default function Store() {
                     {item.description}
                   </p>
                   <div className="space-y-2">
-                    <div className="inline-flex items-center gap-1 px-3 py-1 bg-slate-100 dark:bg-slate-700 rounded-full">
-                      <Coins size={14} className="text-yellow-500" />
-                      <span className="font-bold text-slate-900 dark:text-white">
-                        {item.price.toLocaleString()}
-                      </span>
+                    <div className="flex items-center justify-center gap-2">
+                      {isOnSale && saleActive && item.original_price && (
+                        <div className="inline-flex items-center gap-1 px-2 py-1 bg-slate-100 dark:bg-slate-700/50 rounded-full">
+                          <Coins size={12} className="text-slate-400" />
+                          <span className="text-sm line-through text-slate-400 dark:text-slate-500">
+                            {item.original_price.toLocaleString()}
+                          </span>
+                        </div>
+                      )}
+                      <div className={`inline-flex items-center gap-1 px-3 py-1 rounded-full ${isOnSale && saleActive ? 'bg-gradient-to-r from-red-500 to-orange-500 text-white' : 'bg-slate-100 dark:bg-slate-700'}`}>
+                        <Coins size={14} className={isOnSale && saleActive ? 'text-white' : 'text-yellow-500'} />
+                        <span className={`font-bold ${isOnSale && saleActive ? 'text-white' : 'text-slate-900 dark:text-white'}`}>
+                          {item.price.toLocaleString()}
+                        </span>
+                      </div>
                     </div>
+                    {isOnSale && saleActive && item.original_price && (
+                      <div className="text-xs font-semibold text-red-600 dark:text-red-400">
+                        Save {(item.original_price - item.price).toLocaleString()} points!
+                      </div>
+                    )}
                     {taxAmount > 0 && (
                       <div className="text-xs text-slate-500 dark:text-slate-400">
                         + {taxAmount.toLocaleString()} tax ({taxRate}%) = <span className="font-semibold">{totalCost.toLocaleString()} total</span>
+                      </div>
+                    )}
+                    {isOnSale && saleActive && daysRemaining > 0 && (
+                      <div className="flex items-center justify-center gap-1 text-xs text-orange-600 dark:text-orange-400 font-medium">
+                        <Clock size={12} />
+                        <span>Sale ends in {daysRemaining} {daysRemaining === 1 ? 'day' : 'days'}</span>
                       </div>
                     )}
                   </div>
@@ -335,6 +445,8 @@ export default function Store() {
                       ? 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-500 cursor-not-allowed'
                       : purchasing === item.id
                       ? 'bg-blue-400 text-white cursor-wait'
+                      : isOnSale && saleActive
+                      ? 'bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white'
                       : 'bg-blue-500 hover:bg-blue-600 text-white'
                   }`}
                 >
