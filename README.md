@@ -201,6 +201,30 @@ Configure your experience:
 
 ## Deployment
 
+### Deploy to Google Cloud Platform (with VPC & OpenVPN)
+
+For production deployments with VPC integration and OpenVPN support:
+
+```bash
+# Quick deployment (automated)
+./deploy-to-gcp.sh
+
+# Or use npm scripts
+npm run deploy:gcp
+```
+
+Features:
+- Full VPC integration for private networking
+- OpenVPN support for secure access
+- Cloud Run, App Engine, or Compute Engine options
+- Auto-scaling and health checks
+- Production-ready nginx configuration
+
+See detailed guides:
+- **Quick Start**: [GCP_QUICKSTART.md](./GCP_QUICKSTART.md) (15-30 min setup)
+- **Comprehensive Guide**: [VPC_DEPLOYMENT_GUIDE.md](./VPC_DEPLOYMENT_GUIDE.md)
+- **Setup Summary**: [GCP_VPC_SETUP_SUMMARY.md](./GCP_VPC_SETUP_SUMMARY.md)
+
 ### Deploy to Vercel
 
 ```bash

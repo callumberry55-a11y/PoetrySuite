@@ -1,0 +1,68 @@
+# Google App Engine configuration (alternative to Cloud Run)
+runtime: nodejs20
+service: default
+
+# VPC configuration
+vpc_access_connector:
+  name: projects/PROJECT_ID/locations/REGION/connectors/poetry-vpc-connector
+  egress_setting: all-traffic  # Options: private-ranges-only, all-traffic
+
+# Environment variables (configure these in GCP Console or via gcloud)
+env_variables:
+  NODE_ENV: 'production'
+
+# Handlers for static assets and SPA routing
+handlers:
+  # Static assets
+  - url: /assets
+    static_dir: dist/assets
+    secure: always
+    expiration: '1y'
+    http_headers:
+      Cache-Control: 'public, max-age=31536000, immutable'
+
+  # Service worker
+  - url: /sw.js
+    static_files: dist/sw.js
+    upload: dist/sw.js
+    secure: always
+    http_headers:
+      Cache-Control: 'no-cache, no-store, must-revalidate'
+
+  # Manifest
+  - url: /manifest.json
+    static_files: dist/manifest.json
+    upload: dist/manifest.json
+    secure: always
+
+  # Icons
+  - url: /(.*\.(svg|png|ico))
+    static_files: dist/\1
+    upload: dist/.*\.(svg|png|ico)
+    secure: always
+
+  # SPA routing - serve index.html for all other routes
+  - url: /.*
+    static_files: dist/index.html
+    upload: dist/index.html
+    secure: always
+    http_headers:
+      Cache-Control: 'no-cache, no-store, must-revalidate'
+
+# Automatic scaling configuration
+automatic_scaling:
+  min_instances: 1
+  max_instances: 10
+  target_cpu_utilization: 0.65
+  target_throughput_utilization: 0.6
+
+# Network configuration
+network:
+  forwarded_ports:
+    - 8080
+
+# Resource allocation
+resources:
+  cpu: 1
+  memory_gb: 0.5
+  disk_size_gb: 10
