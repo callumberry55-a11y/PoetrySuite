@@ -29,7 +29,7 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'gcr.io/$PROJECT_ID/poetry-suite:latest']
 
-  # Deploy to Cloud Run with VPC connector
+  # Deploy to Cloud Run with VPC connector and secrets
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args:
@@ -53,8 +53,8 @@ steps:
       - '512Mi'
       - '--max-instances'
       - '10'
-      - '--set-secrets'
-      - 'OPENVPN_TOKEN=openvpn-auth-token:latest'
+      - '--update-secrets'
+      - 'VITE_SUPABASE_URL=supabase-url:latest,VITE_SUPABASE_ANON_KEY=supabase-anon-key:latest,VITE_FIREBASE_API_KEY=firebase-api-key:latest,VITE_FIREBASE_AUTH_DOMAIN=firebase-auth-domain:latest,VITE_FIREBASE_PROJECT_ID=firebase-project-id:latest,VITE_FIREBASE_STORAGE_BUCKET=firebase-storage-bucket:latest,VITE_FIREBASE_MESSAGING_SENDER_ID=firebase-messaging-sender-id:latest,VITE_FIREBASE_APP_ID=firebase-app-id:latest,VITE_GEMINI_API_KEY=gemini-api-key:latest,VITE_VAPID_PUBLIC_KEY=vapid-public-key:latest,VAPID_PRIVATE_KEY=vapid-private-key:latest'
 
 images:
   - 'gcr.io/$PROJECT_ID/poetry-suite:$COMMIT_SHA'

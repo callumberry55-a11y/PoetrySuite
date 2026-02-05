@@ -14,36 +14,47 @@ This guide gets your Poetry Suite app running on Google Cloud Platform in under 
 ### Step 1: Configure Environment
 
 ```bash
-# Copy and edit the GCP environment file
-cp .env.gcp .env.gcp.local
+# Copy the example file
+cp .env.gcp.local.example .env.gcp.local
 
-# Edit with your values
+# Edit with your actual values
 nano .env.gcp.local  # or use your preferred editor
 ```
 
-Required values:
+Required values in `.env.gcp.local`:
 - `GCP_PROJECT_ID` - Your GCP project ID
 - `GCP_REGION` - Region to deploy to (default: us-central1)
 - `VITE_SUPABASE_URL` - Your Supabase project URL
 - `VITE_SUPABASE_ANON_KEY` - Your Supabase anonymous key
+- `VITE_FIREBASE_API_KEY` - Your Firebase API key
 - Firebase configuration variables
 
-### Step 2: Run Automated Deployment
+The deployment script will automatically create secrets in GCP Secret Manager from these values.
+
+### Step 2: Verify Secrets (Optional)
 
 ```bash
-# Make script executable (if not already)
-chmod +x deploy-to-gcp.sh
+# Check if all required secrets are configured
+npm run gcp:verify-secrets
+```
 
+This will show which secrets exist and which are missing.
+
+### Step 3: Run Automated Deployment
+
+```bash
 # Run deployment script
-./deploy-to-gcp.sh
+npm run deploy:gcp
 ```
 
 The script will:
 1. Verify authentication
-2. Enable required GCP APIs
-3. Build your application
-4. Deploy to Cloud Run
-5. Configure environment variables
+2. Enable required GCP APIs (including Secret Manager)
+3. Create/update secrets in Secret Manager
+4. Grant necessary IAM permissions
+5. Build your application
+6. Deploy to Cloud Run with secrets configured
+7. Set up VPC connector (if needed)
 
 ### Step 3: Access Your App
 
@@ -95,9 +106,72 @@ gcloud run deploy poetry-suite \
   --set-env-vars="VITE_SUPABASE_URL=your-url,VITE_SUPABASE_ANON_KEY=your-key"
 ```
 
+## Secret Management
+
+### Automatic Secret Management
+
+The deployment script automatically manages secrets for you:
+
+1. **Creates secrets** in GCP Secret Manager from `.env.gcp.local`
+2. **Updates secrets** when values change
+3. **Configures IAM permissions** for Cloud Build and Cloud Run
+4. **Injects secrets** into your Cloud Run service
+
+### Manual Secret Management
+
+If you need to manually manage secrets:
+
+```bash
+# Create a secret
+echo "your-secret-value" | gcloud secrets create secret-name --data-file=-
+
+# Update a secret
+echo "new-value" | gcloud secrets versions add secret-name --data-file=-
+
+# View secrets
+gcloud secrets list
+
+# Get secret value (requires permissions)
+gcloud secrets versions access latest --secret="secret-name"
+
+# Delete a secret
+gcloud secrets delete secret-name
+```
+
+### Required Secrets
+
+The following secrets are automatically created from `.env.gcp.local`:
+
+**Required:**
+- `supabase-url`
+- `supabase-anon-key`
+- `firebase-api-key`
+- `firebase-auth-domain`
+- `firebase-project-id`
+- `firebase-storage-bucket`
+- `firebase-messaging-sender-id`
+- `firebase-app-id`
+
+**Optional:**
+- `gemini-api-key` (for AI features)
+- `vapid-public-key` (for push notifications)
+- `vapid-private-key` (for push notifications)
+
+### Verify Secrets
+
+```bash
+# Check all secrets are configured
+npm run gcp:verify-secrets
+
+# This will show:
+# ✓ configured secrets
+# ✗ missing required secrets
+# ○ optional secrets not set
+```
+
 ## Environment Variables
 
-Set your environment variables in Cloud Run:
+For development or manual configuration, you can set environment variables in Cloud Run:
 
 ```bash
 gcloud run services update poetry-suite \

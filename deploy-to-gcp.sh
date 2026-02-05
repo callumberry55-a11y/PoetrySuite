@@ -26,12 +26,34 @@ if ! gcloud auth list --filter=status:ACTIVE --format="value(account)" &> /dev/n
     gcloud auth login
 fi
 
-# Prompt for configuration
-echo -e "${YELLOW}Enter your GCP configuration:${NC}"
-read -p "Project ID: " PROJECT_ID
-read -p "Region (e.g., us-central1): " REGION
-read -p "VPC Network Name: " VPC_NAME
-read -p "Deployment type (cloudrun/appengine/compute): " DEPLOY_TYPE
+# Load configuration from .env.gcp.local if it exists
+if [ -f ".env.gcp.local" ]; then
+    echo -e "${GREEN}Loading configuration from .env.gcp.local${NC}"
+    source .env.gcp.local
+
+    PROJECT_ID=${GCP_PROJECT_ID}
+    REGION=${GCP_REGION:-us-central1}
+    VPC_NAME=${VPC_NETWORK_NAME:-default}
+    DEPLOY_TYPE=${DEPLOY_TYPE:-cloudrun}
+else
+    echo -e "${YELLOW}No .env.gcp.local found. Using interactive mode.${NC}"
+    echo "Create .env.gcp.local from .env.gcp.local.example for faster deployments."
+    echo ""
+
+    # Prompt for configuration
+    echo -e "${YELLOW}Enter your GCP configuration:${NC}"
+    read -p "Project ID: " PROJECT_ID
+    read -p "Region (e.g., us-central1): " REGION
+    read -p "VPC Network Name (default: default): " VPC_NAME
+    VPC_NAME=${VPC_NAME:-default}
+    read -p "Deployment type (cloudrun/appengine/compute): " DEPLOY_TYPE
+fi
+
+# Validate required variables
+if [ -z "$PROJECT_ID" ]; then
+    echo -e "${RED}Error: PROJECT_ID is required${NC}"
+    exit 1
+fi
 
 # Set project
 gcloud config set project $PROJECT_ID
@@ -43,7 +65,8 @@ gcloud services enable \
     containerregistry.googleapis.com \
     cloudbuild.googleapis.com \
     vpcaccess.googleapis.com \
-    compute.googleapis.com
+    compute.googleapis.com \
+    secretmanager.googleapis.com
 
 # Check if VPC connector exists
 CONNECTOR_NAME="poetry-vpc-connector"
@@ -68,6 +91,82 @@ if ! gcloud compute networks vpc-access connectors describe $CONNECTOR_NAME \
 else
     echo -e "${GREEN}VPC connector already exists.${NC}"
 fi
+
+# Configure environment variables and secrets
+echo -e "\n${GREEN}Configuring environment variables and secrets...${NC}"
+
+# Load environment variables from .env.gcp.local or prompt
+if [ -f ".env.gcp.local" ]; then
+    # Variables are already loaded from source command earlier
+    echo "Using environment variables from .env.gcp.local"
+else
+    echo -e "${YELLOW}Enter your environment variables:${NC}"
+    read -p "Supabase URL: " VITE_SUPABASE_URL
+    read -p "Supabase Anon Key: " VITE_SUPABASE_ANON_KEY
+    read -p "Firebase API Key: " VITE_FIREBASE_API_KEY
+    read -p "Firebase Auth Domain: " VITE_FIREBASE_AUTH_DOMAIN
+    read -p "Firebase Project ID: " VITE_FIREBASE_PROJECT_ID
+    read -p "Gemini API Key (optional): " VITE_GEMINI_API_KEY
+fi
+
+# Create or update secrets in Secret Manager
+echo -e "\n${GREEN}Setting up secrets in Secret Manager...${NC}"
+
+# Function to create or update secret
+create_or_update_secret() {
+    local secret_name=$1
+    local secret_value=$2
+
+    if [ -z "$secret_value" ]; then
+        echo -e "${YELLOW}Skipping $secret_name (no value provided)${NC}"
+        return
+    fi
+
+    if gcloud secrets describe $secret_name --project=$PROJECT_ID &>/dev/null; then
+        echo "Updating secret: $secret_name"
+        echo -n "$secret_value" | gcloud secrets versions add $secret_name --data-file=-
+    else
+        echo "Creating secret: $secret_name"
+        echo -n "$secret_value" | gcloud secrets create $secret_name --data-file=-
+    fi
+}
+
+# Create/update secrets for each environment variable
+create_or_update_secret "supabase-url" "$VITE_SUPABASE_URL"
+create_or_update_secret "supabase-anon-key" "$VITE_SUPABASE_ANON_KEY"
+create_or_update_secret "firebase-api-key" "$VITE_FIREBASE_API_KEY"
+create_or_update_secret "firebase-auth-domain" "$VITE_FIREBASE_AUTH_DOMAIN"
+create_or_update_secret "firebase-project-id" "$VITE_FIREBASE_PROJECT_ID"
+create_or_update_secret "firebase-storage-bucket" "$VITE_FIREBASE_STORAGE_BUCKET"
+create_or_update_secret "firebase-messaging-sender-id" "$VITE_FIREBASE_MESSAGING_SENDER_ID"
+create_or_update_secret "firebase-app-id" "$VITE_FIREBASE_APP_ID"
+create_or_update_secret "gemini-api-key" "$VITE_GEMINI_API_KEY"
+create_or_update_secret "vapid-public-key" "$VITE_VAPID_PUBLIC_KEY"
+create_or_update_secret "vapid-private-key" "$VAPID_PRIVATE_KEY"
+
+echo -e "${GREEN}Secrets configured successfully!${NC}"
+
+# Grant Cloud Build access to Secret Manager
+echo -e "\n${GREEN}Granting Cloud Build access to secrets...${NC}"
+PROJECT_NUMBER=$(gcloud projects describe $PROJECT_ID --format="value(projectNumber)")
+CLOUD_BUILD_SA="${PROJECT_NUMBER}@cloudbuild.gserviceaccount.com"
+
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+    --member="serviceAccount:${CLOUD_BUILD_SA}" \
+    --role="roles/secretmanager.secretAccessor" \
+    --condition=None \
+    --no-user-output-enabled 2>/dev/null || true
+
+# Grant Cloud Run service account access to secrets
+CLOUD_RUN_SA="${PROJECT_NUMBER}-compute@developer.gserviceaccount.com"
+
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+    --member="serviceAccount:${CLOUD_RUN_SA}" \
+    --role="roles/secretmanager.secretAccessor" \
+    --condition=None \
+    --no-user-output-enabled 2>/dev/null || true
+
+echo -e "${GREEN}IAM permissions configured!${NC}"
 
 # Build the application
 echo -e "\n${GREEN}Building application...${NC}"
@@ -123,24 +222,8 @@ case $DEPLOY_TYPE in
         ;;
 esac
 
-# Prompt for environment variables
-echo -e "\n${YELLOW}Do you want to configure environment variables now? (y/n)${NC}"
-read -p "> " CONFIGURE_ENV
-
-if [ "$CONFIGURE_ENV" = "y" ]; then
-    echo -e "\n${YELLOW}Enter your environment variables:${NC}"
-    read -p "Supabase URL: " SUPABASE_URL
-    read -p "Supabase Anon Key: " SUPABASE_KEY
-    read -p "Firebase API Key: " FIREBASE_KEY
-
-    if [ "$DEPLOY_TYPE" = "cloudrun" ]; then
-        gcloud run services update poetry-suite \
-            --region=$REGION \
-            --update-env-vars="VITE_SUPABASE_URL=$SUPABASE_URL,VITE_SUPABASE_ANON_KEY=$SUPABASE_KEY,VITE_FIREBASE_API_KEY=$FIREBASE_KEY"
-    elif [ "$DEPLOY_TYPE" = "appengine" ]; then
-        echo "Please set environment variables in app.yaml or use GCP Console"
-    fi
-fi
+# Secrets are already configured in Secret Manager and will be
+# automatically injected during Cloud Build deployment via cloudbuild.yaml
 
 echo -e "\n${GREEN}=== Deployment Complete ===${NC}"
 echo -e "\nNext steps:"
