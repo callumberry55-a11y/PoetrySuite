@@ -45,6 +45,25 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 3. Copy the Project URL and anon/public key
 4. The database migrations will run automatically when you use the app
 
+### Configure Supabase Edge Function Secrets
+
+Some features require secrets to be set in Supabase:
+
+```bash
+# Generate a secure admin key
+openssl rand -base64 32
+
+# Set the secrets in Supabase
+supabase secrets set PAAS_ADMIN_KEY=your-generated-admin-key
+supabase secrets set GEMINI_API_KEY=your-gemini-api-key
+```
+
+**Required Secrets:**
+- `PAAS_ADMIN_KEY` - Admin key for PaaS operations (generate with command above)
+- `GEMINI_API_KEY` - Get from [Google AI Studio](https://aistudio.google.com/app/apikey)
+
+For detailed instructions, see [SUPABASE_SECRETS_SETUP.md](SUPABASE_SECRETS_SETUP.md)
+
 ### Supabase Security Configuration
 
 After creating your Supabase project, configure these security settings:
