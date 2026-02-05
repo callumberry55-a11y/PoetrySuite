@@ -360,7 +360,7 @@ function Library({ onNewPoem, onEditPoem }: LibraryProps) {
           </h2>
           <button
             onClick={onNewPoem}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg font-medium transition-colors"
           >
             <Plus size={18} />
             <span className="hidden sm:inline">New Poem</span>
@@ -373,7 +373,7 @@ function Library({ onNewPoem, onEditPoem }: LibraryProps) {
             onClick={() => setActiveTab('library')}
             className={`px-4 py-2 font-medium transition-colors border-b-2 ${
               activeTab === 'library'
-                ? 'border-blue-500 text-blue-500'
+                ? 'border-purple-500 text-purple-500'
                 : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
             }`}
           >
@@ -386,7 +386,7 @@ function Library({ onNewPoem, onEditPoem }: LibraryProps) {
             onClick={() => setActiveTab('discover')}
             className={`px-4 py-2 font-medium transition-colors border-b-2 ${
               activeTab === 'discover'
-                ? 'border-blue-500 text-blue-500'
+                ? 'border-purple-500 text-purple-500'
                 : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
             }`}
           >
@@ -419,7 +419,7 @@ function Library({ onNewPoem, onEditPoem }: LibraryProps) {
                   onClick={() => setFilterBy('all')}
                   className={`px-3 sm:px-4 py-2 rounded-lg font-medium transition-colors text-sm whitespace-nowrap ${
                     filterBy === 'all'
-                      ? 'bg-blue-500 text-white'
+                      ? 'bg-purple-500 text-white'
                       : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
                   }`}
                   aria-pressed={filterBy === 'all'}
@@ -431,7 +431,7 @@ function Library({ onNewPoem, onEditPoem }: LibraryProps) {
                   onClick={() => setFilterBy('favorites')}
                   className={`px-3 sm:px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-1.5 text-sm whitespace-nowrap ${
                     filterBy === 'favorites'
-                      ? 'bg-blue-500 text-white'
+                      ? 'bg-purple-500 text-white'
                       : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
                   }`}
                   aria-pressed={filterBy === 'favorites'}
@@ -461,7 +461,7 @@ function Library({ onNewPoem, onEditPoem }: LibraryProps) {
                   }
                   className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors whitespace-nowrap ${
                     selectedCollection === collection.id
-                      ? 'bg-blue-500 text-white'
+                      ? 'bg-purple-500 text-white'
                       : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
                   }`}
                   aria-pressed={selectedCollection === collection.id}
@@ -489,7 +489,7 @@ function Library({ onNewPoem, onEditPoem }: LibraryProps) {
                   />
                   <button
                     onClick={createCollection}
-                    className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium"
+                    className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg font-medium"
                     aria-label="Create collection"
                   >
                     Create
@@ -525,7 +525,7 @@ function Library({ onNewPoem, onEditPoem }: LibraryProps) {
               <button
                 onClick={searchInternetPoems}
                 disabled={loadingInternet}
-                className="px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-slate-400 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                className="px-4 py-2 bg-cyan-500 hover:bg-cyan-600 disabled:bg-slate-400 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
               >
                 <Search size={18} />
                 Search
@@ -553,7 +553,7 @@ function Library({ onNewPoem, onEditPoem }: LibraryProps) {
                     }}
                     className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                       selectedAuthor === author
-                        ? 'bg-blue-500 text-white'
+                        ? 'bg-purple-500 text-white'
                         : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600'
                     }`}
                   >
@@ -567,7 +567,7 @@ function Library({ onNewPoem, onEditPoem }: LibraryProps) {
                     setSelectedAuthor('');
                     loadRandomPoems();
                   }}
-                  className="mt-3 text-sm text-blue-500 hover:text-blue-600 flex items-center gap-1"
+                  className="mt-3 text-sm text-purple-500 hover:text-purple-600 flex items-center gap-1"
                 >
                   <X size={14} />
                   Clear author filter
@@ -606,7 +606,7 @@ function Library({ onNewPoem, onEditPoem }: LibraryProps) {
                         e.stopPropagation();
                         onEditPoem(poem.id);
                       }}
-                      className="text-blue-500 hover:text-blue-600"
+                      className="text-purple-500 hover:text-purple-600"
                       aria-label={`Edit ${poem.title}`}
                     >
                       <Edit3 size={16} aria-hidden="true" />
@@ -656,7 +656,7 @@ function Library({ onNewPoem, onEditPoem }: LibraryProps) {
                                     }}
                                     className={`w-full text-left px-2 py-1.5 rounded text-sm transition-colors ${
                                       isInCollection
-                                        ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                                        ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300'
                                         : 'hover:bg-slate-100 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300'
                                     }`}
                                     role="menuitem"
@@ -748,7 +748,7 @@ function Library({ onNewPoem, onEditPoem }: LibraryProps) {
                   </div>
                   <button
                     onClick={() => saveInternetPoem(poem)}
-                    className="text-blue-500 hover:text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="text-cyan-500 hover:text-cyan-600 opacity-0 group-hover:opacity-100 transition-opacity"
                     title="Save to your library"
                   >
                     <Download size={18} />

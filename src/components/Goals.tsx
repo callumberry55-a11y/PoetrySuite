@@ -156,7 +156,7 @@ export default function Goals() {
             onClick={() => setActiveTab('goals')}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
               activeTab === 'goals'
-                ? 'bg-blue-500 text-white'
+                ? 'bg-purple-500 text-white'
                 : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
             }`}
           >
@@ -167,7 +167,7 @@ export default function Goals() {
             onClick={() => setActiveTab('badges')}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
               activeTab === 'badges'
-                ? 'bg-blue-500 text-white'
+                ? 'bg-purple-500 text-white'
                 : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
             }`}
           >
@@ -179,7 +179,7 @@ export default function Goals() {
         {activeTab === 'goals' && (
           <button
             onClick={() => setShowCreateForm(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg font-medium transition-colors"
           >
             <Plus size={18} />
             New Goal
@@ -221,7 +221,7 @@ export default function Goals() {
             <div className="flex gap-2">
               <button
                 onClick={createGoal}
-                className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium"
+                className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg font-medium"
               >
                 Create
               </button>
@@ -277,7 +277,7 @@ export default function Goals() {
                       className={`h-full rounded-full transition-all ${
                         goal.status === 'completed'
                           ? 'bg-green-500'
-                          : 'bg-blue-500'
+                          : 'bg-purple-500'
                       }`}
                       style={{ width: `${getProgressPercentage(goal)}%` }}
                     />

@@ -172,7 +172,7 @@ export default function Workshops() {
         <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">Writing Workshops</h2>
         <button
           onClick={() => setShowCreateForm(true)}
-          className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white rounded-lg font-medium transition-colors touch-manipulation text-sm sm:text-base"
+          className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-purple-500 hover:bg-purple-600 active:bg-purple-700 text-white rounded-lg font-medium transition-colors touch-manipulation text-sm sm:text-base"
         >
           <Plus size={16} className="sm:w-[18px] sm:h-[18px]" />
           <span className="hidden sm:inline">Create Workshop</span>
@@ -223,7 +223,7 @@ export default function Workshops() {
             <div className="flex gap-2">
               <button
                 onClick={createWorkshop}
-                className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium"
+                className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg font-medium"
               >
                 Create
               </button>
@@ -252,7 +252,7 @@ export default function Workshops() {
                     onClick={() => setSelectedWorkshop(workshop.id)}
                     className={`w-full text-left p-3 rounded-lg transition-colors ${
                       selectedWorkshop === workshop.id
-                        ? 'bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-500'
+                        ? 'bg-purple-50 dark:bg-purple-900/20 border-2 border-purple-500'
                         : 'bg-slate-50 dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600'
                     }`}
                   >

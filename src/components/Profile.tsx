@@ -227,7 +227,7 @@ export default function Profile() {
           </p>
           <button
             onClick={loadProfile}
-            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
+            className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-colors"
           >
             Retry
           </button>
@@ -240,7 +240,7 @@ export default function Profile() {
     return (
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
           <p className="mt-4 text-slate-600 dark:text-slate-400">Loading your profile...</p>
         </div>
       </div>
@@ -252,7 +252,7 @@ export default function Profile() {
       <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm p-4 sm:p-6 mb-4 sm:mb-6">
         <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-6 gap-4">
           <div className="flex items-center gap-3 sm:gap-4">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-xl sm:text-2xl font-bold flex-shrink-0">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-purple-500 to-violet-600 flex items-center justify-center text-white text-xl sm:text-2xl font-bold flex-shrink-0">
               {profile.username.charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0">
@@ -270,7 +270,7 @@ export default function Profile() {
           {!isEditing ? (
             <button
               onClick={() => setIsEditing(true)}
-              className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white rounded-lg transition-colors touch-manipulation whitespace-nowrap"
+              className="flex items-center justify-center gap-2 px-4 py-2 bg-purple-500 hover:bg-purple-600 active:bg-purple-700 text-white rounded-lg transition-colors touch-manipulation whitespace-nowrap"
             >
               <Edit2 size={16} />
               <span className="hidden sm:inline">Edit Profile</span>
@@ -301,7 +301,7 @@ export default function Profile() {
 
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3 sm:gap-4 mb-6">
           <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-3 sm:p-4 text-center">
-            <div className="text-xl sm:text-2xl font-bold text-blue-500">{poemCount}</div>
+            <div className="text-xl sm:text-2xl font-bold text-purple-500">{poemCount}</div>
             <div className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">Poems</div>
           </div>
           <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-3 sm:p-4 text-center">
@@ -309,11 +309,11 @@ export default function Profile() {
             <div className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">Followers</div>
           </div>
           <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-3 sm:p-4 text-center">
-            <div className="text-xl sm:text-2xl font-bold text-orange-500">{profile.following_count}</div>
+            <div className="text-xl sm:text-2xl font-bold text-cyan-500">{profile.following_count}</div>
             <div className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">Following</div>
           </div>
           <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-3 sm:p-4 text-center">
-            <div className="text-xl sm:text-2xl font-bold text-red-500">{profile.total_likes_received}</div>
+            <div className="text-xl sm:text-2xl font-bold text-violet-500">{profile.total_likes_received}</div>
             <div className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">Likes</div>
           </div>
           <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 rounded-lg p-3 sm:p-4 text-center">
@@ -387,7 +387,7 @@ export default function Profile() {
               </div>
             )}
             {profile.website && (
-              <div className="flex items-center gap-2 text-blue-500">
+              <div className="flex items-center gap-2 text-cyan-500">
                 <Globe size={16} />
                 <a href={profile.website} target="_blank" rel="noopener noreferrer" className="hover:underline">
                   {profile.website}
@@ -415,9 +415,9 @@ export default function Profile() {
               <div className="text-2xl sm:text-3xl font-bold text-orange-600 dark:text-orange-400">{streak.current_streak}</div>
               <div className="text-xs sm:text-sm text-orange-700 dark:text-orange-300">Current Streak</div>
             </div>
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg p-3 sm:p-4">
-              <div className="text-2xl sm:text-3xl font-bold text-blue-600 dark:text-blue-400">{streak.longest_streak}</div>
-              <div className="text-xs sm:text-sm text-blue-700 dark:text-blue-300">Longest Streak</div>
+            <div className="bg-gradient-to-br from-purple-50 to-violet-100 dark:from-purple-900/20 dark:to-violet-800/20 rounded-lg p-3 sm:p-4">
+              <div className="text-2xl sm:text-3xl font-bold text-purple-600 dark:text-purple-400">{streak.longest_streak}</div>
+              <div className="text-xs sm:text-sm text-purple-700 dark:text-purple-300">Longest Streak</div>
             </div>
           </div>
         </div>

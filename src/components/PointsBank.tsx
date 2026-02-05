@@ -253,12 +253,12 @@ export default function PointsBank() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-emerald-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-cyan-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900 dark:text-white flex items-center gap-2 sm:gap-3">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-blue-600 flex items-center justify-center flex-shrink-0">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-violet-600 flex items-center justify-center flex-shrink-0">
                 <Database className="text-white" size={24} />
               </div>
               Points Bank
@@ -274,7 +274,7 @@ export default function PointsBank() {
                 onClick={() => setSelectedPeriod(period)}
                 className={`px-3 sm:px-4 py-2 rounded-lg font-medium transition-colors capitalize whitespace-nowrap ${
                   selectedPeriod === period
-                    ? 'bg-blue-600 text-white'
+                    ? 'bg-purple-600 text-white'
                     : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
                 }`}
               >
@@ -287,10 +287,10 @@ export default function PointsBank() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg border border-slate-200 dark:border-slate-700">
             <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                <Coins className="text-blue-600 dark:text-blue-400" size={24} />
+              <div className="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                <Coins className="text-purple-600 dark:text-purple-400" size={24} />
               </div>
-              <div className="flex items-center gap-1 text-blue-600 dark:text-blue-400 text-sm font-medium">
+              <div className="flex items-center gap-1 text-purple-600 dark:text-purple-400 text-sm font-medium">
                 <TrendingUp size={16} />
                 Annual
               </div>
@@ -366,7 +366,7 @@ export default function PointsBank() {
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-amber-600 to-orange-600 rounded-2xl p-4 sm:p-6 md:p-8 shadow-lg text-white">
+        <div className="bg-gradient-to-br from-purple-600 to-violet-600 rounded-2xl p-4 sm:p-6 md:p-8 shadow-lg text-white">
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <div className="flex items-center gap-2 sm:gap-3 mb-4">
@@ -375,24 +375,24 @@ export default function PointsBank() {
                 </div>
                 <div>
                   <h2 className="text-xl sm:text-2xl font-bold">Tax System</h2>
-                  <p className="text-sm sm:text-base text-amber-100">Balanced economy through taxation</p>
+                  <p className="text-sm sm:text-base text-purple-100">Balanced economy through taxation</p>
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 mt-6">
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-                  <p className="text-amber-100 text-sm mb-1">Monthly Tax</p>
+                  <p className="text-purple-100 text-sm mb-1">Monthly Tax</p>
                   <p className="text-2xl sm:text-3xl font-bold">{taxSettings?.tax_rate || 10}%</p>
-                  <p className="text-amber-200 text-xs mt-1">On positive balances</p>
+                  <p className="text-purple-200 text-xs mt-1">On positive balances</p>
                 </div>
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-                  <p className="text-amber-100 text-sm mb-1">Purchase Tax</p>
+                  <p className="text-purple-100 text-sm mb-1">Purchase Tax</p>
                   <p className="text-2xl sm:text-3xl font-bold">{taxSettings?.purchase_tax_rate || 2}%</p>
-                  <p className="text-amber-200 text-xs mt-1">On store purchases</p>
+                  <p className="text-purple-200 text-xs mt-1">On store purchases</p>
                 </div>
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 sm:col-span-2 md:col-span-1">
-                  <p className="text-amber-100 text-sm mb-1">Tax Distribution</p>
+                  <p className="text-purple-100 text-sm mb-1">Tax Distribution</p>
                   <p className="text-2xl font-bold">50/50</p>
-                  <p className="text-amber-200 text-xs mt-1">Developer Rewards / Reserve</p>
+                  <p className="text-purple-200 text-xs mt-1">Developer Rewards / Reserve</p>
                 </div>
               </div>
 
@@ -403,21 +403,21 @@ export default function PointsBank() {
                 </h3>
                 <div className="space-y-2 text-sm">
                   <div className="flex items-start gap-2">
-                    <div className="w-6 h-6 rounded-full bg-blue-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <div className="w-6 h-6 rounded-full bg-cyan-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
                       <Users className="w-3.5 h-3.5" />
                     </div>
                     <div>
-                      <p className="font-medium text-amber-50">50% to Developer Rewards Pool</p>
-                      <p className="text-amber-200 text-xs">Funds rewards for PaaS developers who build features and tools for the community</p>
+                      <p className="font-medium text-purple-50">50% to Developer Rewards Pool</p>
+                      <p className="text-purple-200 text-xs">Funds rewards for PaaS developers who build features and tools for the community</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-2">
-                    <div className="w-6 h-6 rounded-full bg-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <div className="w-6 h-6 rounded-full bg-violet-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
                       <Database className="w-3.5 h-3.5" />
                     </div>
                     <div>
-                      <p className="font-medium text-amber-50">50% to Reserve Fund</p>
-                      <p className="text-amber-200 text-xs">Maintains economic stability and provides emergency buffer for the community</p>
+                      <p className="font-medium text-purple-50">50% to Reserve Fund</p>
+                      <p className="text-purple-200 text-xs">Maintains economic stability and provides emergency buffer for the community</p>
                     </div>
                   </div>
                 </div>
@@ -426,7 +426,7 @@ export default function PointsBank() {
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-emerald-600 to-teal-600 rounded-2xl p-4 sm:p-6 md:p-8 shadow-lg text-white">
+        <div className="bg-gradient-to-br from-cyan-600 to-sky-600 rounded-2xl p-4 sm:p-6 md:p-8 shadow-lg text-white">
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <div className="flex items-center gap-2 sm:gap-3 mb-4">
@@ -435,24 +435,24 @@ export default function PointsBank() {
                 </div>
                 <div>
                   <h2 className="text-xl sm:text-2xl font-bold">Daily User Bonus</h2>
-                  <p className="text-sm sm:text-base text-emerald-100">Free points for all community members</p>
+                  <p className="text-sm sm:text-base text-cyan-100">Free points for all community members</p>
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 mt-6">
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-                  <p className="text-emerald-100 text-sm mb-1">Points Per User</p>
+                  <p className="text-cyan-100 text-sm mb-1">Points Per User</p>
                   <p className="text-3xl font-bold">20</p>
-                  <p className="text-emerald-200 text-xs mt-1">Every day</p>
+                  <p className="text-cyan-200 text-xs mt-1">Every day</p>
                 </div>
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-                  <p className="text-emerald-100 text-sm mb-1">Tax Rate</p>
+                  <p className="text-cyan-100 text-sm mb-1">Tax Rate</p>
                   <p className="text-3xl font-bold">0%</p>
-                  <p className="text-emerald-200 text-xs mt-1">Until 2nd of month</p>
+                  <p className="text-cyan-200 text-xs mt-1">Until 2nd of month</p>
                 </div>
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-                  <p className="text-emerald-100 text-sm mb-1">Zero Balance</p>
+                  <p className="text-cyan-100 text-sm mb-1">Zero Balance</p>
                   <p className="text-2xl font-bold">Tax Free</p>
-                  <p className="text-emerald-200 text-xs mt-1">Always protected</p>
+                  <p className="text-cyan-200 text-xs mt-1">Always protected</p>
                 </div>
               </div>
             </div>
@@ -518,10 +518,10 @@ export default function PointsBank() {
             {funds.map((fund) => {
               const fundColors = {
                 grant: {
-                  bg: 'from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20',
-                  text: 'text-blue-900 dark:text-blue-100',
-                  accent: 'text-blue-600 dark:text-blue-400',
-                  label: 'text-blue-700 dark:text-blue-300',
+                  bg: 'from-purple-50 to-violet-100 dark:from-purple-900/20 dark:to-violet-800/20',
+                  text: 'text-purple-900 dark:text-purple-100',
+                  accent: 'text-purple-600 dark:text-purple-400',
+                  label: 'text-purple-700 dark:text-purple-300',
                 },
                 rewards: {
                   bg: 'from-emerald-50 to-emerald-100 dark:from-emerald-900/20 dark:to-emerald-800/20',
@@ -530,10 +530,10 @@ export default function PointsBank() {
                   label: 'text-emerald-700 dark:text-emerald-300',
                 },
                 reserve: {
-                  bg: 'from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20',
-                  text: 'text-purple-900 dark:text-purple-100',
-                  accent: 'text-purple-600 dark:text-purple-400',
-                  label: 'text-purple-700 dark:text-purple-300',
+                  bg: 'from-cyan-50 to-sky-100 dark:from-cyan-900/20 dark:to-sky-800/20',
+                  text: 'text-cyan-900 dark:text-cyan-100',
+                  accent: 'text-cyan-600 dark:text-cyan-400',
+                  label: 'text-cyan-700 dark:text-cyan-300',
                 },
               };
 
@@ -583,7 +583,7 @@ export default function PointsBank() {
           <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg border border-slate-200 dark:border-slate-700">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <Clock className="text-blue-600 dark:text-blue-400" size={24} />
+                <Clock className="text-purple-600 dark:text-purple-400" size={24} />
                 Distribution Timeline
               </h2>
             </div>
@@ -591,8 +591,8 @@ export default function PointsBank() {
             <div className="space-y-4">
               <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-xl">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                    <Calendar className="text-blue-600 dark:text-blue-400" size={20} />
+                  <div className="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                    <Calendar className="text-purple-600 dark:text-purple-400" size={20} />
                   </div>
                   <div>
                     <p className="font-medium text-slate-900 dark:text-white">Daily</p>
@@ -627,8 +627,8 @@ export default function PointsBank() {
 
               <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-xl">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
-                    <Calendar className="text-purple-600 dark:text-purple-400" size={20} />
+                  <div className="w-10 h-10 rounded-lg bg-cyan-100 dark:bg-cyan-900/30 flex items-center justify-center">
+                    <Calendar className="text-cyan-600 dark:text-cyan-400" size={20} />
                   </div>
                   <div>
                     <p className="font-medium text-slate-900 dark:text-white">Annual Budget</p>
@@ -665,7 +665,7 @@ export default function PointsBank() {
                 </div>
                 <div className="w-full h-4 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-blue-500 to-emerald-500 transition-all duration-500"
+                    className="h-full bg-gradient-to-r from-purple-500 to-cyan-500 transition-all duration-500"
                     style={{ width: `${Math.min(distributionPercentage, 100)}%` }}
                   />
                 </div>
@@ -676,17 +676,17 @@ export default function PointsBank() {
               </div>
 
               <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-200 dark:border-slate-700">
-                <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-xl">
+                <div className="p-4 bg-gradient-to-br from-purple-50 to-violet-100 dark:from-purple-900/20 dark:to-violet-800/20 rounded-xl">
                   <div className="flex items-center gap-2 mb-2">
-                    <ArrowUpRight className="text-blue-600 dark:text-blue-400" size={16} />
-                    <span className="text-xs font-medium text-blue-700 dark:text-blue-300">
+                    <ArrowUpRight className="text-purple-600 dark:text-purple-400" size={16} />
+                    <span className="text-xs font-medium text-purple-700 dark:text-purple-300">
                       Daily Rate
                     </span>
                   </div>
-                  <p className="text-lg font-bold text-blue-900 dark:text-blue-100">
+                  <p className="text-lg font-bold text-purple-900 dark:text-purple-100">
                     {formatNumber(stats.totalAllocated / 365)}
                   </p>
-                  <p className="text-xs text-blue-600 dark:text-blue-400">points / day</p>
+                  <p className="text-xs text-purple-600 dark:text-purple-400">points / day</p>
                 </div>
 
                 <div className="p-4 bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/20 dark:to-emerald-800/20 rounded-xl">
@@ -706,7 +706,7 @@ export default function PointsBank() {
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-blue-600 to-emerald-600 rounded-2xl p-4 sm:p-6 md:p-8 shadow-lg text-white">
+        <div className="bg-gradient-to-br from-purple-600 to-cyan-600 rounded-2xl p-4 sm:p-6 md:p-8 shadow-lg text-white">
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <div className="flex items-center gap-2 sm:gap-3 mb-4">
@@ -715,29 +715,29 @@ export default function PointsBank() {
                 </div>
                 <div>
                   <h2 className="text-xl sm:text-2xl font-bold">Developer Economy Fund</h2>
-                  <p className="text-sm sm:text-base text-blue-100">Sustainable API monetization for the community</p>
+                  <p className="text-sm sm:text-base text-purple-100">Sustainable API monetization for the community</p>
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mt-6">
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-                  <p className="text-blue-100 text-sm mb-1">Points Budget</p>
+                  <p className="text-purple-100 text-sm mb-1">Points Budget</p>
                   <p className="text-2xl sm:text-3xl font-bold">10.8B</p>
-                  <p className="text-blue-200 text-xs mt-1">Points per year</p>
+                  <p className="text-purple-200 text-xs mt-1">Points per year</p>
                 </div>
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-                  <p className="text-blue-100 text-sm mb-1">Grant Fund</p>
+                  <p className="text-purple-100 text-sm mb-1">Grant Fund</p>
                   <p className="text-2xl sm:text-3xl font-bold">£3B</p>
-                  <p className="text-blue-200 text-xs mt-1">Annual grants</p>
+                  <p className="text-purple-200 text-xs mt-1">Annual grants</p>
                 </div>
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-                  <p className="text-blue-100 text-sm mb-1">Rewards</p>
+                  <p className="text-purple-100 text-sm mb-1">Rewards</p>
                   <p className="text-2xl sm:text-3xl font-bold">£1.4B</p>
-                  <p className="text-blue-200 text-xs mt-1">Developer rewards</p>
+                  <p className="text-purple-200 text-xs mt-1">Developer rewards</p>
                 </div>
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-                  <p className="text-blue-100 text-sm mb-1">Reserve</p>
+                  <p className="text-purple-100 text-sm mb-1">Reserve</p>
                   <p className="text-2xl sm:text-3xl font-bold">£750M</p>
-                  <p className="text-blue-200 text-xs mt-1">System reserve</p>
+                  <p className="text-purple-200 text-xs mt-1">System reserve</p>
                 </div>
               </div>
             </div>
@@ -746,13 +746,13 @@ export default function PointsBank() {
 
         <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg border border-slate-200 dark:border-slate-700">
           <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-            <Activity className="text-blue-600 dark:text-blue-400" size={24} />
+            <Activity className="text-purple-600 dark:text-purple-400" size={24} />
             How the Points Bank Works
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
               <div className="flex gap-4">
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400 font-bold">
                   1
                 </div>
                 <div>
@@ -776,7 +776,7 @@ export default function PointsBank() {
               </div>
 
               <div className="flex gap-4">
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400 font-bold">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-cyan-100 dark:bg-cyan-900/30 flex items-center justify-center text-cyan-600 dark:text-cyan-400 font-bold">
                   3
                 </div>
                 <div>
@@ -838,7 +838,7 @@ export default function PointsBank() {
               </div>
 
               <div className="flex gap-4">
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400 font-bold">
                   8
                 </div>
                 <div>

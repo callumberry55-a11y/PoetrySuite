@@ -172,7 +172,7 @@ export default function Collaborative() {
         <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Collaborative Poems</h2>
         <button
           onClick={() => setShowCreateForm(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg font-medium transition-colors"
         >
           <Plus size={18} />
           Start Collaboration
@@ -224,7 +224,7 @@ export default function Collaborative() {
             <div className="flex gap-2">
               <button
                 onClick={createPoem}
-                className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium"
+                className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg font-medium"
               >
                 Create
               </button>
@@ -253,7 +253,7 @@ export default function Collaborative() {
                     onClick={() => setSelectedPoem(poem.id)}
                     className={`w-full text-left p-3 rounded-lg transition-colors ${
                       selectedPoem === poem.id
-                        ? 'bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-500'
+                        ? 'bg-purple-50 dark:bg-purple-900/20 border-2 border-purple-500'
                         : 'bg-slate-50 dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600'
                     }`}
                   >
@@ -285,10 +285,10 @@ export default function Collaborative() {
                   contributions.map((contribution, index) => (
                     <div
                       key={contribution.id}
-                      className="border-l-4 border-blue-500 pl-4 py-2"
+                      className="border-l-4 border-purple-500 pl-4 py-2"
                     >
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs font-semibold text-blue-500">#{index + 1}</span>
+                        <span className="text-xs font-semibold text-purple-500">#{index + 1}</span>
                         <span className="text-sm font-medium text-slate-900 dark:text-white">
                           {contribution.username}
                         </span>
@@ -313,7 +313,7 @@ export default function Collaborative() {
                 <button
                   onClick={addContribution}
                   disabled={!newContribution.trim()}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-slate-400 text-white rounded-lg font-medium transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 bg-purple-500 hover:bg-purple-600 disabled:bg-slate-400 text-white rounded-lg font-medium transition-colors"
                 >
                   <Send size={16} />
                   Submit Contribution

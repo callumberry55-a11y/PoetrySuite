@@ -72,7 +72,7 @@ export default function Badges() {
       case 'Ollamh':
         return 'from-yellow-400 to-yellow-600';
       case 'Anruth':
-        return 'from-blue-400 to-blue-600';
+        return 'from-purple-400 to-violet-600';
       case 'Cli':
         return 'from-green-400 to-green-600';
       case 'Fochlog':
@@ -127,7 +127,7 @@ export default function Badges() {
           <div className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">Earned</div>
         </div>
         <div className="bg-white dark:bg-slate-800 rounded-lg p-3 sm:p-4 text-center">
-          <Star className="mx-auto mb-2 text-blue-500" size={20} />
+          <Star className="mx-auto mb-2 text-purple-500" size={20} />
           <div className="text-lg sm:text-2xl font-bold text-slate-900 dark:text-white">
             {totalPoints}
           </div>
@@ -148,7 +148,7 @@ export default function Badges() {
             onClick={() => setFilter('all')}
             className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
               filter === 'all'
-                ? 'bg-blue-500 text-white'
+                ? 'bg-purple-500 text-white'
                 : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
             }`}
           >
@@ -158,7 +158,7 @@ export default function Badges() {
             onClick={() => setFilter('earned')}
             className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
               filter === 'earned'
-                ? 'bg-blue-500 text-white'
+                ? 'bg-purple-500 text-white'
                 : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
             }`}
           >
@@ -168,7 +168,7 @@ export default function Badges() {
             onClick={() => setFilter('locked')}
             className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
               filter === 'locked'
-                ? 'bg-blue-500 text-white'
+                ? 'bg-purple-500 text-white'
                 : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
             }`}
           >
@@ -195,7 +195,7 @@ export default function Badges() {
 
       {loading ? (
         <div className="text-center py-12">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
         </div>
       ) : filteredBadges.length === 0 ? (
         <div className="text-center py-12 bg-white dark:bg-slate-800 rounded-lg">

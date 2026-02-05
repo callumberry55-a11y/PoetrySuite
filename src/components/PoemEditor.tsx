@@ -254,7 +254,7 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
                     onClick={() => setFavorited(!favorited)}
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors w-full sm:w-auto justify-center ${
                       favorited
-                        ? 'bg-primary-container text-on-primary-container'
+                        ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300'
                         : 'bg-surface-variant text-on-surface-variant hover:bg-on-surface-variant/10'
                     }`}
                     aria-pressed={favorited}
@@ -268,7 +268,7 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
                     onClick={() => setIsPublic(!isPublic)}
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors w-full sm:w-auto justify-center ${
                       isPublic
-                        ? 'bg-primary-container text-on-primary-container'
+                        ? 'bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300'
                         : 'bg-surface-variant text-on-surface-variant hover:bg-on-surface-variant/10'
                     }`}
                     aria-pressed={isPublic}
@@ -282,8 +282,8 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
                     onClick={() => setShowAI(!showAI)}
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors w-full sm:w-auto justify-center ${
                       showAI
-                        ? 'bg-primary text-on-primary'
-                        : 'bg-secondary-container text-on-secondary-container hover:bg-secondary-container/80'
+                        ? 'bg-purple-500 text-white'
+                        : 'bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300 hover:bg-cyan-200 dark:hover:bg-cyan-900/40'
                     }`}
                     aria-pressed={showAI}
                     aria-label={showAI ? 'Close AI Assistant' : 'Open AI Assistant'}

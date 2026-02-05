@@ -208,7 +208,7 @@ export default function Settings() {
           <div className="flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
             <span className="font-medium">Version {packageJson.version}</span>
             <span className="text-slate-400 dark:text-slate-600">·</span>
-            <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-md font-medium">Beta</span>
+            <span className="px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded-md font-medium">Beta</span>
           </div>
         </div>
 
@@ -296,13 +296,13 @@ export default function Settings() {
           </div>
 
           <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+            <div className="p-4 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
-                <DollarSign className="text-blue-600 dark:text-blue-400" size={20} />
-                <h4 className="font-semibold text-blue-900 dark:text-blue-100">Point Value</h4>
+                <DollarSign className="text-purple-600 dark:text-purple-400" size={20} />
+                <h4 className="font-semibold text-purple-900 dark:text-purple-100">Point Value</h4>
               </div>
-              <p className="text-2xl font-bold text-blue-900 dark:text-blue-100 mb-1">1 point = £0.75</p>
-              <p className="text-xs text-blue-700 dark:text-blue-300">Standard conversion rate</p>
+              <p className="text-2xl font-bold text-purple-900 dark:text-purple-100 mb-1">1 point = £0.75</p>
+              <p className="text-xs text-purple-700 dark:text-purple-300">Standard conversion rate</p>
             </div>
 
             <div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
@@ -679,7 +679,7 @@ export default function Settings() {
             <button
               onClick={toggleTheme}
               className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${
-                isDark ? 'bg-blue-500' : 'bg-slate-300'
+                isDark ? 'bg-purple-500' : 'bg-slate-300'
               }`}
             >
               <span
@@ -764,7 +764,7 @@ export default function Settings() {
               </p>
               <button
                 onClick={handleInstall}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg font-medium transition-colors"
               >
                 <Download size={18} />
                 Install Poetry Suite
@@ -949,7 +949,7 @@ export default function Settings() {
             <button
               onClick={handleSubmitFeedback}
               disabled={!feedbackTitle.trim() || !feedbackMessage.trim() || isSubmittingFeedback}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-purple-500 hover:bg-purple-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
             >
               <Send size={18} />
               {isSubmittingFeedback ? 'Submitting...' : 'Submit Feedback'}

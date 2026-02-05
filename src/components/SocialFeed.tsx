@@ -384,7 +384,7 @@ export default function SocialFeed() {
       <div className="flex-1 overflow-y-auto p-4 sm:p-6">
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+            <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
           </div>
         ) : activeTab === 'contests' ? (
           <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6">
@@ -392,7 +392,7 @@ export default function SocialFeed() {
               const statusColor = contest.status === 'active'
                 ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
                 : contest.status === 'voting'
-                ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+                ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'
                 : 'bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300';
 
               return (

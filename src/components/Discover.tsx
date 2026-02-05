@@ -218,7 +218,7 @@ export default function Discover() {
       icon: Sparkles,
       title: 'AI Poetry Assistant',
       description: 'Get intelligent suggestions and improvements for your poetry',
-      color: 'from-blue-500 to-cyan-500',
+      color: 'from-purple-500 to-violet-500',
       status: 'Available',
       type: 'assistant' as ToolType
     },
@@ -234,7 +234,7 @@ export default function Discover() {
       icon: Zap,
       title: 'Quick Generate',
       description: 'Generate poem ideas based on themes and emotions',
-      color: 'from-yellow-500 to-orange-500',
+      color: 'from-cyan-400 to-sky-500',
       status: 'Available',
       type: 'generate' as ToolType
     },
@@ -258,7 +258,7 @@ export default function Discover() {
       icon: Users,
       title: 'AI Co-Writing',
       description: 'Collaborate with AI to continue and develop your poems',
-      color: 'from-indigo-500 to-blue-500',
+      color: 'from-violet-500 to-purple-500',
       status: 'Available',
       type: 'cowrite' as ToolType
     },

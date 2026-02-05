@@ -87,11 +87,11 @@ export default function Contests() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'upcoming':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400';
+        return 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/20 dark:text-cyan-400';
       case 'active':
         return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
       case 'voting':
-        return 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400';
+        return 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400';
       default:
         return 'bg-slate-100 text-slate-800 dark:bg-slate-900/20 dark:text-slate-400';
     }
@@ -112,7 +112,7 @@ export default function Contests() {
 
       {loading ? (
         <div className="text-center py-12">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
         </div>
       ) : contests.length === 0 ? (
         <div className="text-center py-12 bg-white dark:bg-slate-800 rounded-lg">
@@ -193,7 +193,7 @@ export default function Contests() {
                     )}
                     {contest.participant_badge && (
                       <div className="flex items-center gap-2 text-xs sm:text-sm">
-                        <Shield size={14} className="text-blue-500 flex-shrink-0" />
+                        <Shield size={14} className="text-purple-500 flex-shrink-0" />
                         <span className="text-emerald-900 dark:text-emerald-200">
                           <strong>All:</strong> {contest.participant_badge.name} ({contest.participant_badge.rank} • {contest.participant_badge.points} pts)
                         </span>
@@ -209,7 +209,7 @@ export default function Contests() {
                   className={`w-full px-4 py-2 rounded-lg font-medium transition-colors touch-manipulation text-sm sm:text-base ${
                     contest.user_has_entered
                       ? 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400 cursor-not-allowed'
-                      : 'bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white'
+                      : 'bg-purple-500 hover:bg-purple-600 active:bg-purple-700 text-white'
                   }`}
                 >
                   {contest.user_has_entered ? 'Already Entered' : 'Submit Entry'}
@@ -218,7 +218,7 @@ export default function Contests() {
 
               {contest.status === 'voting' && (
                 <button
-                  className="w-full px-4 py-2 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white rounded-lg font-medium transition-colors touch-manipulation flex items-center justify-center gap-2 text-sm sm:text-base"
+                  className="w-full px-4 py-2 bg-violet-500 hover:bg-violet-600 active:bg-violet-700 text-white rounded-lg font-medium transition-colors touch-manipulation flex items-center justify-center gap-2 text-sm sm:text-base"
                 >
                   <ThumbsUp size={14} className="sm:w-4 sm:h-4" />
                   Vote Now

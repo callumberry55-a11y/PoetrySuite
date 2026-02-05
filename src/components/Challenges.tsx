@@ -158,7 +158,7 @@ export default function Challenges() {
       <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mb-4 sm:mb-6">Challenges & Prompts</h2>
 
       {todayPrompt && (
-        <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg p-4 sm:p-6 mb-4 sm:mb-6">
+        <div className="bg-gradient-to-br from-purple-50 to-violet-100 dark:from-purple-900/20 dark:to-violet-800/20 rounded-lg p-4 sm:p-6 mb-4 sm:mb-6">
           <div className="flex items-start justify-between mb-3 gap-2">
             <div className="min-w-0 flex-1">
               <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-1">Today's Writing Prompt</h3>
@@ -177,7 +177,7 @@ export default function Challenges() {
             "{todayPrompt.prompt_text}"
           </p>
           <div className="flex items-center gap-2">
-            <span className="text-xs px-2 py-1 bg-blue-200 dark:bg-blue-800 text-blue-800 dark:text-blue-200 rounded">
+            <span className="text-xs px-2 py-1 bg-purple-200 dark:bg-purple-800 text-purple-800 dark:text-purple-200 rounded">
               {todayPrompt.category}
             </span>
           </div>
@@ -187,7 +187,7 @@ export default function Challenges() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {loading ? (
           <div className="col-span-full text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
           </div>
         ) : challenges.length === 0 ? (
           <div className="col-span-full text-center py-12">
@@ -200,7 +200,7 @@ export default function Challenges() {
               className="bg-white dark:bg-slate-800 rounded-lg shadow-sm p-4 sm:p-6"
             >
               <div className="flex items-start justify-between mb-3">
-                <div className="p-2 rounded-lg bg-gradient-to-br from-orange-100 to-orange-200 dark:from-orange-900/20 dark:to-orange-800/20 text-orange-600 dark:text-orange-400">
+                <div className="p-2 rounded-lg bg-gradient-to-br from-purple-100 to-violet-200 dark:from-purple-900/20 dark:to-violet-800/20 text-purple-600 dark:text-purple-400">
                   {getChallengeIcon(challenge.challenge_type)}
                 </div>
                 {challenge.user_completed && (
@@ -242,7 +242,7 @@ export default function Challenges() {
               {!challenge.user_has_joined ? (
                 <button
                   onClick={() => joinChallenge(challenge.id)}
-                  className="w-full px-4 py-2 bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white rounded-lg font-medium transition-colors touch-manipulation text-sm sm:text-base"
+                  className="w-full px-4 py-2 bg-purple-500 hover:bg-purple-600 active:bg-purple-700 text-white rounded-lg font-medium transition-colors touch-manipulation text-sm sm:text-base"
                 >
                   Join Challenge
                 </button>
