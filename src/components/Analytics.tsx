@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, memo, useMemo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { db } from '@/lib/firebase';
-import { collection, query, where, getDocs, orderBy } from "firebase/firestore"; 
+import { collection, query, where, onSnapshot, orderBy } from "firebase/firestore";
 import { TrendingUp, BookOpen, Feather, Calendar, Flame } from 'lucide-react';
 
 interface WritingStats {
@@ -81,14 +81,13 @@ function Analytics() {
   }, []);
 
   useEffect(() => {
-    const loadStats = async () => {
-      if (!user?.id) return;
+    if (!user?.id) return;
 
-      const poemsRef = collection(db, "poems");
-      const q = query(poemsRef, where("user_id", "==", user.id), orderBy("created_at", "desc"));
-      const querySnapshot = await getDocs(q);
+    const poemsRef = collection(db, "poems");
+    const q = query(poemsRef, where("user_id", "==", user.id), orderBy("created_at", "desc"));
+
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const poems = querySnapshot.docs.map(doc => doc.data());
-
       const poemData: Poem[] = poems as Poem[] || [];
 
       setTotalPoems(poemData.length);
@@ -120,11 +119,9 @@ function Analytics() {
         .slice(0, 30);
 
       setStats(statsArray);
-    };
+    });
 
-    if (user) {
-      loadStats();
-    }
+    return () => unsubscribe();
   }, [user, calculateStreaks]);
 
   const last7Days = useMemo(() => stats.slice(0, 7).reverse(), [stats]);
