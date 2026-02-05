@@ -55,6 +55,7 @@ export default function PointsBank() {
   useEffect(() => {
     fetchStats();
 
+    // Subscribe to economy funds changes
     const economyChannel = supabase
       .channel('economy_funds_realtime')
       .on(
@@ -70,8 +71,76 @@ export default function PointsBank() {
       )
       .subscribe();
 
+    // Subscribe to transactions for real-time distribution updates
+    const transactionsChannel = supabase
+      .channel('transactions_realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'paas_economy_transactions',
+        },
+        () => {
+          fetchStats();
+        }
+      )
+      .subscribe();
+
+    // Subscribe to developers for active dev count
+    const developersChannel = supabase
+      .channel('developers_realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'paas_developers',
+        },
+        () => {
+          fetchStats();
+        }
+      )
+      .subscribe();
+
+    // Subscribe to tax settings changes
+    const taxSettingsChannel = supabase
+      .channel('tax_settings_realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'tax_settings',
+        },
+        () => {
+          fetchStats();
+        }
+      )
+      .subscribe();
+
+    // Subscribe to tax rate adjustments
+    const taxAdjustmentsChannel = supabase
+      .channel('tax_adjustments_realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'tax_rate_adjustments',
+        },
+        () => {
+          fetchStats();
+        }
+      )
+      .subscribe();
+
     return () => {
       supabase.removeChannel(economyChannel);
+      supabase.removeChannel(transactionsChannel);
+      supabase.removeChannel(developersChannel);
+      supabase.removeChannel(taxSettingsChannel);
+      supabase.removeChannel(taxAdjustmentsChannel);
     };
   }, []);
 
