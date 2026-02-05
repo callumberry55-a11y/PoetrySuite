@@ -201,32 +201,22 @@ Configure your experience:
 
 ## Deployment
 
-### Deploy to Google Cloud Platform (with VPC & OpenVPN)
+### Deploy to Google Cloud Platform
 
-For production deployments with VPC integration and OpenVPN support:
+For production deployments on GCP:
 
 ```bash
-# Step 1: Store OpenVPN token securely (if you have one)
-npm run gcp:setup-openvpn
-
-# Step 2: Deploy the application
+# Deploy the application
 npm run deploy:gcp
 ```
 
 Features:
-- Full VPC integration for private networking
-- OpenVPN token security via GCP Secret Manager
-- Cloud Run, App Engine, or Compute Engine options
-- Auto-scaling and health checks
+- Cloud Run deployment with auto-scaling
 - Production-ready nginx configuration
+- Automatic health checks
+- HTTPS support
 
-See detailed guides:
-- **OpenVPN Token Setup**: [OPENVPN_TOKEN_GUIDE.md](./OPENVPN_TOKEN_GUIDE.md) (Quick token setup)
-- **OpenVPN Complete Guide**: [OPENVPN_SETUP.md](./OPENVPN_SETUP.md) (Comprehensive VPN guide)
-- **VPN Network Config**: [VPN_NETWORK_CONFIGURATION.md](./VPN_NETWORK_CONFIGURATION.md) (Subnets & routing)
-- **Quick Start**: [GCP_QUICKSTART.md](./GCP_QUICKSTART.md) (15-30 min setup)
-- **Comprehensive Guide**: [VPC_DEPLOYMENT_GUIDE.md](./VPC_DEPLOYMENT_GUIDE.md)
-- **Setup Summary**: [GCP_VPC_SETUP_SUMMARY.md](./GCP_VPC_SETUP_SUMMARY.md)
+See [GCP_QUICKSTART.md](./GCP_QUICKSTART.md) for detailed setup instructions.
 
 ### Deploy to Vercel
 

@@ -1,16 +1,15 @@
-# Quick Start: Deploy to GCP with VPC & OpenVPN
+# Quick Start: Deploy to Google Cloud Platform
 
-This guide gets your Poetry Suite app running on Google Cloud with VPC and OpenVPN integration in under 30 minutes.
+This guide gets your Poetry Suite app running on Google Cloud Platform in under 15 minutes.
 
 ## Prerequisites Checklist
 
 - [ ] GCP account with billing enabled
-- [ ] OpenVPN server running on GCP (or ready to set up)
 - [ ] `gcloud` CLI installed ([Download](https://cloud.google.com/sdk/docs/install))
 - [ ] Authenticated with GCP: `gcloud auth login`
 - [ ] Node.js 20+ installed
 
-## Option 1: Automated Deployment (Recommended)
+## Quick Deployment
 
 ### Step 1: Configure Environment
 
@@ -21,6 +20,13 @@ cp .env.gcp .env.gcp.local
 # Edit with your values
 nano .env.gcp.local  # or use your preferred editor
 ```
+
+Required values:
+- `GCP_PROJECT_ID` - Your GCP project ID
+- `GCP_REGION` - Region to deploy to (default: us-central1)
+- `VITE_SUPABASE_URL` - Your Supabase project URL
+- `VITE_SUPABASE_ANON_KEY` - Your Supabase anonymous key
+- Firebase configuration variables
 
 ### Step 2: Run Automated Deployment
 
@@ -35,10 +41,9 @@ chmod +x deploy-to-gcp.sh
 The script will:
 1. Verify authentication
 2. Enable required GCP APIs
-3. Create VPC connector (if needed)
-4. Build your application
-5. Deploy to Cloud Run/App Engine
-6. Configure environment variables
+3. Build your application
+4. Deploy to Cloud Run
+5. Configure environment variables
 
 ### Step 3: Access Your App
 
@@ -49,7 +54,7 @@ gcloud run services describe poetry-suite \
   --format="value(status.url)"
 ```
 
-## Option 2: Manual Setup
+## Manual Setup
 
 ### Step 1: Enable APIs
 
@@ -62,316 +67,252 @@ gcloud config set project $PROJECT_ID
 gcloud services enable \
   run.googleapis.com \
   containerregistry.googleapis.com \
-  cloudbuild.googleapis.com \
-  vpcaccess.googleapis.com
+  cloudbuild.googleapis.com
 ```
 
-### Step 2: Create VPC Connector
-
-```bash
-# Run the VPC setup script
-npm run gcp:setup-vpc
-
-# Or manually:
-gcloud compute networks vpc-access connectors create poetry-vpc-connector \
-  --region=$REGION \
-  --network=default \
-  --range=10.8.0.0/28 \
-  --min-instances=2 \
-  --max-instances=10
-```
-
-### Step 3: Setup Firewall Rules
-
-```bash
-# Run the firewall setup script
-npm run gcp:setup-firewall
-
-# Or see VPC_DEPLOYMENT_GUIDE.md for manual commands
-```
-
-### Step 4: Build & Deploy
+### Step 2: Build & Deploy
 
 ```bash
 # Build the app
 npm run build
 
-# Deploy to Cloud Run
+# Deploy to Cloud Run using Cloud Build
 npm run gcp:build
 
 # Or use gcloud directly
 gcloud builds submit --config=cloudbuild.yaml
 ```
 
-## OpenVPN Integration
-
-### Store Your OpenVPN Token Securely
-
-If you have an OpenVPN authentication token, store it securely in GCP Secret Manager:
+### Step 3: Configure Cloud Run
 
 ```bash
-# Automated setup
-npm run gcp:setup-openvpn
-
-# Or manually
-chmod +x scripts/setup-openvpn-token.sh
-./scripts/setup-openvpn-token.sh
-```
-
-This will:
-- Store your token in GCP Secret Manager
-- Configure proper IAM permissions
-- Optionally update your Cloud Run service
-
-See detailed guide: [OPENVPN_SETUP.md](./OPENVPN_SETUP.md)
-
-### Configure VPN Network Routes
-
-If you're using WPC subnets (100.96.0.0/11, 100.80.0.0/12), set up routing:
-
-```bash
-# Configure GCP routes for VPN subnets
-npm run gcp:setup-vpn-routes
-
-# Then configure OpenVPN server (run on the server)
-# SSH into your OpenVPN server:
-gcloud compute ssh openvpn-server --zone=us-central1-a
-
-# Copy and run the subnet configuration script
-sudo bash configure-openvpn-subnets.sh
-```
-
-**Your VPN Subnets:**
-- WPC Allocated (IPv4): `100.96.0.0/11` (2M+ IPs)
-- WPC Allocated (IPv6): `fd:0:0:8000::/49`
-- Domain Routing (IPv4): `100.80.0.0/12` (1M+ IPs)
-- Domain Routing (IPv6): `fd:0:0:4000::/50`
-
-See complete network details: [VPN_NETWORK_CONFIGURATION.md](./VPN_NETWORK_CONFIGURATION.md)
-
-### If You Have OpenVPN Running
-
-Your app will automatically use the VPC connector to communicate with resources in your VPC network where OpenVPN is running.
-
-**VPC Egress Options:**
-- `all-traffic` - All traffic goes through VPC (more expensive, more secure)
-- `private-ranges-only` - Only private IP traffic through VPC (cheaper, still secure)
-
-Edit `cloudbuild.yaml` to change:
-```yaml
-substitutions:
-  _VPC_EGRESS: 'private-ranges-only'  # or 'all-traffic'
-```
-
-### If You Need to Set Up OpenVPN
-
-1. **Create an OpenVPN Server VM:**
-
-```bash
-# Launch OpenVPN Access Server from GCP Marketplace
-# Or install OpenVPN manually on a Compute Engine VM
-
-gcloud compute instances create openvpn-server \
-  --zone=$REGION-a \
-  --machine-type=e2-medium \
-  --network=default \
-  --tags=vpn-server \
-  --image-family=ubuntu-2204-lts \
-  --image-project=ubuntu-os-cloud
-```
-
-2. **Install OpenVPN:**
-
-```bash
-# SSH into the VM
-gcloud compute ssh openvpn-server --zone=$REGION-a
-
-# Install OpenVPN
-wget https://git.io/vpn -O openvpn-install.sh
-chmod +x openvpn-install.sh
-sudo ./openvpn-install.sh
-```
-
-3. **Generate Client Configs:**
-
-```bash
-# On OpenVPN server, run:
-./scripts/openvpn-client-config.sh
-```
-
-## Configure for VPN-Only Access
-
-To require VPN connection for app access:
-
-### Step 1: Remove Public Access
-
-```bash
-gcloud run services remove-iam-policy-binding poetry-suite \
+# Deploy the built image to Cloud Run
+gcloud run deploy poetry-suite \
+  --image=gcr.io/$PROJECT_ID/poetry-suite \
   --region=$REGION \
-  --member="allUsers" \
-  --role="roles/run.invoker"
+  --platform=managed \
+  --allow-unauthenticated \
+  --set-env-vars="VITE_SUPABASE_URL=your-url,VITE_SUPABASE_ANON_KEY=your-key"
 ```
 
-### Step 2: Add Authorized Users
+## Environment Variables
+
+Set your environment variables in Cloud Run:
 
 ```bash
-# Add specific users
-gcloud run services add-iam-policy-binding poetry-suite \
-  --region=$REGION \
-  --member="user:email@example.com" \
-  --role="roles/run.invoker"
-
-# Or add a group
-gcloud run services add-iam-policy-binding poetry-suite \
-  --region=$REGION \
-  --member="group:team@example.com" \
-  --role="roles/run.invoker"
-```
-
-### Step 3: Configure Internal Load Balancer (Advanced)
-
-See `VPC_DEPLOYMENT_GUIDE.md` Section 7 for detailed instructions.
-
-## Common Commands
-
-```bash
-# View logs
-npm run gcp:logs
-
-# Update environment variables
 gcloud run services update poetry-suite \
-  --region=$REGION \
-  --update-env-vars="KEY=VALUE"
-
-# Scale service
-gcloud run services update poetry-suite \
-  --region=$REGION \
-  --max-instances=20 \
-  --min-instances=1
-
-# Deploy updates
-npm run gcp:build
-
-# Get service URL
-gcloud run services describe poetry-suite \
-  --region=$REGION \
-  --format="value(status.url)"
+  --region=us-central1 \
+  --update-env-vars="
+    VITE_SUPABASE_URL=your-supabase-url,
+    VITE_SUPABASE_ANON_KEY=your-anon-key,
+    VITE_FIREBASE_API_KEY=your-api-key,
+    VITE_FIREBASE_AUTH_DOMAIN=your-domain,
+    VITE_FIREBASE_PROJECT_ID=your-project,
+    VITE_FIREBASE_STORAGE_BUCKET=your-bucket,
+    VITE_FIREBASE_MESSAGING_SENDER_ID=your-sender-id,
+    VITE_FIREBASE_APP_ID=your-app-id"
 ```
 
 ## Verify Deployment
 
-1. **Check Cloud Run Service:**
 ```bash
-gcloud run services list --region=$REGION
-```
+# Check deployment status
+gcloud run services describe poetry-suite --region=us-central1
 
-2. **Test Health Endpoint:**
-```bash
-curl https://your-service-url/health
-```
+# View logs
+npm run gcp:logs
 
-3. **Check VPC Connector:**
-```bash
-gcloud compute networks vpc-access connectors describe poetry-vpc-connector \
-  --region=$REGION
-```
-
-4. **View Firewall Rules:**
-```bash
-gcloud compute firewall-rules list --filter="network:default"
+# Or directly
+gcloud run services logs read poetry-suite \
+  --region=us-central1 \
+  --limit=100
 ```
 
 ## Troubleshooting
 
-### Deployment Fails
+### Build Fails
 
-**Error: VPC connector not found**
 ```bash
-# Create VPC connector first
-npm run gcp:setup-vpc
+# Check Cloud Build logs
+gcloud builds list --limit=5
+
+# Get detailed logs for a specific build
+gcloud builds log [BUILD_ID]
 ```
 
-**Error: Permission denied**
+### Service Not Accessible
+
 ```bash
-# Grant necessary permissions to your account
-gcloud projects add-iam-policy-binding $PROJECT_ID \
-  --member="user:your-email@example.com" \
-  --role="roles/run.admin"
+# Check if service is running
+gcloud run services list --region=us-central1
+
+# Verify IAM permissions
+gcloud run services get-iam-policy poetry-suite --region=us-central1
 ```
 
-### Can't Access App
+### Environment Variables Not Set
 
-**502 Bad Gateway**
-- Check app logs: `npm run gcp:logs`
-- Verify container is running: `gcloud run services describe poetry-suite`
-
-**VPN clients can't connect to OpenVPN**
 ```bash
-# Check firewall rules
-gcloud compute firewall-rules list
-
-# Verify OpenVPN is running
-gcloud compute ssh openvpn-server --zone=$REGION-a
-sudo systemctl status openvpn@server
+# Check current environment variables
+gcloud run services describe poetry-suite \
+  --region=us-central1 \
+  --format="value(spec.template.spec.containers[0].env)"
 ```
 
-### High Costs
+## Scaling Configuration
 
-**Reduce VPC Connector costs:**
+### Adjust Resources
+
 ```bash
-# Update to smaller instances
-gcloud compute networks vpc-access connectors update poetry-vpc-connector \
-  --region=$REGION \
-  --min-instances=2 \
-  --max-instances=3
+# Update Cloud Run service configuration
+gcloud run services update poetry-suite \
+  --region=us-central1 \
+  --memory=512Mi \
+  --cpu=1 \
+  --min-instances=1 \
+  --max-instances=10 \
+  --timeout=300
 ```
 
-**Use private-ranges-only egress:**
-Edit `cloudbuild.yaml`:
-```yaml
-_VPC_EGRESS: 'private-ranges-only'
+### Enable Autoscaling
+
+Cloud Run automatically scales based on traffic. Configure scaling limits:
+
+```bash
+gcloud run services update poetry-suite \
+  --region=us-central1 \
+  --min-instances=0 \
+  --max-instances=100 \
+  --concurrency=80
 ```
 
-## Security Checklist
+## Custom Domain
 
-- [ ] Enable HTTPS only (enforced by default on Cloud Run)
-- [ ] Configure firewall rules properly
-- [ ] Use Secret Manager for sensitive values
-- [ ] Enable Cloud Armor for DDoS protection
-- [ ] Set up IAM policies for least privilege access
-- [ ] Enable VPC Flow Logs for monitoring
-- [ ] Configure Cloud Logging and Monitoring
-- [ ] Regular security audits
-- [ ] Keep OpenVPN updated
-- [ ] Use strong VPN authentication
+### Add Custom Domain
+
+```bash
+# Map custom domain to Cloud Run service
+gcloud run domain-mappings create \
+  --service=poetry-suite \
+  --domain=your-domain.com \
+  --region=us-central1
+```
+
+### Verify Domain
+
+Follow the instructions to add DNS records for domain verification.
 
 ## Cost Optimization
 
-1. **Use Cloud Run's pay-per-use model** (no idle charges)
-2. **Set max instances** to prevent runaway costs
-3. **Use private-ranges-only VPC egress** when possible
-4. **Enable CDN** for static assets (reduces bandwidth)
-5. **Set up budget alerts** in GCP Console
-6. **Use committed use discounts** for steady workloads
-7. **Downsize VPC connector** during low traffic periods
+### Development Environment
+
+```bash
+# Minimal configuration for development
+gcloud run services update poetry-suite \
+  --region=us-central1 \
+  --memory=256Mi \
+  --cpu=1 \
+  --min-instances=0 \
+  --max-instances=3
+```
+
+### Production Environment
+
+```bash
+# Production-ready configuration
+gcloud run services update poetry-suite \
+  --region=us-central1 \
+  --memory=512Mi \
+  --cpu=2 \
+  --min-instances=1 \
+  --max-instances=50
+```
+
+## Monitoring
+
+### View Metrics
+
+```bash
+# Open Cloud Console metrics
+gcloud run services describe poetry-suite \
+  --region=us-central1 \
+  --format="value(status.url)"
+
+# View in browser: https://console.cloud.google.com/run
+```
+
+### Set Up Alerts
+
+Configure alerts in Cloud Console:
+1. Go to Cloud Run service
+2. Click "Metrics" tab
+3. Set up alerts for latency, errors, or traffic
+
+## Updates and Rollbacks
+
+### Update Service
+
+```bash
+# Build and deploy new version
+npm run build
+npm run gcp:build
+```
+
+### Rollback
+
+```bash
+# List revisions
+gcloud run revisions list \
+  --service=poetry-suite \
+  --region=us-central1
+
+# Rollback to previous revision
+gcloud run services update-traffic poetry-suite \
+  --region=us-central1 \
+  --to-revisions=poetry-suite-00001-xyz=100
+```
+
+## Clean Up
+
+### Delete Service
+
+```bash
+# Delete Cloud Run service
+gcloud run services delete poetry-suite --region=us-central1
+
+# Delete container images
+gcloud container images list --repository=gcr.io/$PROJECT_ID
+gcloud container images delete gcr.io/$PROJECT_ID/poetry-suite
+```
 
 ## Next Steps
 
-1. **Set up monitoring:** Configure Cloud Monitoring alerts
-2. **Custom domain:** Map your domain to the service
-3. **CI/CD:** Set up automated deployments with Cloud Build triggers
-4. **Backup strategy:** Regular database backups
-5. **Disaster recovery:** Multi-region deployment
-6. **Performance tuning:** Enable CDN, optimize assets
+- Set up CI/CD pipeline for automated deployments
+- Configure Cloud CDN for better performance
+- Set up Cloud SQL for production database
+- Implement Cloud Armor for DDoS protection
+- Enable Cloud Logging and Monitoring
 
-## Need Help?
+## Support
 
-- **Comprehensive Guide:** See `VPC_DEPLOYMENT_GUIDE.md`
-- **GCP Documentation:** https://cloud.google.com/docs
-- **OpenVPN Docs:** https://openvpn.net/community-resources/
-- **Support:** Open an issue in the project repository
+For issues:
+1. Check Cloud Build logs: `gcloud builds list`
+2. Check Cloud Run logs: `npm run gcp:logs`
+3. Verify environment variables are set
+4. Check IAM permissions
+5. Review Cloud Console for detailed metrics
 
----
+## Cost Estimate
 
-**Estimated Setup Time:** 15-30 minutes
-**Estimated Monthly Cost:** $20-100 (depending on traffic and configuration)
+Typical monthly costs for Cloud Run:
+- **Development**: $0-5/month (with free tier)
+- **Small Production**: $10-30/month
+- **Medium Production**: $50-200/month
+
+Costs depend on:
+- Request volume
+- Memory and CPU allocation
+- Network egress
+- Minimum instances
+
+Use [GCP Pricing Calculator](https://cloud.google.com/products/calculator) for detailed estimates.
