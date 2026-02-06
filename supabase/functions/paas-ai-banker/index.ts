@@ -34,7 +34,7 @@ async function callGeminiAI(prompt: string): Promise<string> {
   }
 
   const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
   const result = await model.generateContent(prompt);
   const response = await result.response;
@@ -332,7 +332,7 @@ Note: Percentages should add up to 100.`;
         ai_adjustment_factor: adjustmentFactor,
         final_cost: finalCost,
         reasoning: aiDecision.reasoning || 'No reasoning provided',
-        model_version: 'gemini-1.5-flash'
+        model_version: 'gemini-2.0-flash'
       })
       .select()
       .maybeSingle();

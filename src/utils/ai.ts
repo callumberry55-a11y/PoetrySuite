@@ -16,32 +16,67 @@ export async function callGeminiAPI(
 
   const { temperature = 0.9, maxTokens = 2048 } = options;
 
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`,
-    {
+  try {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
+
+    const requestBody = {
+      contents: [{
+        parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }]
+      }],
+      generationConfig: {
+        temperature,
+        topK: 40,
+        topP: 0.95,
+        maxOutputTokens: maxTokens,
+      },
+    };
+
+    console.log('Calling Gemini API...');
+
+    const response = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{
-          parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }]
-        }],
-        generationConfig: {
-          temperature,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: maxTokens,
-        },
-      }),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody),
+    });
+
+    console.log('Response status:', response.status);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('API Error Response:', errorText);
+
+      let errorData;
+      try {
+        errorData = JSON.parse(errorText);
+      } catch {
+        throw new Error(`API request failed with status ${response.status}: ${errorText.substring(0, 200)}`);
+      }
+
+      const errorMessage = errorData?.error?.message || errorData?.message || 'Unknown error from AI service';
+      throw new Error(`AI Service Error: ${errorMessage}`);
     }
-  );
 
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => null);
-    throw new Error(errorData?.error?.message || 'Failed to connect to AI service');
+    const data = await response.json();
+    console.log('API Response received successfully');
+
+    const resultText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!resultText) {
+      console.error('Unexpected response structure:', data);
+      throw new Error('No text content in API response');
+    }
+
+    return resultText;
+  } catch (error) {
+    console.error('Gemini API Error:', error);
+
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      throw new Error('Network error: Unable to reach AI service. Please check your internet connection.');
+    }
+
+    throw error;
   }
-
-  const data = await response.json();
-  return data.candidates[0]?.content?.parts[0]?.text || 'No response generated';
 }
 
 export async function analyzePoemSentiment(poemContent: string): Promise<{
