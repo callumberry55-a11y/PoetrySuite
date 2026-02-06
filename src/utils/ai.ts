@@ -11,8 +11,11 @@ export async function callGeminiAPI(
   options: AIOptions = {}
 ): Promise<string> {
   if (!API_KEY) {
+    console.error('API Key missing! Check your .env file has VITE_GEMINI_API_KEY');
     throw new Error('Gemini API key not configured. Please add VITE_GEMINI_API_KEY to your environment variables.');
   }
+
+  console.log('API Key present:', API_KEY ? `Yes (${API_KEY.substring(0, 10)}...)` : 'No');
 
   const { temperature = 0.9, maxTokens = 2048 } = options;
 
@@ -31,7 +34,7 @@ export async function callGeminiAPI(
       },
     };
 
-    console.log('Calling Gemini API...');
+    console.log('Calling Gemini API with model: gemini-2.5-flash');
 
     const response = await fetch(url, {
       method: 'POST',
@@ -70,9 +73,11 @@ export async function callGeminiAPI(
     return resultText;
   } catch (error) {
     console.error('Gemini API Error:', error);
+    console.error('Error type:', error instanceof TypeError ? 'TypeError' : typeof error);
+    console.error('Error message:', error instanceof Error ? error.message : String(error));
 
     if (error instanceof TypeError && error.message.includes('fetch')) {
-      throw new Error('Network error: Unable to reach AI service. Please check your internet connection.');
+      throw new Error('Network error: Unable to reach AI service. Please restart your dev server (stop and run "npm run dev" again) to load the new API key.');
     }
 
     throw error;
