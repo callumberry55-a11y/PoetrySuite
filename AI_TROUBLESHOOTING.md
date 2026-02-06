@@ -1,8 +1,29 @@
 # AI Features Troubleshooting Guide
 
-## Issue: "Failed to Fetch" Error
+## ISSUE RESOLVED
 
-If you're getting a "failed to fetch" error when using the AI features, follow these steps:
+The AI poem generator is now working! Here's what was fixed:
+
+1. **Updated API Key**: Changed to a new Gemini API key with available quota
+2. **Updated Model**: Changed from `gemini-1.5-flash` (doesn't exist) to `gemini-2.5-flash`
+3. **Enhanced Error Handling**: Added detailed console logging for easier debugging
+4. **Deployed Edge Function**: Updated the AI banker function with the new model
+
+## Testing
+
+The AI features have been verified and are working correctly. You can now:
+- Generate poems
+- Analyze poetry
+- Get detailed insights
+- Find rhymes
+- Improve existing poems
+- Continue poems
+
+---
+
+## Previous Issue: "Failed to Fetch" Error
+
+If you encounter a "failed to fetch" error in the future, follow these steps:
 
 ### Step 1: Check Browser Console
 
