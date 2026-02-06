@@ -1,9 +1,8 @@
 import { useState } from 'react';
-import { Sparkles, Wand2, BookOpen, Lightbulb, RefreshCw, MessageSquare, Mic, Zap, Target, Award } from 'lucide-react';
+import { Sparkles, Wand2, BookOpen, RefreshCw, MessageSquare, Mic, Zap, Award } from 'lucide-react';
 import {
   callGeminiAPI,
   analyzePoemSentiment,
-  generatePoemTitle,
   scorePoemQuality,
   detectPoemForm
 } from '@/utils/ai';

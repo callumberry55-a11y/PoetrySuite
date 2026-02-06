@@ -323,15 +323,15 @@ export default function PaaSBilling() {
                       </div>
                       <div>
                         <p className="text-sm text-gray-600">Data Transfer</p>
-                        <p className="text-lg font-semibold">{parseFloat(period.total_data_transferred_mb || '0').toFixed(2)} MB</p>
+                        <p className="text-lg font-semibold">{parseFloat(String(period.total_data_transferred_mb || '0')).toFixed(2)} MB</p>
                       </div>
                       <div>
                         <p className="text-sm text-gray-600">Base Cost</p>
-                        <p className="text-lg font-semibold">{parseFloat(period.base_cost_points || '0').toFixed(2)} pts</p>
+                        <p className="text-lg font-semibold">{parseFloat(String(period.base_cost_points || '0')).toFixed(2)} pts</p>
                       </div>
                       <div>
                         <p className="text-sm text-gray-600">Final Cost</p>
-                        <p className="text-lg font-bold text-purple-600">{parseFloat(period.final_cost_points || '0').toFixed(2)} pts</p>
+                        <p className="text-lg font-bold text-purple-600">{parseFloat(String(period.final_cost_points || '0')).toFixed(2)} pts</p>
                       </div>
                     </div>
 

@@ -82,7 +82,6 @@ const iconMap: Record<string, any> = {
 
 export default function DeveloperReserves() {
   const [reserves, setReserves] = useState<Reserve[]>([]);
-  const [categories, setCategories] = useState<ReserveCategory[]>([]);
   const [aiRecommendation, setAIRecommendation] = useState<AIRecommendation | null>(null);
   const [selectedReserve, setSelectedReserve] = useState<Reserve | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -130,13 +129,6 @@ export default function DeveloperReserves() {
         .order('created_at', { ascending: true });
 
       setReserves(reservesData || []);
-
-      const { data: categoriesData } = await supabase
-        .from('paas_reserve_categories')
-        .select('*')
-        .eq('is_active', true);
-
-      setCategories(categoriesData || []);
 
       const { data: aiRec } = await supabase
         .from('paas_reserve_ai_recommendations')

@@ -173,11 +173,6 @@ export default function PointsBank() {
         .order('adjustment_year', { ascending: false })
         .limit(5);
 
-      const totalDistributed = transactions?.reduce((sum, tx) => {
-        if (tx.transaction_type === 'mint') return sum + tx.amount;
-        return sum;
-      }, 0) || 0;
-
       const now = new Date();
       const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
       const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
