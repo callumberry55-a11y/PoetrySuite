@@ -1,6 +1,6 @@
-import { BookHeart, PenLine, Library, BarChart3, Settings, Compass, Lightbulb, BookOpen, X, User, Users, UsersRound, Zap, Target, Trophy, Award, ShoppingBag, Shield, Landmark, UserPlus, BookMarked, Book, LibraryBig, Sparkles, GraduationCap, Flame, Calendar, MessageSquare } from 'lucide-react';
+import { BookHeart, PenLine, Library, BarChart3, Settings, Compass, Lightbulb, BookOpen, X, User, Users, UsersRound, Zap, Target, Trophy, Award, ShoppingBag, Shield, Landmark, UserPlus, BookMarked, Book, LibraryBig, Sparkles, GraduationCap, Flame, Calendar, MessageSquare, FolderOpen, Heart, Timer } from 'lucide-react';
 
-type ViewType = 'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'profile' | 'feed' | 'workshops' | 'collaborative' | 'challenges' | 'goals' | 'contests' | 'badges' | 'store' | 'paas-admin' | 'points-bank' | 'following' | 'reading-lists' | 'glossary' | 'famous-poems' | 'writing-tips' | 'daily-prompts' | 'book-clubs' | 'study-groups' | 'writing-streaks' | 'events-calendar' | 'forums';
+type ViewType = 'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'profile' | 'feed' | 'workshops' | 'collaborative' | 'challenges' | 'goals' | 'contests' | 'badges' | 'store' | 'paas-admin' | 'points-bank' | 'following' | 'reading-lists' | 'glossary' | 'famous-poems' | 'writing-tips' | 'daily-prompts' | 'book-clubs' | 'study-groups' | 'writing-streaks' | 'events-calendar' | 'forums' | 'collections' | 'favorites' | 'writing-timer';
 
 interface AppDrawerProps {
   isOpen: boolean;
@@ -11,7 +11,10 @@ interface AppDrawerProps {
 
 const navItems = [
   { id: 'write' as const, icon: PenLine, label: 'Write' },
+  { id: 'writing-timer' as const, icon: Timer, label: 'Writing Timer' },
   { id: 'library' as const, icon: Library, label: 'Library' },
+  { id: 'collections' as const, icon: FolderOpen, label: 'Collections' },
+  { id: 'favorites' as const, icon: Heart, label: 'Favorites' },
   { id: 'discover' as const, icon: Compass, label: 'AI Hub' },
   { id: 'feed' as const, icon: Users, label: 'Social Feed' },
   { id: 'following' as const, icon: UserPlus, label: 'Community' },
