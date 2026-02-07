@@ -23,6 +23,17 @@ const Badges = lazy(() => import('@/components/Badges'));
 const Store = lazy(() => import('@/components/Store'));
 const PaaSAuth = lazy(() => import('@/components/PaaSAuth'));
 const PointsBank = lazy(() => import('@/components/PointsBank'));
+const FollowingNetwork = lazy(() => import('@/components/FollowingNetwork'));
+const ReadingLists = lazy(() => import('@/components/ReadingLists'));
+const PoetryGlossary = lazy(() => import('@/components/PoetryGlossary'));
+const FamousPoems = lazy(() => import('@/components/FamousPoems'));
+const WritingTips = lazy(() => import('@/components/WritingTips'));
+const DailyPrompts = lazy(() => import('@/components/DailyPrompts'));
+const BookClubs = lazy(() => import('@/components/BookClubs'));
+const StudyGroups = lazy(() => import('@/components/StudyGroups'));
+const WritingStreaks = lazy(() => import('@/components/WritingStreaks'));
+const EventsCalendar = lazy(() => import('@/components/EventsCalendar'));
+const Forums = lazy(() => import('@/components/Forums'));
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -100,7 +111,7 @@ function AppContent() {
 }
 
 function MainApp() {
-    const [currentView, setCurrentView] = useState<'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'profile' | 'feed' | 'workshops' | 'collaborative' | 'challenges' | 'goals' | 'contests' | 'badges' | 'store' | 'paas-admin' | 'points-bank'>('library');
+    const [currentView, setCurrentView] = useState<'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'profile' | 'feed' | 'workshops' | 'collaborative' | 'challenges' | 'goals' | 'contests' | 'badges' | 'store' | 'paas-admin' | 'points-bank' | 'following' | 'reading-lists' | 'glossary' | 'famous-poems' | 'writing-tips' | 'daily-prompts' | 'book-clubs' | 'study-groups' | 'writing-streaks' | 'events-calendar' | 'forums'>('library');
     const [selectedPoemId, setSelectedPoemId] = useState<string | null>(null);
 
     const handleNewPoem = useCallback(() => {
@@ -183,6 +194,17 @@ function MainApp() {
           {currentView === 'store' && <Store />}
           {currentView === 'paas-admin' && <PaaSAuth />}
           {currentView === 'points-bank' && <PointsBank />}
+          {currentView === 'following' && <FollowingNetwork />}
+          {currentView === 'reading-lists' && <ReadingLists />}
+          {currentView === 'glossary' && <PoetryGlossary />}
+          {currentView === 'famous-poems' && <FamousPoems />}
+          {currentView === 'writing-tips' && <WritingTips />}
+          {currentView === 'daily-prompts' && <DailyPrompts />}
+          {currentView === 'book-clubs' && <BookClubs />}
+          {currentView === 'study-groups' && <StudyGroups />}
+          {currentView === 'writing-streaks' && <WritingStreaks />}
+          {currentView === 'events-calendar' && <EventsCalendar />}
+          {currentView === 'forums' && <Forums />}
         </Suspense>
       </Layout>
     )
