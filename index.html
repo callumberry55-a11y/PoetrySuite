@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/icon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; connect-src 'self' https://accounts.google.com https://*.supabase.co wss://*.supabase.co https://*.supabase.io wss://*.supabase.io https://www.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com; font-src 'self' https://fonts.gstatic.com; object-src 'none'; base-uri 'self'; form-action 'self';" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; connect-src 'self' https://accounts.google.com https://*.supabase.co wss://*.supabase.co https://*.supabase.io wss://*.supabase.io https://www.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com; font-src 'self' https://fonts.gstatic.com; object-src 'none'; base-uri 'self'; form-action 'self';" />
     <meta http-equiv="X-UA-Compatible" content="ie-edge" />
     <title>Poetry Suite</title>
     <meta name="description" content="Your personal poetry writing companion with AI assistance. Write, edit, and enhance your poetry with artificial intelligence." />
@@ -35,8 +35,22 @@
         });
       }
     </script>
+    <style>
+      .early-access-badge {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        background-color: #4CAF50;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 5px;
+        font-size: 14px;
+        z-index: 1000;
+      }
+    </style>
   </head>
   <body>
+    <div class="early-access-badge">Early Access</div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

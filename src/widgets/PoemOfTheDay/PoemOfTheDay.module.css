@@ -1,0 +1,11 @@
+.widget {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 16px;
+  background-color: #f9f9f9;
+}
+
+.poemLines {
+  margin-top: 12px;
+  font-style: italic;
+}

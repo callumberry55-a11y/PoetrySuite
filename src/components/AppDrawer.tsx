@@ -1,6 +1,5 @@
-import { BookHeart, PenLine, Library, BarChart3, Settings, Compass, Lightbulb, BookOpen, X, User, Users, UsersRound, Zap, Target, Trophy, Award, ShoppingBag, Shield, Landmark, UserPlus, BookMarked, Book, LibraryBig, Sparkles, GraduationCap, Flame, Calendar, MessageSquare, FolderOpen, Heart, Timer } from 'lucide-react';
-
-type ViewType = 'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'profile' | 'feed' | 'workshops' | 'collaborative' | 'challenges' | 'goals' | 'contests' | 'badges' | 'store' | 'paas-admin' | 'points-bank' | 'following' | 'reading-lists' | 'glossary' | 'famous-poems' | 'writing-tips' | 'daily-prompts' | 'book-clubs' | 'study-groups' | 'writing-streaks' | 'events-calendar' | 'forums' | 'collections' | 'favorites' | 'writing-timer';
+import { BookHeart, PenLine, Library, BarChart3, Settings, Compass, Lightbulb, BookOpen, X, User, Users, UsersRound, Zap, Target, Trophy, Award, ShoppingBag, Shield, Landmark, UserPlus, BookMarked, Book, LibraryBig, Sparkles, GraduationCap, Flame, Calendar, MessageSquare, FolderOpen, Heart, Timer, Home } from 'lucide-react';
+import { ViewType } from '../types';
 
 interface AppDrawerProps {
   isOpen: boolean;
@@ -10,6 +9,7 @@ interface AppDrawerProps {
 }
 
 const navItems = [
+  { id: 'dashboard' as const, icon: Home, label: 'Dashboard' },
   { id: 'write' as const, icon: PenLine, label: 'Write' },
   { id: 'writing-timer' as const, icon: Timer, label: 'Writing Timer' },
   { id: 'library' as const, icon: Library, label: 'Library' },

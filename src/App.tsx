@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import AuthPage from '@/components/AuthPage';
 import Layout from '@/components/Layout';
+import { ViewType } from './types';
 
 const PoemEditor = lazy(() => import('@/components/PoemEditor'));
 const Library = lazy(() => import('@/components/Library'));
@@ -37,6 +38,7 @@ const Forums = lazy(() => import('@/components/Forums'));
 const Collections = lazy(() => import('@/components/Collections'));
 const Favorites = lazy(() => import('@/components/Favorites'));
 const WritingTimer = lazy(() => import('@/components/WritingTimer'));
+const DashboardPage = lazy(() => import('@/pages/DashboardPage'));
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -114,7 +116,7 @@ function AppContent() {
 }
 
 function MainApp() {
-    const [currentView, setCurrentView] = useState<'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'profile' | 'feed' | 'workshops' | 'collaborative' | 'challenges' | 'goals' | 'contests' | 'badges' | 'store' | 'paas-admin' | 'points-bank' | 'following' | 'reading-lists' | 'glossary' | 'famous-poems' | 'writing-tips' | 'daily-prompts' | 'book-clubs' | 'study-groups' | 'writing-streaks' | 'events-calendar' | 'forums' | 'collections' | 'favorites' | 'writing-timer'>('library');
+    const [currentView, setCurrentView] = useState<ViewType>('library');
     const [selectedPoemId, setSelectedPoemId] = useState<string | null>(null);
 
     const handleNewPoem = useCallback(() => {
@@ -174,6 +176,7 @@ function MainApp() {
               onEditPoem={handleEditPoem}
             />
           )}
+          {currentView === 'dashboard' && <DashboardPage />}
           {currentView === 'discover' && <Discover />}
           {currentView === 'prompts' && <Prompts />}
           {currentView === 'forms' && (

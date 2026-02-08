@@ -1,8 +1,7 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
-import { AppWindow, Moon, Sun, LogOut, PenLine, Library, Compass, TrendingUp, BookOpen, Lightbulb, Settings, Users, User, Zap, Trophy, Target, UsersRound, GraduationCap, Award, ShoppingBag, Shield, Landmark } from 'lucide-react';
-
-type ViewType = 'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'profile' | 'feed' | 'workshops' | 'collaborative' | 'challenges' | 'goals' | 'contests' | 'badges' | 'store' | 'paas-admin' | 'points-bank';
+import { AppWindow, Moon, Sun, LogOut, PenLine, Library, Compass, TrendingUp, BookOpen, Lightbulb, Settings, Users, User, Zap, Trophy, Target, UsersRound, GraduationCap, Award, ShoppingBag, Shield, Landmark, Home, BookHeart, FolderOpen, Sparkles, Calendar, LibraryBig, Heart, UserPlus, MessageSquare, Book, BookMarked, Flame, Timer } from 'lucide-react';
+import { ViewType } from '../types';
 
 interface FloatingDockProps {
   onAppDrawerOpen: () => void;
@@ -10,7 +9,7 @@ interface FloatingDockProps {
   currentView: ViewType;
 }
 
-const frequentApps: ViewType[] = ['write', 'library', 'feed', 'challenges'];
+const frequentApps: ViewType[] = ['dashboard', 'write', 'library', 'feed', 'challenges'];
 
 export default function FloatingDock({ onAppDrawerOpen, onViewChange, currentView }: FloatingDockProps) {
   const { signOut } = useAuth();
@@ -31,6 +30,7 @@ export default function FloatingDock({ onAppDrawerOpen, onViewChange, currentVie
 
         {frequentApps.map(appId => {
           const Icon = {
+            dashboard: Home,
             write: PenLine,
             library: Library,
             discover: Compass,
@@ -49,6 +49,20 @@ export default function FloatingDock({ onAppDrawerOpen, onViewChange, currentVie
             store: ShoppingBag,
             'paas-admin': Shield,
             'points-bank': Landmark,
+            'book-clubs': BookHeart,
+            collections: FolderOpen,
+            'daily-prompts': Sparkles,
+            'events-calendar': Calendar,
+            'famous-poems': LibraryBig,
+            favorites: Heart,
+            following: UserPlus,
+            forums: MessageSquare,
+            glossary: Book,
+            'reading-lists': BookMarked,
+            'study-groups': GraduationCap,
+            'writing-streaks': Flame,
+            'writing-timer': Timer,
+            'writing-tips': Lightbulb,
           }[appId] || Library;
 
           return (
