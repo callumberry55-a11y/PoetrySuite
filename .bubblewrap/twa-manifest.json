@@ -1,0 +1,42 @@
+{
+  "packageId": "com.poetrysuite.app",
+  "host": "your-domain.com",
+  "name": "Poetry Suite",
+  "launcherName": "Poetry",
+  "display": "standalone",
+  "themeColor": "#2F4F4F",
+  "navigationColor": "#2F4F4F",
+  "backgroundColor": "#ffffff",
+  "enableNotifications": true,
+  "startUrl": "/",
+  "iconUrl": "/icon-512.png",
+  "maskableIconUrl": "/icon-512.png",
+  "monochromeIconUrl": "/icon-512.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "../android.keystore",
+    "alias": "poetrysuite"
+  },
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "shortcuts": [],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "/manifest.json",
+  "fallbackType": "customtabs",
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "features": {
+    "locationDelegation": {
+      "enabled": false
+    },
+    "playBilling": {
+      "enabled": false
+    }
+  },
+  "minSdkVersion": 23,
+  "targetSdkVersion": 34,
+  "fullBackgroundRequired": false
+}
