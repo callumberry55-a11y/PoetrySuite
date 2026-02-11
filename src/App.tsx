@@ -47,7 +47,7 @@ function AppContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="h-full w-full bg-background flex items-center justify-center">
         <div className="flex flex-col items-center gap-6">
           <div className="relative w-24 h-24">
             <svg

@@ -1,169 +1,219 @@
+@import './theme.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
-    --radius: 0.5rem;
-
-    /* Material Design 3 colors */
-    --surface: 0 0% 100%;
-    --on-surface: 0 0% 7%;
-    --surface-variant: 0 0% 96%;
-    --on-surface-variant: 0 0% 27%;
-    --outline: 0 0% 50%;
-    --outline-variant: 0 0% 78%;
-
-    /* Primary colors */
-    --primary-container: 210 100% 90%;
-    --on-primary: 0 0% 100%;
-    --on-primary-container: 210 100% 10%;
-
-    /* Secondary colors */
-    --secondary-container: 0 0% 94%;
-    --on-secondary: 0 0% 100%;
-    --on-secondary-container: 0 0% 10%;
-
-    /* Error colors */
-    --error: 0 65% 51%;
-    --error-container: 0 100% 95%;
-    --on-error: 0 0% 100%;
-    --on-error-container: 0 65% 14%;
+  html, body {
+    @apply bg-background text-on-background transition-colors duration-200;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
   }
 
-  .dark {
-    --background: 0 0% 7%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 7%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 7%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
+  #root {
+    width: 100%;
+    height: 100vh;
+    height: 100dvh; /* Dynamic viewport height for mobile */
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
 
-    /* Material Design 3 dark colors */
-    --surface: 0 0% 10%;
-    --on-surface: 0 0% 90%;
-    --surface-variant: 0 0% 20%;
-    --on-surface-variant: 0 0% 70%;
-    --outline: 0 0% 50%;
-    --outline-variant: 0 0% 30%;
-
-    /* Primary colors */
-    --primary-container: 210 100% 20%;
-    --on-primary: 210 100% 10%;
-    --on-primary-container: 210 100% 90%;
-
-    /* Secondary colors */
-    --secondary-container: 0 0% 20%;
-    --on-secondary: 0 0% 10%;
-    --on-secondary-container: 0 0% 90%;
-
-    /* Error colors */
-    --error: 0 72% 51%;
-    --error-container: 0 65% 20%;
-    --on-error: 0 0% 10%;
-    --on-error-container: 0 100% 90%;
+  /* Fullscreen support */
+  body.fullscreen {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
   }
 }
 
-@layer base {
-  * {
-    border-color: hsl(var(--border));
-  }
-  body {
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
-    font-family: 'Roboto', system-ui, -apple-system, sans-serif;
-  }
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: #000;
+  color: white;
+  padding: 8px;
+  z-index: 100;
+  transition: top 0.3s;
 }
 
+.skip-link:focus {
+  top: 0;
+}
+
+/* Mobile optimization and touch-friendly styles */
 @layer utilities {
-  .skip-link {
-    @apply sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50;
+  .touch-manipulation {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Improve text readability on mobile */
+@media (max-width: 640px) {
+  html {
+    -webkit-text-size-adjust: 100%;
+    -moz-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Ensure proper spacing for bottom navigation on mobile */
+  body {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* Support for safe area insets (iPhone notch, etc.) */
+@supports (padding: max(0px)) {
+  body {
+    padding-left: max(0px, env(safe-area-inset-left));
+    padding-right: max(0px, env(safe-area-inset-right));
+  }
+}
+
+/* Improve focus visibility for keyboard navigation */
+*:focus-visible {
+  outline: 2px solid var(--primary, #3b82f6);
+  outline-offset: 2px;
+}
+
+/* Better active states for touch */
+button:active:not(:disabled) {
+  transform: scale(0.98);
+  transition: transform 0.1s ease;
+}
+
+/* Smooth scrolling for better UX */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Modern button animations and micro-interactions */
+@layer utilities {
+  .btn-hover-lift {
+    @apply transition-all duration-300 ease-out;
+  }
+
+  .btn-hover-lift:hover:not(:disabled) {
+    @apply -translate-y-0.5 shadow-lg;
+  }
+
+  .btn-hover-lift:active:not(:disabled) {
+    @apply translate-y-0 shadow-md;
+  }
+
+  .btn-shadow-glow {
+    @apply transition-shadow duration-300;
+  }
+
+  .btn-shadow-glow:hover:not(:disabled) {
+    box-shadow: 0 4px 20px rgba(var(--primary-rgb, 59, 130, 246), 0.4);
+  }
+
+  .input-focus-float {
+    @apply transition-all duration-300;
+  }
+
+  .input-focus-float:focus {
+    @apply -translate-y-0.5 shadow-lg;
+  }
+
+  .card-hover {
+    @apply transition-all duration-300;
+  }
+
+  .card-hover:hover {
+    @apply shadow-2xl scale-[1.02];
+  }
+
+  .fade-in {
+    animation: fadeIn 0.5s ease-out;
   }
 
   .slide-up {
-    animation: slideUp 0.3s ease-out;
+    animation: slideUp 0.5s ease-out;
   }
 
-  @keyframes slideUp {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+  .scale-in {
+    animation: scaleIn 0.3s ease-out;
+  }
+
+  .shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .shimmer::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.2),
+      transparent
+    );
+    animation: shimmer 2s infinite;
   }
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
-::-webkit-scrollbar-track {
-  background-color: hsl(var(--surface-variant) / 0.2);
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-::-webkit-scrollbar-thumb {
-  background-color: hsl(var(--outline) / 0.5);
-  border-radius: 9999px;
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background-color: hsl(var(--outline));
-}
-
-/* Focus visible */
-:focus-visible {
-  outline-width: 2px;
-  outline-offset: 2px;
-  outline-color: hsl(var(--primary));
-}
-
-/* Screen reader only utility */
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border-width: 0;
+@keyframes shimmer {
+  to {
+    left: 100%;
+  }
 }

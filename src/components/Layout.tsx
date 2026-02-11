@@ -68,14 +68,14 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="h-full w-full bg-background flex flex-col overflow-hidden">
       <a
         href="#main-content"
         className="skip-link bg-primary text-on-primary px-4 py-2 rounded-lg font-medium shadow-lg"
       >
         Skip to main content
       </a>
-      
+
       {showInstallPrompt && (
         <aside className="bg-primary-container text-on-primary-container px-3 sm:px-4 py-2.5 sm:py-3 shadow-xl fixed top-0 left-0 right-0 z-[100] slide-up" role="banner" aria-label="Install app banner">
           <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
@@ -106,7 +106,7 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
         </aside>
       )}
 
-      <main className="flex-1" id="main-content" role="main">
+      <main className="flex-1 overflow-auto" id="main-content" role="main">
         {children}
       </main>
 
