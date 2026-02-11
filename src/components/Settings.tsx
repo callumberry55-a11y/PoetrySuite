@@ -74,7 +74,7 @@ export default function Settings() {
         setIsInstalled(true);
       }
 
-      isSubscribed().then(setNotificationsEnabled);
+      setNotificationsEnabled(isSubscribed());
       loadNotificationPreference();
     }, 0);
 

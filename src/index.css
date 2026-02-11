@@ -1,0 +1,169 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 0 0% 3.9%;
+    --radius: 0.5rem;
+
+    /* Material Design 3 colors */
+    --surface: 0 0% 100%;
+    --on-surface: 0 0% 7%;
+    --surface-variant: 0 0% 96%;
+    --on-surface-variant: 0 0% 27%;
+    --outline: 0 0% 50%;
+    --outline-variant: 0 0% 78%;
+
+    /* Primary colors */
+    --primary-container: 210 100% 90%;
+    --on-primary: 0 0% 100%;
+    --on-primary-container: 210 100% 10%;
+
+    /* Secondary colors */
+    --secondary-container: 0 0% 94%;
+    --on-secondary: 0 0% 100%;
+    --on-secondary-container: 0 0% 10%;
+
+    /* Error colors */
+    --error: 0 65% 51%;
+    --error-container: 0 100% 95%;
+    --on-error: 0 0% 100%;
+    --on-error-container: 0 65% 14%;
+  }
+
+  .dark {
+    --background: 0 0% 7%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 7%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 7%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%;
+
+    /* Material Design 3 dark colors */
+    --surface: 0 0% 10%;
+    --on-surface: 0 0% 90%;
+    --surface-variant: 0 0% 20%;
+    --on-surface-variant: 0 0% 70%;
+    --outline: 0 0% 50%;
+    --outline-variant: 0 0% 30%;
+
+    /* Primary colors */
+    --primary-container: 210 100% 20%;
+    --on-primary: 210 100% 10%;
+    --on-primary-container: 210 100% 90%;
+
+    /* Secondary colors */
+    --secondary-container: 0 0% 20%;
+    --on-secondary: 0 0% 10%;
+    --on-secondary-container: 0 0% 90%;
+
+    /* Error colors */
+    --error: 0 72% 51%;
+    --error-container: 0 65% 20%;
+    --on-error: 0 0% 10%;
+    --on-error-container: 0 100% 90%;
+  }
+}
+
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: 'Roboto', system-ui, -apple-system, sans-serif;
+  }
+}
+
+@layer utilities {
+  .skip-link {
+    @apply sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50;
+  }
+
+  .slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: hsl(var(--surface-variant) / 0.2);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--outline) / 0.5);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(var(--outline));
+}
+
+/* Focus visible */
+:focus-visible {
+  outline-width: 2px;
+  outline-offset: 2px;
+  outline-color: hsl(var(--primary));
+}
+
+/* Screen reader only utility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
