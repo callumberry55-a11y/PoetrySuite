@@ -109,7 +109,7 @@ export default function WritingStreaks() {
 
     const today = new Date().toISOString().split('T')[0];
 
-    const streaksChannel = supabase
+    supabase
       .channel('writing_streaks_channel')
       .on(
         'postgres_changes',
@@ -129,7 +129,7 @@ export default function WritingStreaks() {
       )
       .subscribe();
 
-    const achievementsChannel = supabase
+    supabase
       .channel('user_achievements_channel')
       .on(
         'postgres_changes',
@@ -164,7 +164,7 @@ export default function WritingStreaks() {
       )
       .subscribe();
 
-    const dailyLogsChannel = supabase
+    supabase
       .channel('daily_writing_logs_channel')
       .on(
         'postgres_changes',

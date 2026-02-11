@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Mic, Calendar, MapPin, Users, Plus } from 'lucide-react';
-import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 
 interface Reading {

@@ -1,9 +1,11 @@
-import { lazy, Suspense, useState, useCallback } from 'react';
+import { lazy, Suspense, useState, useCallback, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
+import { NetworkProvider } from '@/contexts/NetworkContext';
 import AuthPage from '@/components/AuthPage';
-import Layout from '@/components/Layout';
+import Layout, { ViewType } from '@/components/Layout';
+import NetworkIndicator from '@/components/NetworkIndicator';
 
 const PoemEditor = lazy(() => import('@/components/PoemEditor'));
 const Library = lazy(() => import('@/components/Library'));
@@ -23,6 +25,37 @@ const Badges = lazy(() => import('@/components/Badges'));
 const Store = lazy(() => import('@/components/Store'));
 const PaaSAuth = lazy(() => import('@/components/PaaSAuth'));
 const PointsBank = lazy(() => import('@/components/PointsBank'));
+const FollowingNetwork = lazy(() => import('@/components/FollowingNetwork'));
+const ReadingLists = lazy(() => import('@/components/ReadingLists'));
+const PoetryGlossary = lazy(() => import('@/components/PoetryGlossary'));
+const FamousPoems = lazy(() => import('@/components/FamousPoems'));
+const WritingTips = lazy(() => import('@/components/WritingTips'));
+const DailyPrompts = lazy(() => import('@/components/DailyPrompts'));
+const BookClubs = lazy(() => import('@/components/BookClubs'));
+const StudyGroups = lazy(() => import('@/components/StudyGroups'));
+const WritingStreaks = lazy(() => import('@/components/WritingStreaks'));
+const Forums = lazy(() => import('@/components/Forums'));
+const Collections = lazy(() => import('@/components/Collections'));
+const Favorites = lazy(() => import('@/components/Favorites'));
+const WritingTimer = lazy(() => import('@/components/WritingTimer'));
+const Quizzes = lazy(() => import('@/components/Quizzes'));
+const WritingTools = lazy(() => import('@/components/WritingTools'));
+const ExportTools = lazy(() => import('@/components/ExportTools'));
+const ManuscriptManager = lazy(() => import('@/components/ManuscriptManager'));
+const PoetryJournal = lazy(() => import('@/components/PoetryJournal'));
+const PromptRoulette = lazy(() => import('@/components/PromptRoulette'));
+const WordGames = lazy(() => import('@/components/WordGames'));
+const PoetrySwaps = lazy(() => import('@/components/PoetrySwaps'));
+const WritingBuddies = lazy(() => import('@/components/WritingBuddies'));
+const CritiqueCircles = lazy(() => import('@/components/CritiqueCircles'));
+const PublicReadings = lazy(() => import('@/components/PublicReadings'));
+const PoetryBingo = lazy(() => import('@/components/PoetryBingo'));
+const FocusMode = lazy(() => import('@/components/FocusMode'));
+const WritingStatistics = lazy(() => import('@/components/WritingStatistics'));
+const DailyWordGoals = lazy(() => import('@/components/DailyWordGoals'));
+const FormChallenges = lazy(() => import('@/components/FormChallenges'));
+const TagsManager = lazy(() => import('@/components/TagsManager'));
+const WritingCalendar = lazy(() => import('@/components/WritingCalendar'));
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -36,18 +69,25 @@ function AppContent() {
               viewBox="0 0 100 100"
               className="w-full h-full animate-[walk_0.8s_ease-in-out_infinite]"
             >
+              {/* Pigeon body */}
               <ellipse cx="50" cy="55" rx="20" ry="18" fill="currentColor" className="text-primary opacity-90" />
 
+              {/* Pigeon head */}
               <circle cx="65" cy="45" r="12" fill="currentColor" className="text-primary" />
 
+              {/* Pigeon beak */}
               <path d="M 75 45 L 82 43 L 82 47 Z" fill="currentColor" className="text-primary/70" />
 
+              {/* Pigeon eye */}
               <circle cx="70" cy="43" r="2" fill="currentColor" className="text-background" />
 
+              {/* Pigeon wing */}
               <ellipse cx="45" cy="55" rx="12" ry="15" fill="currentColor" className="text-primary/60" transform="rotate(-20 45 55)" />
 
+              {/* Pigeon tail */}
               <ellipse cx="32" cy="58" rx="8" ry="12" fill="currentColor" className="text-primary/80" transform="rotate(25 32 58)" />
 
+              {/* Pigeon legs - animated */}
               <g className="animate-[step-left_0.8s_ease-in-out_infinite]">
                 <line x1="45" y1="70" x2="45" y2="80" stroke="currentColor" strokeWidth="2" className="text-primary/90" />
                 <path d="M 45 80 L 42 82 M 45 80 L 48 82" stroke="currentColor" strokeWidth="2" className="text-primary/90" />
@@ -86,15 +126,45 @@ function AppContent() {
   }
 
   return (
-    <Routes>
-      <Route path="/*" element={user ? <MainApp /> : <AuthPage />} />
-    </Routes>
+    <>
+      <NetworkIndicator />
+      <Routes>
+        <Route path="/*" element={user ? <MainApp /> : <AuthPage />} />
+      </Routes>
+    </>
   );
 }
 
 function MainApp() {
-    const [currentView, setCurrentView] = useState<'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'profile' | 'feed' | 'workshops' | 'collaborative' | 'challenges' | 'goals' | 'contests' | 'badges' | 'store' | 'paas-admin' | 'points-bank'>('library');
+    const [currentView, setCurrentView] = useState<ViewType>('library');
     const [selectedPoemId, setSelectedPoemId] = useState<string | null>(null);
+
+    useEffect(() => {
+      const params = new URLSearchParams(window.location.search);
+      const action = params.get('action');
+
+      if (action) {
+        switch (action) {
+          case 'new':
+            setSelectedPoemId(null);
+            setCurrentView('write');
+            break;
+          case 'library':
+            setCurrentView('library');
+            break;
+          case 'prompt':
+            setCurrentView('daily-prompts');
+            break;
+          case 'discover':
+            setCurrentView('discover');
+            break;
+          default:
+            break;
+        }
+
+        window.history.replaceState({}, '', window.location.pathname);
+      }
+    }, []);
 
     const handleNewPoem = useCallback(() => {
       setSelectedPoemId(null);
@@ -176,6 +246,37 @@ function MainApp() {
           {currentView === 'store' && <Store />}
           {currentView === 'paas-admin' && <PaaSAuth />}
           {currentView === 'points-bank' && <PointsBank />}
+          {currentView === 'following' && <FollowingNetwork />}
+          {currentView === 'reading-lists' && <ReadingLists />}
+          {currentView === 'glossary' && <PoetryGlossary />}
+          {currentView === 'famous-poems' && <FamousPoems />}
+          {currentView === 'writing-tips' && <WritingTips />}
+          {currentView === 'daily-prompts' && <DailyPrompts />}
+          {currentView === 'book-clubs' && <BookClubs />}
+          {currentView === 'study-groups' && <StudyGroups />}
+          {currentView === 'writing-streaks' && <WritingStreaks />}
+          {currentView === 'forums' && <Forums />}
+          {currentView === 'collections' && <Collections />}
+          {currentView === 'favorites' && <Favorites />}
+          {currentView === 'writing-timer' && <WritingTimer />}
+          {currentView === 'quizzes' && <Quizzes />}
+          {currentView === 'writing-tools' && <WritingTools />}
+          {currentView === 'export-tools' && <ExportTools />}
+          {currentView === 'manuscript-manager' && <ManuscriptManager />}
+          {currentView === 'poetry-journal' && <PoetryJournal />}
+          {currentView === 'prompt-roulette' && <PromptRoulette />}
+          {currentView === 'word-games' && <WordGames />}
+          {currentView === 'poetry-swaps' && <PoetrySwaps />}
+          {currentView === 'writing-buddies' && <WritingBuddies />}
+          {currentView === 'critique-circles' && <CritiqueCircles />}
+          {currentView === 'public-readings' && <PublicReadings />}
+          {currentView === 'poetry-bingo' && <PoetryBingo />}
+          {currentView === 'focus-mode' && <FocusMode />}
+          {currentView === 'writing-statistics' && <WritingStatistics />}
+          {currentView === 'daily-word-goals' && <DailyWordGoals />}
+          {currentView === 'form-challenges' && <FormChallenges />}
+          {currentView === 'tags-manager' && <TagsManager />}
+          {currentView === 'writing-calendar' && <WritingCalendar />}
         </Suspense>
       </Layout>
     )
@@ -185,9 +286,11 @@ function App() {
   return (
     <Router>
       <ThemeProvider>
-        <AuthProvider>
-          <AppContent />
-        </AuthProvider>
+        <NetworkProvider>
+          <AuthProvider>
+            <AppContent />
+          </AuthProvider>
+        </NetworkProvider>
       </ThemeProvider>
     </Router>
   );

@@ -1,8 +1,7 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { AppWindow, Moon, Sun, LogOut, PenLine, Library, Compass, TrendingUp, BookOpen, Lightbulb, Settings, Users, User, Zap, Trophy, Target, UsersRound, GraduationCap, Award, ShoppingBag, Shield, Landmark, UserPlus, ListChecks, BookMarked, Feather, Pencil, MessageSquare, FolderHeart, Heart, Timer, Wrench, Download, FileText, BookCopy, Shuffle, Gamepad2, RefreshCw, UserCheck, MessageCircle, Mic, Grid3x3, Focus, BarChart3, Tag, Calendar as CalendarIcon } from 'lucide-react';
-
-type ViewType = 'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'profile' | 'feed' | 'workshops' | 'collaborative' | 'challenges' | 'goals' | 'contests' | 'badges' | 'store' | 'paas-admin' | 'points-bank' | 'following' | 'reading-lists' | 'glossary' | 'famous-poems' | 'writing-tips' | 'daily-prompts' | 'book-clubs' | 'study-groups' | 'writing-streaks' | 'forums' | 'collections' | 'favorites' | 'writing-timer' | 'writing-tools' | 'export-tools' | 'manuscript-manager' | 'poetry-journal' | 'prompt-roulette' | 'word-games' | 'poetry-swaps' | 'writing-buddies' | 'critique-circles' | 'public-readings' | 'poetry-bingo' | 'focus-mode' | 'writing-statistics' | 'daily-word-goals' | 'form-challenges' | 'tags-manager' | 'writing-calendar';
+import { ViewType } from './Layout';
 
 interface FloatingDockProps {
   onAppDrawerOpen: () => void;
@@ -61,6 +60,7 @@ export default function FloatingDock({ onAppDrawerOpen, onViewChange, currentVie
             forums: MessageSquare,
             collections: FolderHeart,
             favorites: Heart,
+            quizzes: BookOpen,
             'writing-timer': Timer,
             'writing-tools': Wrench,
             'export-tools': Download,

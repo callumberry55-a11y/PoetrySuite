@@ -1,6 +1,5 @@
 import { BookHeart, PenLine, Library, BarChart3, Settings, Compass, Lightbulb, BookOpen, X, User, Users, UsersRound, Zap, Target, Trophy, Award, ShoppingBag, Shield, Landmark, UserPlus, BookMarked, Book, LibraryBig, Sparkles, GraduationCap, Flame, MessageSquare, FolderOpen, Heart, Timer, Brain, Wrench, Download, BookCopy, FileText, Shuffle, Gamepad2, RefreshCw, UserCheck, MessageCircle, Mic, Grid3x3, Focus, Tag, Calendar as CalendarIcon } from 'lucide-react';
-
-type ViewType = 'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'profile' | 'feed' | 'workshops' | 'collaborative' | 'challenges' | 'goals' | 'contests' | 'badges' | 'store' | 'paas-admin' | 'points-bank' | 'following' | 'reading-lists' | 'glossary' | 'famous-poems' | 'writing-tips' | 'daily-prompts' | 'book-clubs' | 'study-groups' | 'writing-streaks' | 'forums' | 'collections' | 'favorites' | 'writing-timer' | 'quizzes' | 'writing-tools' | 'export-tools' | 'manuscript-manager' | 'poetry-journal' | 'prompt-roulette' | 'word-games' | 'poetry-swaps' | 'writing-buddies' | 'critique-circles' | 'public-readings' | 'poetry-bingo' | 'focus-mode' | 'writing-statistics' | 'daily-word-goals' | 'form-challenges' | 'tags-manager' | 'writing-calendar';
+import { ViewType } from './Layout';
 
 interface AppDrawerProps {
   isOpen: boolean;

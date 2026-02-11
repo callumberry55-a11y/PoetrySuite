@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { Clock, Play, Pause, RotateCcw, Send, Trophy } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
 
 interface Challenge {
   id: string;
@@ -14,7 +13,6 @@ interface Challenge {
 
 export default function FormChallenges() {
   const { user } = useAuth();
-  const navigate = useNavigate();
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null);
   const [timeLeft, setTimeLeft] = useState(0);

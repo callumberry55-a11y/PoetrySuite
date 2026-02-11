@@ -8,7 +8,6 @@ import {
   ChevronRight,
   Eye,
   Upload,
-  Image as ImageIcon,
 } from 'lucide-react';
 
 interface Story {
@@ -240,7 +239,7 @@ export default function Stories() {
     const fileName = `${user.id}/${Date.now()}.${fileExt}`;
     const contentType = uploadFile.type.startsWith('video/') ? 'video' : 'image';
 
-    const { error: uploadError, data } = await supabase.storage
+    const { error: uploadError } = await supabase.storage
       .from('stories')
       .upload(fileName, uploadFile);
 

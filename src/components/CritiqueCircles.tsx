@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MessageCircle, Users, Plus, Send } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { MessageCircle, Users, Plus } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 interface Circle {
