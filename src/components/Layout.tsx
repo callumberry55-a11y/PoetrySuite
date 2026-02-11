@@ -3,7 +3,7 @@ import { Download, X } from 'lucide-react';
 import AppDrawer from './AppDrawer';
 import FloatingDock from './FloatingDock';
 
-export type ViewType = 'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'profile' | 'feed' | 'workshops' | 'collaborative' | 'challenges' | 'goals' | 'contests' | 'badges' | 'store' | 'paas-admin' | 'points-bank' | 'following' | 'reading-lists' | 'glossary' | 'famous-poems' | 'writing-tips' | 'daily-prompts' | 'book-clubs' | 'study-groups' | 'writing-streaks' | 'forums' | 'collections' | 'favorites' | 'writing-timer' | 'quizzes' | 'writing-tools' | 'export-tools' | 'manuscript-manager' | 'poetry-journal' | 'prompt-roulette' | 'word-games' | 'poetry-swaps' | 'writing-buddies' | 'critique-circles' | 'public-readings' | 'poetry-bingo' | 'focus-mode' | 'writing-statistics' | 'daily-word-goals' | 'form-challenges' | 'tags-manager' | 'writing-calendar';
+type ViewType = 'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'profile' | 'feed' | 'workshops' | 'collaborative' | 'challenges' | 'goals' | 'contests' | 'badges' | 'store' | 'paas-admin' | 'points-bank' | 'following' | 'reading-lists' | 'glossary' | 'famous-poems' | 'writing-tips' | 'daily-prompts' | 'book-clubs' | 'study-groups' | 'writing-streaks' | 'forums' | 'collections' | 'favorites' | 'writing-timer';
 
 interface LayoutProps {
   children: ReactNode;

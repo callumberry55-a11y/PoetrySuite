@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BookMarked, Plus, Search, Lock, Globe, Trash2, Edit2, X, GripVertical, BookOpen } from 'lucide-react';
+import { BookMarked, Plus, Search, Lock, Globe, Trash2, Edit2, X, Check, GripVertical, Eye, Share2, BookOpen } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 

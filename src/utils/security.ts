@@ -1,28 +1,34 @@
-export function sanitizeHtml(html: string): string {
-  const tempDiv = document.createElement('div');
-  tempDiv.textContent = html;
-  return tempDiv.innerHTML;
+import { getFunctions, httpsCallable } from 'firebase/functions';
+
+interface SecurityGuardResponse {
+  status: 'malicious' | 'safe';
 }
 
-export function escapeHtml(text: string): string {
-  const map: Record<string, string> = {
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#039;'
-  };
-  return text.replace(/[&<>"']/g, (m) => map[m]);
-}
+/**
+ * Invokes the 'securityGuard' Firebase Cloud Function to perform a real-time
+ * security assessment of the user's input.
+ *
+ * This check analyzes the input for potential threats like XSS attacks.
+ *
+ * @returns {Promise<boolean>} A boolean indicating whether the input is malicious.
+ */
+export const runSecurityChecks = async (userInput: string): Promise<boolean> => {
+  console.log('Invoking AI Security Guard...');
 
-export function runSecurityChecks(content: string): boolean {
-  // Basic security checks for content
-  const dangerousPatterns = [
-    /<script/i,
-    /javascript:/i,
-    /onerror=/i,
-    /onload=/i,
-  ];
+  try {
+    const functions = getFunctions();
+    const securityGuard = httpsCallable<{ userInput: string }, SecurityGuardResponse>(functions, 'securityGuard');
+    const result = await securityGuard({ userInput });
+    const isMalicious = result.data.status === 'malicious';
 
-  return !dangerousPatterns.some(pattern => pattern.test(content));
-}
+    if (isMalicious) {
+      console.warn(`Security Alert: Malicious input detected (length: ${userInput.length} characters)`);
+    }
+
+    return isMalicious;
+
+  } catch (err) {
+    console.error('An unexpected error occurred during the security check:', err);
+    return true; // Default to malicious if an error occurs
+  }
+};

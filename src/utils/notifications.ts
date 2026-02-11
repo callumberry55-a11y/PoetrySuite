@@ -1,35 +1,17 @@
-export async function requestNotificationPermission(): Promise<NotificationPermission> {
-  if (!('Notification' in window)) {
-    return 'denied';
-  }
-
-  if (Notification.permission === 'granted') {
-    return 'granted';
-  }
-
-  if (Notification.permission !== 'denied') {
-    const permission = await Notification.requestPermission();
-    return permission;
-  }
-
-  return Notification.permission;
+export async function subscribeToNotifications() {
+  console.log('subscribeToNotifications called');
+  // In a real app, you'd have service worker and push API logic here
+  return Promise.resolve();
 }
 
-export function sendNotification(title: string, options?: NotificationOptions) {
-  if (Notification.permission === 'granted') {
-    new Notification(title, options);
-  }
+export async function unsubscribeFromNotifications() {
+  console.log('unsubscribeFromNotifications called');
+  // In a real app, you'd have service worker and push API logic here
+  return Promise.resolve();
 }
 
-export async function subscribeToNotifications(): Promise<void> {
-  await requestNotificationPermission();
-  localStorage.setItem('notifications_subscribed', 'true');
-}
-
-export async function unsubscribeFromNotifications(): Promise<void> {
-  localStorage.setItem('notifications_subscribed', 'false');
-}
-
-export function isSubscribed(): boolean {
-  return localStorage.getItem('notifications_subscribed') === 'true';
+export async function isSubscribed() {
+  console.log('isSubscribed called');
+  // In a real app, you'd have service worker and push API logic here
+  return Promise.resolve(false);
 }

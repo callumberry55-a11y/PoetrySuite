@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { MessageSquare, Plus, Eye, Clock, Send, X, ArrowLeft, Pin } from 'lucide-react';
+import { MessageSquare, Plus, Eye, Clock, Send, X, ArrowLeft, Pin, TrendingUp, Search, Filter } from 'lucide-react';
 
 interface ForumCategory {
   id: string;
@@ -311,7 +311,7 @@ export default function Forums() {
               </div>
 
               <div className="space-y-4 mb-8">
-                {replies.map((reply) => (
+                {replies.map((reply, index) => (
                   <div
                     key={reply.id}
                     className="group relative pl-6 py-4 border-l-4 border-emerald-200 dark:border-emerald-800 hover:border-emerald-400 dark:hover:border-emerald-600 transition-all rounded-r-lg hover:bg-emerald-50/50 dark:hover:bg-emerald-900/10"

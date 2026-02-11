@@ -1,11 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
-import {
-  Target, Plus, TrendingUp, CheckCircle, Award, Lock,
-  Trophy, Star, Zap, Flame, Heart, BookOpen, Feather,
-  PenTool, Sparkles, Crown, Medal, Flag, Rocket
-} from 'lucide-react';
+import { Target, Plus, TrendingUp, CheckCircle, Award, Lock } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
 
 interface Goal {
   id: string;
@@ -141,24 +138,12 @@ export default function Goals() {
   };
 
   const getBadgeIcon = (iconName: string) => {
-    const iconMap: Record<string, typeof Award> = {
-      'trophy': Trophy,
-      'star': Star,
-      'zap': Zap,
-      'flame': Flame,
-      'heart': Heart,
-      'book-open': BookOpen,
-      'feather': Feather,
-      'pen-tool': PenTool,
-      'sparkles': Sparkles,
-      'crown': Crown,
-      'medal': Medal,
-      'flag': Flag,
-      'rocket': Rocket,
-      'award': Award
-    };
+    const iconKey = iconName.split('-').map((part, i) =>
+      i === 0 ? part.charAt(0).toUpperCase() + part.slice(1) : part.charAt(0).toUpperCase() + part.slice(1)
+    ).join('');
 
-    return iconMap[iconName.toLowerCase()] || Award;
+    const Icon = (LucideIcons as any)[iconKey];
+    return Icon || Award;
   };
 
   return (

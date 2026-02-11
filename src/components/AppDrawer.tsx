@@ -1,5 +1,6 @@
-import { BookHeart, PenLine, Library, BarChart3, Settings, Compass, Lightbulb, BookOpen, X, User, Users, UsersRound, Zap, Target, Trophy, Award, ShoppingBag, Shield, Landmark, UserPlus, BookMarked, Book, LibraryBig, Sparkles, GraduationCap, Flame, MessageSquare, FolderOpen, Heart, Timer, Brain, Wrench, Download, BookCopy, FileText, Shuffle, Gamepad2, RefreshCw, UserCheck, MessageCircle, Mic, Grid3x3, Focus, Tag, Calendar as CalendarIcon } from 'lucide-react';
-import { ViewType } from './Layout';
+import { BookHeart, PenLine, Library, BarChart3, Settings, Compass, Lightbulb, BookOpen, X, User, Users, UsersRound, Zap, Target, Trophy, Award, ShoppingBag, Shield, Landmark, UserPlus, BookMarked, Book, LibraryBig, Sparkles, GraduationCap, Flame, MessageSquare, FolderOpen, Heart, Timer, Brain } from 'lucide-react';
+
+type ViewType = 'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'profile' | 'feed' | 'workshops' | 'collaborative' | 'challenges' | 'goals' | 'contests' | 'badges' | 'store' | 'paas-admin' | 'points-bank' | 'following' | 'reading-lists' | 'glossary' | 'famous-poems' | 'writing-tips' | 'daily-prompts' | 'book-clubs' | 'study-groups' | 'writing-streaks' | 'forums' | 'collections' | 'favorites' | 'writing-timer' | 'quizzes';
 
 interface AppDrawerProps {
   isOpen: boolean;
@@ -13,14 +14,10 @@ const navSections = [
     title: 'Writing',
     items: [
       { id: 'write' as const, icon: PenLine, label: 'Write', color: 'text-blue-500' },
-      { id: 'focus-mode' as const, icon: Focus, label: 'Focus Mode', color: 'text-indigo-500' },
-      { id: 'writing-timer' as const, icon: Timer, label: 'Timer', color: 'text-orange-500' },
+      { id: 'writing-timer' as const, icon: Timer, label: 'Writing Timer', color: 'text-orange-500' },
       { id: 'library' as const, icon: Library, label: 'Library', color: 'text-emerald-500' },
       { id: 'collections' as const, icon: FolderOpen, label: 'Collections', color: 'text-cyan-500' },
       { id: 'favorites' as const, icon: Heart, label: 'Favorites', color: 'text-rose-500' },
-      { id: 'poetry-journal' as const, icon: FileText, label: 'Journal', color: 'text-yellow-500' },
-      { id: 'manuscript-manager' as const, icon: BookCopy, label: 'Manuscripts', color: 'text-purple-500' },
-      { id: 'tags-manager' as const, icon: Tag, label: 'Tags', color: 'text-pink-500' },
     ]
   },
   {
@@ -28,24 +25,11 @@ const navSections = [
     items: [
       { id: 'feed' as const, icon: Users, label: 'Social Feed', color: 'text-violet-500' },
       { id: 'following' as const, icon: UserPlus, label: 'Community', color: 'text-pink-500' },
-      { id: 'writing-buddies' as const, icon: UserCheck, label: 'Writing Buddies', color: 'text-blue-500' },
-      { id: 'critique-circles' as const, icon: MessageCircle, label: 'Critique Circles', color: 'text-green-500' },
-      { id: 'poetry-swaps' as const, icon: RefreshCw, label: 'Poetry Swaps', color: 'text-cyan-500' },
-      { id: 'public-readings' as const, icon: Mic, label: 'Public Readings', color: 'text-purple-500' },
       { id: 'book-clubs' as const, icon: BookHeart, label: 'Book Clubs', color: 'text-fuchsia-500' },
       { id: 'study-groups' as const, icon: GraduationCap, label: 'Study Groups', color: 'text-amber-500' },
       { id: 'forums' as const, icon: MessageSquare, label: 'Forums', color: 'text-teal-500' },
       { id: 'workshops' as const, icon: UsersRound, label: 'Workshops', color: 'text-lime-500' },
       { id: 'collaborative' as const, icon: Users, label: 'Collaborative', color: 'text-sky-500' },
-    ]
-  },
-  {
-    title: 'Tools',
-    items: [
-      { id: 'writing-tools' as const, icon: Wrench, label: 'Writing Tools', color: 'text-blue-500' },
-      { id: 'export-tools' as const, icon: Download, label: 'Export', color: 'text-orange-500' },
-      { id: 'writing-statistics' as const, icon: BarChart3, label: 'Statistics', color: 'text-green-500' },
-      { id: 'writing-calendar' as const, icon: CalendarIcon, label: 'Calendar', color: 'text-purple-500' },
     ]
   },
   {
@@ -65,19 +49,9 @@ const navSections = [
     items: [
       { id: 'prompts' as const, icon: Lightbulb, label: 'Prompts', color: 'text-yellow-500' },
       { id: 'daily-prompts' as const, icon: Sparkles, label: 'Daily Prompts', color: 'text-pink-500' },
-      { id: 'prompt-roulette' as const, icon: Shuffle, label: 'Prompt Roulette', color: 'text-purple-500' },
       { id: 'writing-streaks' as const, icon: Flame, label: 'Streaks', color: 'text-orange-500' },
       { id: 'challenges' as const, icon: Zap, label: 'Challenges', color: 'text-yellow-500' },
-      { id: 'form-challenges' as const, icon: Zap, label: 'Form Challenges', color: 'text-red-500' },
       { id: 'goals' as const, icon: Target, label: 'Goals', color: 'text-green-500' },
-      { id: 'daily-word-goals' as const, icon: Target, label: 'Word Goals', color: 'text-blue-500' },
-    ]
-  },
-  {
-    title: 'Games',
-    items: [
-      { id: 'word-games' as const, icon: Gamepad2, label: 'Word Games', color: 'text-blue-500' },
-      { id: 'poetry-bingo' as const, icon: Grid3x3, label: 'Poetry Bingo', color: 'text-green-500' },
     ]
   },
   {

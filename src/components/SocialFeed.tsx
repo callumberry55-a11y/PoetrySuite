@@ -671,7 +671,7 @@ export default function SocialFeed() {
                     </button>
                   </div>
 
-                  <CommentsSection postId={selectedPoem.id} />
+                  <CommentsSection poemId={selectedPoem.id} />
                 </div>
               </div>
             </div>
