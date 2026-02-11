@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/contexts/ToastContext';
 import { supabase } from '@/lib/supabase';
 import {
   Star,
@@ -53,6 +54,7 @@ interface LibraryProps {
 
 function Library({ onEditPoem }: LibraryProps) {
   const { user } = useAuth();
+  const toast = useToast();
   const [poems, setPoems] = useState<Poem[]>([]);
   const [collections, setCollections] = useState<Collection[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -70,46 +72,63 @@ function Library({ onEditPoem }: LibraryProps) {
   const loadPoems = useCallback(async () => {
     if (!user) return;
 
-    const { data, error } = await supabase
-      .from('poems')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('updated_at', { ascending: false });
+    try {
+      // Fetch poems with counts in a single optimized query
+      const { data: poemsData, error: poemsError } = await supabase
+        .from('poems')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('updated_at', { ascending: false });
 
-    if (error) {
+      if (poemsError) {
+        console.error('Error loading poems:', poemsError);
+        return;
+      }
+
+      if (!poemsData || poemsData.length === 0) {
+        setPoems([]);
+        return;
+      }
+
+      // Get all poem IDs for batch querying
+      const poemIds = poemsData.map(p => p.id);
+
+      // Fetch all reaction counts in one query
+      const { data: reactionCounts } = await supabase
+        .from('reactions')
+        .select('poem_id')
+        .in('poem_id', poemIds);
+
+      // Fetch all comment counts in one query
+      const { data: commentCounts } = await supabase
+        .from('comments')
+        .select('poem_id')
+        .in('poem_id', poemIds);
+
+      // Create count maps for O(n) lookup
+      const reactionCountMap = new Map<string, number>();
+      const commentCountMap = new Map<string, number>();
+
+      reactionCounts?.forEach(r => {
+        reactionCountMap.set(r.poem_id, (reactionCountMap.get(r.poem_id) || 0) + 1);
+      });
+
+      commentCounts?.forEach(c => {
+        commentCountMap.set(c.poem_id, (commentCountMap.get(c.poem_id) || 0) + 1);
+      });
+
+      // Merge counts with poems
+      const poemsWithCounts = poemsData.map(poem => ({
+        ...poem,
+        like_count: reactionCountMap.get(poem.id) || 0,
+        comment_count: commentCountMap.get(poem.id) || 0,
+      }));
+
+      setPoems(poemsWithCounts);
+    } catch (error) {
       console.error('Error loading poems:', error);
-      return;
+      setPoems([]);
     }
-
-    const poemsWithCounts = await Promise.allSettled(
-      (data || []).map(async (poem) => {
-        try {
-          const { count: likeCount } = await supabase
-            .from('reactions')
-            .select('id', { count: 'exact', head: true })
-            .eq('poem_id', poem.id);
-
-          const { count: commentCount } = await supabase
-            .from('comments')
-            .select('id', { count: 'exact', head: true })
-            .eq('poem_id', poem.id);
-
-          return {
-            ...poem,
-            like_count: likeCount || 0,
-            comment_count: commentCount || 0,
-          };
-        } catch {
-          return {
-            ...poem,
-            like_count: 0,
-            comment_count: 0,
-          };
-        }
-      })
-    ).then(results => results.map(r => r.status === 'fulfilled' ? r.value : null).filter(Boolean) as Poem[]);
-
-    setPoems(poemsWithCounts);
   }, [user]);
 
   const loadCollections = useCallback(async () => {
@@ -152,6 +171,7 @@ function Library({ onEditPoem }: LibraryProps) {
     setPoemCollections(mapping);
   }, [user]);
 
+  // Load data when user changes - functions are stable since they only depend on user
   useEffect(() => {
     if (user) {
       const loadData = async () => {
@@ -163,7 +183,8 @@ function Library({ onEditPoem }: LibraryProps) {
       };
       loadData();
     }
-  }, [user, loadPoems, loadCollections, loadPoemCollections]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   const fetchInternetPoems = useCallback(async (action: string, params: Record<string, string> = {}) => {
     if (!user) return;
@@ -213,7 +234,7 @@ function Library({ onEditPoem }: LibraryProps) {
 
   const saveInternetPoem = useCallback(async (poem: InternetPoem, index: number) => {
     if (!user) {
-      alert('Please sign in to save poems');
+      toast.warning('Please sign in to save poems');
       return;
     }
 
@@ -239,13 +260,14 @@ function Library({ onEditPoem }: LibraryProps) {
       if (error) {
         console.error('Error saving poem:', error);
         if (error.code === '23505') {
-          alert('This poem is already in your library');
+          toast.info('This poem is already in your library');
         } else {
-          alert(`Failed to save poem: ${error.message || 'Unknown error'}`);
+          toast.error(`Failed to save poem: ${error.message || 'Unknown error'}`);
         }
         return;
       }
 
+      toast.success('Poem saved to your library!');
       setSavedPoems(prev => new Set(prev).add(poemKey));
       setTimeout(() => {
         setSavedPoems(prev => {
@@ -258,7 +280,7 @@ function Library({ onEditPoem }: LibraryProps) {
       await loadPoems();
     } catch (err) {
       console.error('Unexpected error saving poem:', err);
-      alert('An unexpected error occurred while saving the poem');
+      toast.error('An unexpected error occurred while saving the poem');
     } finally {
       setSavingPoems(prev => {
         const newSet = new Set(prev);

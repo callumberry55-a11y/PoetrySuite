@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/contexts/ToastContext';
 import { supabase } from '@/lib/supabase';
 import {
   MapPin,
@@ -51,6 +52,7 @@ interface WritingStreak {
 
 export default function Profile() {
   const { user } = useAuth();
+  const toast = useToast();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [badges, setBadges] = useState<UserBadge[]>([]);
   const [streak, setStreak] = useState<WritingStreak | null>(null);
@@ -213,13 +215,13 @@ export default function Profile() {
     // Validate file type
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
     if (!validTypes.includes(file.type)) {
-      alert('Please upload a valid image file (JPEG, PNG, GIF, or WebP)');
+      toast.error('Please upload a valid image file (JPEG, PNG, GIF, or WebP)');
       return;
     }
 
     // Validate file size (5MB)
     if (file.size > 5 * 1024 * 1024) {
-      alert('Image size must be less than 5MB');
+      toast.error('Image size must be less than 5MB');
       return;
     }
 
@@ -266,7 +268,7 @@ export default function Profile() {
 
     } catch (error) {
       console.error('Error uploading avatar:', error);
-      alert('Failed to upload avatar. Please try again.');
+      toast.error('Failed to upload avatar. Please try again.');
     } finally {
       setUploadingAvatar(false);
     }
@@ -293,10 +295,11 @@ export default function Profile() {
 
     if (error) {
       console.error('Error saving profile:', error);
-      alert('Failed to save profile: ' + error.message);
+      toast.error('Failed to save profile: ' + error.message);
       return;
     }
 
+    toast.success('Profile updated successfully!');
     setIsEditing(false);
     setAvatarPreview(null);
     loadProfile();

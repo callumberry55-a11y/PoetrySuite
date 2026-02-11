@@ -23,6 +23,7 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
   const [error, setError] = useState<string | null>(null);
   const [showAI, setShowAI] = useState(false);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const savePoemRef = useRef<(() => Promise<void>) | null>(null);
 
   const wordCount = content.trim() ? content.trim().split(/\s+/).length : 0;
   const lineCount = content.trim() ? content.split('\n').length : 1;
@@ -122,6 +123,11 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
     }
   }, [user, content, title, isPublic, favorited, wordCount, currentPoemId]);
 
+  // Keep ref updated with latest savePoem function
+  useEffect(() => {
+    savePoemRef.current = savePoem;
+  }, [savePoem]);
+
   const resetEditor = useCallback(() => {
     setTitle('');
     setContent('');
@@ -177,15 +183,18 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
     }
   }, [selectedPoemId, loadPoem, resetEditor]);
 
+  // Autosave effect - only depends on title and content, uses ref for savePoem
   useEffect(() => {
     if (content.trim() || title.trim()) {
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-      saveTimeoutRef.current = setTimeout(savePoem, 1500);
+      saveTimeoutRef.current = setTimeout(() => {
+        savePoemRef.current?.();
+      }, 1500);
     }
     return () => {
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     };
-  }, [title, content, savePoem]);
+  }, [title, content]);
 
   const handleInsertText = (text: string) => {
     setContent(content + text);

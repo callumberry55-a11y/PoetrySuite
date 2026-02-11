@@ -3,9 +3,11 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { NetworkProvider } from '@/contexts/NetworkContext';
+import { ToastProvider } from '@/contexts/ToastContext';
 import AuthPage from '@/components/AuthPage';
-import Layout, { ViewType } from '@/components/Layout';
+import Layout from '@/components/Layout';
 import NetworkIndicator from '@/components/NetworkIndicator';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 const PoemEditor = lazy(() => import('@/components/PoemEditor'));
 const Library = lazy(() => import('@/components/Library'));
@@ -39,23 +41,6 @@ const Collections = lazy(() => import('@/components/Collections'));
 const Favorites = lazy(() => import('@/components/Favorites'));
 const WritingTimer = lazy(() => import('@/components/WritingTimer'));
 const Quizzes = lazy(() => import('@/components/Quizzes'));
-const WritingTools = lazy(() => import('@/components/WritingTools'));
-const ExportTools = lazy(() => import('@/components/ExportTools'));
-const ManuscriptManager = lazy(() => import('@/components/ManuscriptManager'));
-const PoetryJournal = lazy(() => import('@/components/PoetryJournal'));
-const PromptRoulette = lazy(() => import('@/components/PromptRoulette'));
-const WordGames = lazy(() => import('@/components/WordGames'));
-const PoetrySwaps = lazy(() => import('@/components/PoetrySwaps'));
-const WritingBuddies = lazy(() => import('@/components/WritingBuddies'));
-const CritiqueCircles = lazy(() => import('@/components/CritiqueCircles'));
-const PublicReadings = lazy(() => import('@/components/PublicReadings'));
-const PoetryBingo = lazy(() => import('@/components/PoetryBingo'));
-const FocusMode = lazy(() => import('@/components/FocusMode'));
-const WritingStatistics = lazy(() => import('@/components/WritingStatistics'));
-const DailyWordGoals = lazy(() => import('@/components/DailyWordGoals'));
-const FormChallenges = lazy(() => import('@/components/FormChallenges'));
-const TagsManager = lazy(() => import('@/components/TagsManager'));
-const WritingCalendar = lazy(() => import('@/components/WritingCalendar'));
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -136,7 +121,7 @@ function AppContent() {
 }
 
 function MainApp() {
-    const [currentView, setCurrentView] = useState<ViewType>('library');
+    const [currentView, setCurrentView] = useState<'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'profile' | 'feed' | 'workshops' | 'collaborative' | 'challenges' | 'goals' | 'contests' | 'badges' | 'store' | 'paas-admin' | 'points-bank' | 'following' | 'reading-lists' | 'glossary' | 'famous-poems' | 'writing-tips' | 'daily-prompts' | 'book-clubs' | 'study-groups' | 'writing-streaks' | 'forums' | 'collections' | 'favorites' | 'writing-timer' | 'quizzes'>('library');
     const [selectedPoemId, setSelectedPoemId] = useState<string | null>(null);
 
     useEffect(() => {
@@ -211,6 +196,7 @@ function MainApp() {
             </div>
           </div>
         }>
+          <ErrorBoundary>
           {currentView === 'write' && (
             <PoemEditor
               selectedPoemId={selectedPoemId}
@@ -260,23 +246,7 @@ function MainApp() {
           {currentView === 'favorites' && <Favorites />}
           {currentView === 'writing-timer' && <WritingTimer />}
           {currentView === 'quizzes' && <Quizzes />}
-          {currentView === 'writing-tools' && <WritingTools />}
-          {currentView === 'export-tools' && <ExportTools />}
-          {currentView === 'manuscript-manager' && <ManuscriptManager />}
-          {currentView === 'poetry-journal' && <PoetryJournal />}
-          {currentView === 'prompt-roulette' && <PromptRoulette />}
-          {currentView === 'word-games' && <WordGames />}
-          {currentView === 'poetry-swaps' && <PoetrySwaps />}
-          {currentView === 'writing-buddies' && <WritingBuddies />}
-          {currentView === 'critique-circles' && <CritiqueCircles />}
-          {currentView === 'public-readings' && <PublicReadings />}
-          {currentView === 'poetry-bingo' && <PoetryBingo />}
-          {currentView === 'focus-mode' && <FocusMode />}
-          {currentView === 'writing-statistics' && <WritingStatistics />}
-          {currentView === 'daily-word-goals' && <DailyWordGoals />}
-          {currentView === 'form-challenges' && <FormChallenges />}
-          {currentView === 'tags-manager' && <TagsManager />}
-          {currentView === 'writing-calendar' && <WritingCalendar />}
+          </ErrorBoundary>
         </Suspense>
       </Layout>
     )
@@ -284,15 +254,21 @@ function MainApp() {
 
 function App() {
   return (
-    <Router>
-      <ThemeProvider>
-        <NetworkProvider>
-          <AuthProvider>
-            <AppContent />
-          </AuthProvider>
-        </NetworkProvider>
-      </ThemeProvider>
-    </Router>
+    <ErrorBoundary>
+      <Router>
+        <ThemeProvider>
+          <NetworkProvider>
+            <ToastProvider>
+              <AuthProvider>
+                <ErrorBoundary>
+                  <AppContent />
+                </ErrorBoundary>
+              </AuthProvider>
+            </ToastProvider>
+          </NetworkProvider>
+        </ThemeProvider>
+      </Router>
+    </ErrorBoundary>
   );
 }
 
