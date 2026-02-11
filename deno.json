@@ -1,0 +1,7 @@
+{
+  "nodeModulesDir": "auto",
+  "npmRegistry": "https://registry.npmjs.org/",
+  "compilerOptions": {
+    "lib": ["deno.ns", "dom"]
+  }
+}

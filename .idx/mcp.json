@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "supabase": {
+      "name": "Supabase",
+      "run": {
+        "command": "supabase start"
+      }
+    }
+  }
+}
