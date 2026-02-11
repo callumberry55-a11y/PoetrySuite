@@ -1,0 +1,23 @@
+import { CapacitorConfig } from '@capacitor/cli';
+
+const config: CapacitorConfig = {
+  appId: 'com.poetrysuite.app',
+  appName: 'Poetry Suite',
+  webDir: 'dist',
+  server: {
+    androidScheme: 'https'
+  },
+  plugins: {
+    SplashScreen: {
+      launchShowDuration: 2000,
+      backgroundColor: '#10b981',
+      showSpinner: false,
+      androidSpinnerStyle: 'large',
+      spinnerColor: '#ffffff',
+      splashFullScreen: true,
+      splashImmersive: true
+    }
+  }
+};
+
+export default config;
