@@ -3,7 +3,7 @@ import { Download, X } from 'lucide-react';
 import AppDrawer from './AppDrawer';
 import FloatingDock from './FloatingDock';
 
-type ViewType = 'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'profile' | 'feed' | 'workshops' | 'collaborative' | 'challenges' | 'goals' | 'contests' | 'badges' | 'store' | 'paas-admin' | 'points-bank';
+type ViewType = 'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'profile' | 'feed' | 'workshops' | 'collaborative' | 'challenges' | 'goals' | 'contests' | 'badges' | 'store' | 'paas-admin' | 'points-bank' | 'following' | 'reading-lists' | 'glossary' | 'famous-poems' | 'writing-tips' | 'daily-prompts' | 'book-clubs' | 'study-groups' | 'writing-streaks' | 'forums' | 'collections' | 'favorites' | 'writing-timer';
 
 interface LayoutProps {
   children: ReactNode;
@@ -75,31 +75,31 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
       >
         Skip to main content
       </a>
-
+      
       {showInstallPrompt && (
-        <aside className="bg-primary-container text-on-primary-container px-4 py-3 shadow-lg fixed top-0 left-0 right-0 z-[100]" role="banner" aria-label="Install app banner">
-          <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3 flex-1 min-w-0">
-              <Download size={20} className="flex-shrink-0" aria-hidden="true" />
+        <aside className="bg-primary-container text-on-primary-container px-3 sm:px-4 py-2.5 sm:py-3 shadow-xl fixed top-0 left-0 right-0 z-[100] slide-up" role="banner" aria-label="Install app banner">
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
+            <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+              <Download size={18} className="sm:w-5 sm:h-5 flex-shrink-0 animate-bounce" aria-hidden="true" />
               <div className="flex-1 min-w-0">
-                <p className="text-sm sm:text-base font-medium">Install Poetry Suite</p>
-                <p className="text-xs sm:text-sm text-on-primary-container/80 hidden sm:block">Get quick access and offline support</p>
+                <p className="text-xs sm:text-sm lg:text-base font-medium truncate">Install Poetry Suite</p>
+                <p className="text-[10px] sm:text-xs lg:text-sm text-on-primary-container/80 hidden xs:block truncate">Get quick access and offline support</p>
               </div>
             </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
+            <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
               <button
                 onClick={handleInstallClick}
-                className="px-3 sm:px-4 py-1.5 sm:py-2 bg-primary text-on-primary rounded-lg font-medium hover:opacity-90 transition-opacity text-sm whitespace-nowrap"
+                className="px-3 sm:px-4 lg:px-5 py-2 sm:py-2.5 bg-primary text-on-primary rounded-lg sm:rounded-xl font-semibold hover:bg-primary/90 transition-all duration-300 text-xs sm:text-sm whitespace-nowrap shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 min-h-[36px] flex items-center justify-center"
                 aria-label="Install Poetry Suite app"
               >
                 Install
               </button>
               <button
                 onClick={handleDismissInstall}
-                className="p-1.5 sm:p-2 hover:bg-on-primary-container/10 rounded-lg transition-colors"
+                className="p-2 sm:p-2.5 hover:bg-on-primary-container/10 rounded-lg transition-all duration-300 hover:scale-110 hover:rotate-90 min-w-[36px] min-h-[36px] flex items-center justify-center"
                 aria-label="Dismiss install banner"
               >
-                <X size={18} aria-hidden="true" />
+                <X size={16} className="sm:w-[18px] sm:h-[18px]" aria-hidden="true" />
               </button>
             </div>
           </div>
@@ -110,17 +110,17 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
         {children}
       </main>
 
-      <FloatingDock
-        onAppDrawerOpen={() => setAppDrawerOpen(true)}
-        onViewChange={onViewChange}
-        currentView={currentView}
+      <FloatingDock 
+        onAppDrawerOpen={() => setAppDrawerOpen(true)} 
+        onViewChange={onViewChange} 
+        currentView={currentView} 
       />
 
-      <AppDrawer
-        isOpen={isAppDrawerOpen}
-        onClose={() => setAppDrawerOpen(false)}
-        onViewChange={onViewChange}
-        currentView={currentView}
+      <AppDrawer 
+        isOpen={isAppDrawerOpen} 
+        onClose={() => setAppDrawerOpen(false)} 
+        onViewChange={onViewChange} 
+        currentView={currentView} 
       />
     </div>
   );
