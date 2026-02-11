@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Poetry Suite</string>
+    <string name="title_activity_main">Poetry Suite</string>
+    <string name="package_name">com.poetrysuite.app</string>
+    <string name="custom_url_scheme">com.poetrysuite.app</string>
+</resources>
