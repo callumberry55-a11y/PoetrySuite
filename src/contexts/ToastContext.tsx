@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import { X, CheckCircle2, AlertCircle, Info, AlertTriangle } from 'lucide-react';
+import { toast as nativeToast, haptics, isNative } from '@/utils/native';
 
 interface Toast {
   id: string;
@@ -27,6 +28,19 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
   const showToast = useCallback(
     (message: string, type: Toast['type'] = 'info', duration = 3000) => {
+      if (isNative) {
+        nativeToast.show(message, duration > 2000 ? 'long' : 'short');
+
+        if (type === 'success') {
+          haptics.success();
+        } else if (type === 'error') {
+          haptics.error();
+        } else if (type === 'warning') {
+          haptics.warning();
+        }
+        return;
+      }
+
       const id = Date.now().toString() + Math.random().toString(36);
       const toast: Toast = { id, message, type, duration };
 

@@ -1,13 +1,14 @@
 import { lazy, Suspense, useState, useCallback, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
-import { ThemeProvider } from '@/contexts/ThemeContext';
+import { ThemeProvider, useTheme } from '@/contexts/ThemeContext';
 import { NetworkProvider } from '@/contexts/NetworkContext';
 import { ToastProvider } from '@/contexts/ToastContext';
 import AuthPage from '@/components/AuthPage';
 import Layout from '@/components/Layout';
 import NetworkIndicator from '@/components/NetworkIndicator';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { statusBar, splashScreen, isNative, app } from '@/utils/native';
 
 const PoemEditor = lazy(() => import('@/components/PoemEditor'));
 const Library = lazy(() => import('@/components/Library'));
@@ -41,6 +42,60 @@ const Collections = lazy(() => import('@/components/Collections'));
 const Favorites = lazy(() => import('@/components/Favorites'));
 const WritingTimer = lazy(() => import('@/components/WritingTimer'));
 const Quizzes = lazy(() => import('@/components/Quizzes'));
+
+function NativeInit() {
+  const { isDark } = useTheme();
+
+  useEffect(() => {
+    const initNative = async () => {
+      if (!isNative) return;
+
+      await splashScreen.hide();
+
+      if (isDark) {
+        await statusBar.setLight();
+        await statusBar.setBackground('#0f172a');
+      } else {
+        await statusBar.setDark();
+        await statusBar.setBackground('#10b981');
+      }
+    };
+
+    initNative();
+  }, [isDark]);
+
+  useEffect(() => {
+    if (!isNative) return;
+
+    let backButtonListener: any;
+    let pauseListener: any;
+    let resumeListener: any;
+
+    const setupListeners = async () => {
+      backButtonListener = await app.onBackButton(() => {
+        console.log('Back button pressed');
+      });
+
+      pauseListener = await app.onPause(() => {
+        console.log('App paused');
+      });
+
+      resumeListener = await app.onResume(() => {
+        console.log('App resumed');
+      });
+    };
+
+    setupListeners();
+
+    return () => {
+      backButtonListener?.remove();
+      pauseListener?.remove();
+      resumeListener?.remove();
+    };
+  }, []);
+
+  return null;
+}
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -257,6 +312,7 @@ function App() {
     <ErrorBoundary>
       <Router>
         <ThemeProvider>
+          <NativeInit />
           <NetworkProvider>
             <ToastProvider>
               <AuthProvider>

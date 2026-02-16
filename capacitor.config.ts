@@ -16,6 +16,18 @@ const config: CapacitorConfig = {
       spinnerColor: '#ffffff',
       splashFullScreen: true,
       splashImmersive: true
+    },
+    StatusBar: {
+      style: 'DARK',
+      backgroundColor: '#10b981'
+    },
+    Keyboard: {
+      resize: 'body',
+      style: 'DARK',
+      resizeOnFullScreen: true
+    },
+    App: {
+      launchAutoHide: true
     }
   }
 };
