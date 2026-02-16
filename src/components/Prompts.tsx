@@ -31,7 +31,6 @@ export default function Prompts() {
   const [responseContent, setResponseContent] = useState('');
   const [submittingResponse, setSubmittingResponse] = useState(false);
   const [userResponse, setUserResponse] = useState<PromptResponse | null>(null);
-  const [viewingResponse, setViewingResponse] = useState(false);
   const [apiKeyAvailable, setApiKeyAvailable] = useState(false);
 
   useEffect(() => {

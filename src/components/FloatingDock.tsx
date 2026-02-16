@@ -1,8 +1,8 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
-import { AppWindow, Moon, Sun, LogOut, PenLine, Library, Compass, TrendingUp, BookOpen, Lightbulb, Settings, Users, User, Zap, Trophy, Target, UsersRound, GraduationCap, Award, ShoppingBag, Shield, Landmark, UserPlus, ListChecks, BookMarked, Feather, Pencil, MessageSquare, FolderHeart, Heart, Timer } from 'lucide-react';
+import { AppWindow, Moon, Sun, LogOut, PenLine, Library, Compass, TrendingUp, BookOpen, Lightbulb, Settings, Users, User, Zap, Trophy, Target, UsersRound, GraduationCap, Award, ShoppingBag, Shield, Landmark, UserPlus, ListChecks, BookMarked, Feather, Pencil, MessageSquare, FolderHeart, Heart, Timer, Brain } from 'lucide-react';
 
-type ViewType = 'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'profile' | 'feed' | 'workshops' | 'collaborative' | 'challenges' | 'goals' | 'contests' | 'badges' | 'store' | 'paas-admin' | 'points-bank' | 'following' | 'reading-lists' | 'glossary' | 'famous-poems' | 'writing-tips' | 'daily-prompts' | 'book-clubs' | 'study-groups' | 'writing-streaks' | 'forums' | 'collections' | 'favorites' | 'writing-timer';
+type ViewType = 'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'profile' | 'feed' | 'workshops' | 'collaborative' | 'challenges' | 'goals' | 'contests' | 'badges' | 'store' | 'paas-admin' | 'points-bank' | 'following' | 'reading-lists' | 'glossary' | 'famous-poems' | 'writing-tips' | 'daily-prompts' | 'book-clubs' | 'study-groups' | 'writing-streaks' | 'forums' | 'collections' | 'favorites' | 'writing-timer' | 'quizzes';
 
 interface FloatingDockProps {
   onAppDrawerOpen: () => void;
@@ -62,6 +62,7 @@ export default function FloatingDock({ onAppDrawerOpen, onViewChange, currentVie
             collections: FolderHeart,
             favorites: Heart,
             'writing-timer': Timer,
+            quizzes: Brain,
           }[appId] || Library;
 
           return (
