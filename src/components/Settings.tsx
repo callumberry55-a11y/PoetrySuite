@@ -2,15 +2,15 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import {
-  Moon, Sun, User, Mail, Download, Smartphone, FileText, ChevronDown,
-  ChevronUp, Clock, Trash2, AlertTriangle, Bell, BellOff, MessageSquare,
-  Send, ExternalLink, Coins, Activity, TrendingUp, DollarSign, Settings as SettingsIcon,
-  Shield, Palette, Globe, Award, HelpCircle, Sparkles
+  Moon, Sun, User, Mail, Download, Smartphone, Trash2, AlertTriangle, Bell, BellOff, MessageSquare,
+  Send, Coins, Activity, TrendingUp, DollarSign, Settings as SettingsIcon,
+  Palette, Globe, Award, HelpCircle, Sparkles, ChevronUp, ChevronDown, Fingerprint, Shield, Wand2
 } from 'lucide-react';
 import { functions } from '../lib/firebase';
 import { httpsCallable } from 'firebase/functions';
 import { subscribeToNotifications, unsubscribeFromNotifications, isSubscribed } from '../utils/notifications';
 import packageJson from '../../package.json';
+import ThemeManager from './ThemeManager';
 
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[];
@@ -18,7 +18,7 @@ interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
 }
 
-type TabType = 'general' | 'appearance' | 'points' | 'policies' | 'feedback';
+type TabType = 'general' | 'appearance' | 'themes' | 'points' | 'feedback';
 
 export default function Settings() {
   const { user, signOut } = useAuth();
@@ -26,10 +26,9 @@ export default function Settings() {
   const [activeTab, setActiveTab] = useState<TabType>('general');
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);
-  const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
-  const [showTerms, setShowTerms] = useState(false);
-  const [showUpdateHistory, setShowUpdateHistory] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [checkingForUpdates, setCheckingForUpdates] = useState(false);
+  const [updateCheckResult, setUpdateCheckResult] = useState<string | null>(null);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
@@ -41,6 +40,11 @@ export default function Settings() {
   const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
   const [feedbackSuccess, setFeedbackSuccess] = useState(false);
   const [showCurrencyTable, setShowCurrencyTable] = useState(false);
+  const [biometricAvailable, setBiometricAvailable] = useState(false);
+  const [biometricType, setBiometricType] = useState<string>('Biometric');
+  const [biometricEnabled, setBiometricEnabled] = useState(false);
+  const [isTogglingBiometric, setIsTogglingBiometric] = useState(false);
+  const [biometricError, setBiometricError] = useState<string | null>(null);
 
   const loadNotificationPreference = useCallback(async () => {
     if (!user) return;
@@ -61,6 +65,26 @@ export default function Settings() {
     }
   }, [user]);
 
+  const loadBiometricSettings = useCallback(async () => {
+    if (!user) return;
+
+    try {
+      const { isBiometricAvailable, getBiometricPreference, getBiometricTypeName } = await import('../utils/biometric');
+
+      const available = await isBiometricAvailable();
+      setBiometricAvailable(available.isAvailable);
+
+      if (available.isAvailable && available.biometryType) {
+        setBiometricType(getBiometricTypeName(available.biometryType));
+      }
+
+      const enabled = await getBiometricPreference(user.id);
+      setBiometricEnabled(enabled);
+    } catch (error) {
+      console.warn('Error loading biometric settings:', error);
+    }
+  }, [user]);
+
   useEffect(() => {
     const handler = (e: Event) => {
       e.preventDefault();
@@ -76,6 +100,7 @@ export default function Settings() {
 
       isSubscribed().then(setNotificationsEnabled);
       loadNotificationPreference();
+      loadBiometricSettings();
     }, 0);
 
     window.addEventListener('appinstalled', () => {
@@ -86,7 +111,7 @@ export default function Settings() {
     return () => {
       window.removeEventListener('beforeinstallprompt', handler);
     };
-  }, [loadNotificationPreference]);
+  }, [loadNotificationPreference, loadBiometricSettings]);
 
   const handleInstall = async () => {
     if (!deferredPrompt) return;
@@ -96,6 +121,42 @@ export default function Settings() {
 
     if (outcome === 'accepted') {
       setDeferredPrompt(null);
+    }
+  };
+
+  const handleCheckForUpdates = async () => {
+    setCheckingForUpdates(true);
+    setUpdateCheckResult(null);
+
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({ type: 'CHECK_FOR_UPDATES' });
+
+        const messageHandler = (event: MessageEvent) => {
+          if (event.data && event.data.type === 'UPDATE_AVAILABLE') {
+            setUpdateCheckResult('update-available');
+          } else if (event.data && event.data.type === 'NO_UPDATE') {
+            setUpdateCheckResult('up-to-date');
+          }
+          navigator.serviceWorker.removeEventListener('message', messageHandler);
+        };
+
+        navigator.serviceWorker.addEventListener('message', messageHandler);
+
+        setTimeout(() => {
+          setUpdateCheckResult('up-to-date');
+          navigator.serviceWorker.removeEventListener('message', messageHandler);
+        }, 3000);
+      } else {
+        setUpdateCheckResult('up-to-date');
+      }
+    } catch (error) {
+      console.error('Error checking for updates:', error);
+      setUpdateCheckResult('error');
+    } finally {
+      setCheckingForUpdates(false);
     }
   };
 
@@ -200,11 +261,45 @@ export default function Settings() {
     }
   };
 
+  const handleToggleBiometric = async () => {
+    if (!user) return;
+
+    setIsTogglingBiometric(true);
+    setBiometricError(null);
+
+    try {
+      const { authenticateWithBiometric, saveBiometricPreference, storeBiometricCredential, clearBiometricCredential } = await import('../utils/biometric');
+
+      if (!biometricEnabled) {
+        const authenticated = await authenticateWithBiometric('Authenticate to enable biometric unlock');
+
+        if (authenticated) {
+          await saveBiometricPreference(user.id, true);
+          storeBiometricCredential(user.id);
+          setBiometricEnabled(true);
+        } else {
+          setBiometricError('Authentication failed. Please try again.');
+        }
+      } else {
+        await saveBiometricPreference(user.id, false);
+        clearBiometricCredential();
+        setBiometricEnabled(false);
+      }
+    } catch (error) {
+      console.error('Error toggling biometric:', error);
+      setBiometricError(
+        error instanceof Error ? error.message : 'Failed to update biometric settings'
+      );
+    } finally {
+      setIsTogglingBiometric(false);
+    }
+  };
+
   const tabs = [
     { id: 'general' as TabType, label: 'General', icon: SettingsIcon },
     { id: 'appearance' as TabType, label: 'Appearance', icon: Palette },
+    { id: 'themes' as TabType, label: 'Advanced Themes', icon: Wand2 },
     { id: 'points' as TabType, label: 'Points System', icon: Coins },
-    { id: 'policies' as TabType, label: 'Policies', icon: Shield },
     { id: 'feedback' as TabType, label: 'Feedback', icon: MessageSquare },
   ];
 
@@ -256,19 +351,63 @@ export default function Settings() {
                     <h2 className="text-xl font-bold text-white">About Poetry Suite</h2>
                   </div>
                 </div>
-                <div className="p-6">
-                  <p className="text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">
-                    Poetry Suite is your personal sanctuary for writing, curating, and sharing poetry.
-                    Track your progress, organize your work, and let your creativity flow.
-                  </p>
-                  <div className="flex items-center gap-4 text-sm">
-                    <span className="px-3 py-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg font-semibold">
-                      Version {packageJson.version}
-                    </span>
-                    <span className="px-3 py-1.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-lg font-semibold flex items-center gap-1.5">
-                      <Award size={16} />
-                      Beta
-                    </span>
+                <div className="p-6 space-y-6">
+                  <div>
+                    <p className="text-slate-600 dark:text-slate-400 mb-4 leading-relaxed">
+                      Poetry Suite is your personal sanctuary for writing, curating, and sharing poetry.
+                      Track your progress, organize your work, and let your creativity flow.
+                    </p>
+                    <div className="flex items-center gap-4 text-sm">
+                      <span className="px-3 py-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg font-semibold">
+                        Version {packageJson.version}
+                      </span>
+                      <span className="px-3 py-1.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-lg font-semibold flex items-center gap-1.5">
+                        <Award size={16} />
+                        Beta
+                      </span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <button
+                      onClick={handleCheckForUpdates}
+                      disabled={checkingForUpdates}
+                      className="w-full px-6 py-4 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 disabled:from-slate-400 disabled:to-slate-500 text-white font-semibold rounded-xl shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2 press-effect"
+                    >
+                      {checkingForUpdates ? (
+                        <>
+                          <Download className="animate-bounce" size={20} />
+                          <span>Checking for updates...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Download size={20} />
+                          <span>Check for Updates</span>
+                        </>
+                      )}
+                    </button>
+
+                    {updateCheckResult && (
+                      <div className={`mt-4 p-4 rounded-xl border ${
+                        updateCheckResult === 'up-to-date'
+                          ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800'
+                          : updateCheckResult === 'update-available'
+                          ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800'
+                          : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+                      }`}>
+                        <p className={`text-sm font-medium ${
+                          updateCheckResult === 'up-to-date'
+                            ? 'text-emerald-800 dark:text-emerald-200'
+                            : updateCheckResult === 'update-available'
+                            ? 'text-amber-800 dark:text-amber-200'
+                            : 'text-red-800 dark:text-red-200'
+                        }`}>
+                          {updateCheckResult === 'up-to-date' && 'You\'re running the latest version!'}
+                          {updateCheckResult === 'update-available' && 'A new update is available. Please refresh the page to update.'}
+                          {updateCheckResult === 'error' && 'Unable to check for updates. Please try again later.'}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -301,6 +440,63 @@ export default function Settings() {
                   </div>
                 </div>
               </div>
+
+              {biometricAvailable && (
+                <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+                  <div className="bg-gradient-to-r from-violet-500 to-purple-500 px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <Shield className="text-white" size={24} />
+                      <h2 className="text-xl font-bold text-white">Security</h2>
+                    </div>
+                  </div>
+                  <div className="p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-4">
+                        <div className={`w-14 h-14 rounded-full flex items-center justify-center shadow-lg ${
+                          biometricEnabled
+                            ? 'bg-gradient-to-br from-violet-500 to-purple-500'
+                            : 'bg-gradient-to-br from-slate-400 to-slate-500'
+                        }`}>
+                          <Fingerprint className="text-white" size={24} />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-slate-900 dark:text-white text-lg">{biometricType} Unlock</p>
+                          <p className="text-sm text-slate-600 dark:text-slate-400">
+                            Use {biometricType.toLowerCase()} to quickly and securely unlock the app
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={handleToggleBiometric}
+                        disabled={isTogglingBiometric}
+                        className={`relative inline-flex h-10 w-18 items-center rounded-full transition-all shadow-lg disabled:opacity-50 ${
+                          biometricEnabled
+                            ? 'bg-gradient-to-r from-violet-500 to-purple-500'
+                            : 'bg-slate-300 dark:bg-slate-600'
+                        }`}
+                      >
+                        <span
+                          className={`inline-block h-8 w-8 transform rounded-full bg-white shadow-md transition-transform ${
+                            biometricEnabled ? 'translate-x-9' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
+                    </div>
+                    {biometricError && (
+                      <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl">
+                        <p className="text-sm text-red-800 dark:text-red-200">{biometricError}</p>
+                      </div>
+                    )}
+                    {biometricEnabled && (
+                      <div className="p-4 bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-800 rounded-xl">
+                        <p className="text-sm text-violet-800 dark:text-violet-200">
+                          {biometricType} unlock is enabled. You can use your {biometricType.toLowerCase()} to authenticate when returning to the app.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
                 <div className="bg-gradient-to-r from-blue-500 to-cyan-500 px-6 py-4">
@@ -547,6 +743,10 @@ export default function Settings() {
             </div>
           )}
 
+          {activeTab === 'themes' && (
+            <ThemeManager />
+          )}
+
           {activeTab === 'points' && (
             <div className="space-y-6">
               <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
@@ -777,118 +977,6 @@ export default function Settings() {
                       </div>
                     )}
                   </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'policies' && (
-            <div className="space-y-6">
-              <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-                <div className="bg-gradient-to-r from-blue-500 to-cyan-500 px-6 py-4">
-                  <div className="flex items-center gap-3">
-                    <Shield className="text-white" size={24} />
-                    <h2 className="text-xl font-bold text-white">Legal & Policies</h2>
-                  </div>
-                </div>
-                <div className="p-6 space-y-4">
-                  <button
-                    onClick={() => setShowPrivacyPolicy(!showPrivacyPolicy)}
-                    className="w-full flex items-center justify-between p-6 bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-all group border border-slate-200 dark:border-slate-600"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg">
-                        <FileText className="text-white" size={24} />
-                      </div>
-                      <span className="font-bold text-lg text-slate-900 dark:text-white">
-                        Privacy Policy
-                      </span>
-                    </div>
-                    {showPrivacyPolicy ? (
-                      <ChevronUp className="text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300" size={24} />
-                    ) : (
-                      <ChevronDown className="text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300" size={24} />
-                    )}
-                  </button>
-
-                  {showPrivacyPolicy && (
-                    <div className="p-6 bg-slate-50 dark:bg-slate-700/50 rounded-xl border border-slate-200 dark:border-slate-600">
-                      <p className="text-slate-700 dark:text-slate-300 leading-relaxed">
-                        Our Privacy Policy has been updated to reflect our use of Firebase services.
-                      </p>
-                    </div>
-                  )}
-
-                  <button
-                    onClick={() => setShowTerms(!showTerms)}
-                    className="w-full flex items-center justify-between p-6 bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-all group border border-slate-200 dark:border-slate-600"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg">
-                        <FileText className="text-white" size={24} />
-                      </div>
-                      <span className="font-bold text-lg text-slate-900 dark:text-white">
-                        Terms & Conditions
-                      </span>
-                    </div>
-                    {showTerms ? (
-                      <ChevronUp className="text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300" size={24} />
-                    ) : (
-                      <ChevronDown className="text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300" size={24} />
-                    )}
-                  </button>
-
-                  {showTerms && (
-                    <div className="p-6 bg-slate-50 dark:bg-slate-700/50 rounded-xl border border-slate-200 dark:border-slate-600">
-                      <p className="text-slate-700 dark:text-slate-300 leading-relaxed">
-                        Our Terms & Conditions have been updated.
-                      </p>
-                    </div>
-                  )}
-
-                  <button
-                    onClick={() => setShowUpdateHistory(!showUpdateHistory)}
-                    className="w-full flex items-center justify-between p-6 bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-all group border border-slate-200 dark:border-slate-600"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-lg">
-                        <Clock className="text-white" size={24} />
-                      </div>
-                      <span className="font-bold text-lg text-slate-900 dark:text-white">
-                        Update History
-                      </span>
-                    </div>
-                    {showUpdateHistory ? (
-                      <ChevronUp className="text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300" size={24} />
-                    ) : (
-                      <ChevronDown className="text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300" size={24} />
-                    )}
-                  </button>
-
-                  {showUpdateHistory && (
-                    <div className="p-6 bg-slate-50 dark:bg-slate-700/50 rounded-xl border border-slate-200 dark:border-slate-600">
-                      <p className="text-slate-700 dark:text-slate-300 leading-relaxed">
-                        Updates are tracked in our Git repository.
-                      </p>
-                    </div>
-                  )}
-
-                  <a
-                    href="/COPYRIGHT.md"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full flex items-center justify-between p-6 bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-all group border border-slate-200 dark:border-slate-600"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shadow-lg">
-                        <FileText className="text-white" size={24} />
-                      </div>
-                      <span className="font-bold text-lg text-slate-900 dark:text-white">
-                        Copyright & Legal Notice
-                      </span>
-                    </div>
-                    <ExternalLink className="text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300" size={24} />
-                  </a>
                 </div>
               </div>
             </div>

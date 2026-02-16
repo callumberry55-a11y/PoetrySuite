@@ -147,3 +147,47 @@
 .duration-500 {
     animation-duration: 0.5s;
 }
+
+/* Live Theme Animations */
+@keyframes theme-pulse {
+    0%, 100% {
+        filter: brightness(1);
+    }
+    50% {
+        filter: brightness(1.1);
+    }
+}
+
+@keyframes theme-flow {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+:root.theme-pulse {
+    animation: theme-pulse var(--theme-animation-duration, 5000ms) ease-in-out infinite;
+}
+
+:root.theme-flow::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        -45deg,
+        var(--theme-gradient, #8b5cf6, #ec4899, #f59e0b)
+    );
+    background-size: 400% 400%;
+    animation: theme-flow var(--theme-animation-duration, 10000ms) ease infinite;
+    opacity: 0.05;
+    pointer-events: none;
+    z-index: -1;
+}

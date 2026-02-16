@@ -297,3 +297,59 @@ export async function generateAIResponse(prompt: string, options?: AIOptions): P
     throw error;
   }
 }
+
+export async function generateTheme(prompt: string): Promise<{
+  primary: string;
+  secondary: string;
+  background: string;
+  surface: string;
+  text: string;
+  accent: string;
+}> {
+  const systemPrompt = 'You are a color theory and UI design expert. Generate harmonious color palettes. Respond ONLY with valid JSON.';
+  const userPrompt = `Generate a color theme based on this description: "${prompt}"
+
+Create a harmonious color palette suitable for a poetry writing app. Consider:
+- Primary color: Main brand color (hex)
+- Secondary color: Complementary accent (hex)
+- Background: Main background color (hex)
+- Surface: Card/surface color (hex)
+- Text: Primary text color (hex)
+- Accent: Highlight/emphasis color (hex)
+
+Ensure good contrast and readability. Respond with ONLY a JSON object in this exact format:
+{
+  "primary": "#hex",
+  "secondary": "#hex",
+  "background": "#hex",
+  "surface": "#hex",
+  "text": "#hex",
+  "accent": "#hex"
+}`;
+
+  try {
+    const result = await callGeminiAPI(systemPrompt, userPrompt, { temperature: 0.7, maxTokens: 300 });
+    const jsonMatch = result.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      try {
+        const colors = JSON.parse(jsonMatch[0]);
+        if (colors.primary && colors.background && colors.text) {
+          return colors;
+        }
+      } catch (parseError) {
+        console.error('Failed to parse theme JSON:', parseError);
+      }
+    }
+    throw new Error('Invalid theme response format');
+  } catch (error) {
+    console.error('Theme generation failed:', error);
+    return {
+      primary: '#3b82f6',
+      secondary: '#8b5cf6',
+      background: '#ffffff',
+      surface: '#f8f9fa',
+      text: '#1a1a1a',
+      accent: '#06b6d4'
+    };
+  }
+}
