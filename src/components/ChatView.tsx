@@ -51,16 +51,29 @@ export default function ChatView() {
 
   const loadRooms = async () => {
     try {
-      const { data, error } = await supabase
-        .from('chat_rooms')
-        .select('*')
-        .order('name');
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        showToast('Please log in to access chat', 'error');
+        setLoading(false);
+        return;
+      }
 
-      if (error) throw error;
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat-service/rooms`,
+        {
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
 
-      setRooms(data || []);
-      if (data && data.length > 0) {
-        setCurrentRoom(data[0].id);
+      if (!response.ok) throw new Error('Failed to load rooms');
+
+      const result = await response.json();
+      setRooms(result.rooms || []);
+      if (result.rooms && result.rooms.length > 0) {
+        setCurrentRoom(result.rooms[0].id);
       }
     } catch (error) {
       showToast('Failed to load chat rooms', 'error');
@@ -71,18 +84,23 @@ export default function ChatView() {
 
   const loadMessages = async () => {
     try {
-      const { data, error } = await supabase
-        .from('chat_messages')
-        .select(`
-          *,
-          user_profiles!inner(display_name)
-        `)
-        .eq('room_id', currentRoom)
-        .order('created_at', { ascending: true })
-        .limit(100);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
 
-      if (error) throw error;
-      setMessages(data || []);
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat-service/messages?room_id=${currentRoom}&limit=100`,
+        {
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) throw new Error('Failed to load messages');
+
+      const result = await response.json();
+      setMessages(result.messages || []);
     } catch (error) {
       showToast('Failed to load messages', 'error');
     }
@@ -127,15 +145,28 @@ export default function ChatView() {
     if (!newMessage.trim() || !user) return;
 
     try {
-      const { error } = await supabase
-        .from('chat_messages')
-        .insert({
-          room_id: currentRoom,
-          user_id: user.id,
-          content: newMessage.trim(),
-        });
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        showToast('Please log in to send messages', 'error');
+        return;
+      }
 
-      if (error) throw error;
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat-service/send`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            room_id: currentRoom,
+            content: newMessage.trim(),
+          }),
+        }
+      );
+
+      if (!response.ok) throw new Error('Failed to send message');
 
       setNewMessage('');
     } catch (error) {
