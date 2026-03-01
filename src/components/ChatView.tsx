@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Send, Users, Hash } from 'lucide-react';
+import { Send, Users, Hash, Bot } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
@@ -18,6 +18,7 @@ interface ChatRoom {
   id: string;
   name: string;
   description: string;
+  is_ai?: boolean;
 }
 
 export default function ChatView() {
@@ -212,10 +213,19 @@ export default function ChatView() {
               }`}
             >
               <div className="flex items-center gap-2">
-                <Hash className="w-4 h-4 text-slate-500" />
+                {room.is_ai ? (
+                  <Bot className="w-4 h-4 text-green-500" />
+                ) : (
+                  <Hash className="w-4 h-4 text-slate-500" />
+                )}
                 <span className="font-medium text-slate-900 dark:text-white">
                   {room.name}
                 </span>
+                {room.is_ai && (
+                  <span className="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-2 py-0.5 rounded-full">
+                    AI
+                  </span>
+                )}
               </div>
               {room.description && (
                 <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 ml-6">
@@ -231,9 +241,14 @@ export default function ChatView() {
       <div className="flex-1 flex flex-col">
         {/* Chat Header */}
         <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700">
-          <h1 className="text-xl font-semibold text-slate-900 dark:text-white">
-            {rooms.find((r) => r.id === currentRoom)?.name || 'Chat'}
-          </h1>
+          <div className="flex items-center gap-2">
+            {rooms.find((r) => r.id === currentRoom)?.is_ai && (
+              <Bot className="w-6 h-6 text-green-500" />
+            )}
+            <h1 className="text-xl font-semibold text-slate-900 dark:text-white">
+              {rooms.find((r) => r.id === currentRoom)?.name || 'Chat'}
+            </h1>
+          </div>
           {rooms.find((r) => r.id === currentRoom)?.description && (
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
               {rooms.find((r) => r.id === currentRoom)?.description}
@@ -249,41 +264,61 @@ export default function ChatView() {
             </div>
           ) : (
             <div className="space-y-4">
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex gap-3 ${
-                    message.user_id === user?.id ? 'flex-row-reverse' : ''
-                  }`}
-                >
-                  <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white font-semibold flex-shrink-0">
-                    {message.user_profiles.display_name.charAt(0).toUpperCase()}
-                  </div>
+              {messages.map((message) => {
+                const isAiMessage = message.content.startsWith('**Dave:**');
+                const displayContent = isAiMessage
+                  ? message.content.replace('**Dave:**', '').trim()
+                  : message.content;
+
+                return (
                   <div
-                    className={`flex-1 max-w-lg ${
-                      message.user_id === user?.id ? 'text-right' : ''
+                    key={message.id}
+                    className={`flex gap-3 ${
+                      message.user_id === user?.id && !isAiMessage ? 'flex-row-reverse' : ''
                     }`}
                   >
-                    <div className="flex items-baseline gap-2 mb-1">
-                      <span className="font-medium text-slate-900 dark:text-white">
-                        {message.user_profiles.display_name}
-                      </span>
-                      <span className="text-xs text-slate-500 dark:text-slate-400">
-                        {formatTime(message.created_at)}
-                      </span>
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0 ${
+                      isAiMessage ? 'bg-blue-500' : 'bg-green-500'
+                    }`}>
+                      {isAiMessage ? (
+                        <Bot className="w-6 h-6" />
+                      ) : (
+                        message.user_profiles.display_name.charAt(0).toUpperCase()
+                      )}
                     </div>
                     <div
-                      className={`inline-block px-4 py-2 rounded-lg ${
-                        message.user_id === user?.id
-                          ? 'bg-green-500 text-white'
-                          : 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white'
+                      className={`flex-1 max-w-lg ${
+                        message.user_id === user?.id && !isAiMessage ? 'text-right' : ''
                       }`}
                     >
-                      {message.content}
+                      <div className="flex items-baseline gap-2 mb-1">
+                        <span className="font-medium text-slate-900 dark:text-white">
+                          {isAiMessage ? 'Dave' : message.user_profiles.display_name}
+                        </span>
+                        {isAiMessage && (
+                          <span className="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 px-2 py-0.5 rounded-full">
+                            AI
+                          </span>
+                        )}
+                        <span className="text-xs text-slate-500 dark:text-slate-400">
+                          {formatTime(message.created_at)}
+                        </span>
+                      </div>
+                      <div
+                        className={`inline-block px-4 py-2 rounded-lg ${
+                          isAiMessage
+                            ? 'bg-blue-50 dark:bg-blue-900/20 text-slate-900 dark:text-white border border-blue-200 dark:border-blue-800'
+                            : message.user_id === user?.id
+                            ? 'bg-green-500 text-white'
+                            : 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white'
+                        }`}
+                      >
+                        {displayContent}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
               <div ref={messagesEndRef} />
             </div>
           )}

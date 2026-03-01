@@ -18,6 +18,75 @@ interface GetMessagesParams {
   before?: string;
 }
 
+// AI Response Generator for Dave
+async function generateAIResponse(userMessage: string, userId: string, supabase: any): Promise<string> {
+  const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+
+  if (!GEMINI_API_KEY) {
+    return "I'm having trouble connecting right now. Please check that the Gemini API key is configured.";
+  }
+
+  // Get recent conversation history for context
+  const { data: recentMessages } = await supabase
+    .from('chat_messages')
+    .select('content, user_id')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+    .limit(10);
+
+  const conversationHistory = recentMessages
+    ?.reverse()
+    .map((msg: any) => msg.content)
+    .join('\n') || '';
+
+  const systemPrompt = `You are Dave, a friendly and knowledgeable AI assistant for a poetry community app. You help users with:
+- Writing poetry and offering creative feedback
+- Understanding poetic forms, techniques, and literary devices
+- Analyzing famous poems and poets
+- Providing writing prompts and inspiration
+- Discussing poetry history and movements
+- Offering constructive critique on their work
+
+Keep your responses warm, encouraging, and conversational. Be helpful but concise. When discussing poetry, be specific and insightful. Your goal is to inspire and educate poets of all skill levels.`;
+
+  try {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: `${systemPrompt}\n\nConversation history:\n${conversationHistory}\n\nUser: ${userMessage}\n\nDave:`
+            }]
+          }],
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 500,
+          }
+        })
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Gemini API error: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (!aiResponse) {
+      return "I'm having trouble thinking right now. Could you try asking that again?";
+    }
+
+    return aiResponse.trim();
+  } catch (error) {
+    console.error('Error calling Gemini API:', error);
+    return "I'm experiencing some technical difficulties. Please try again in a moment.";
+  }
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 200, headers: corsHeaders });
@@ -120,10 +189,10 @@ Deno.serve(async (req: Request) => {
         );
       }
 
-      // Validate room exists
+      // Validate room exists and check if it's an AI room
       const { data: room, error: roomError } = await supabase
         .from('chat_rooms')
-        .select('id')
+        .select('id, is_ai, name')
         .eq('id', payload.room_id)
         .maybeSingle();
 
@@ -134,7 +203,7 @@ Deno.serve(async (req: Request) => {
         );
       }
 
-      // Insert message
+      // Insert user message
       const { data: message, error: insertError } = await supabase
         .from('chat_messages')
         .insert({
@@ -149,6 +218,30 @@ Deno.serve(async (req: Request) => {
         .single();
 
       if (insertError) throw insertError;
+
+      // If this is an AI room, generate and send AI response
+      if (room.is_ai) {
+        try {
+          const aiResponse = await generateAIResponse(payload.content.trim(), user.id, supabase);
+
+          // Insert AI response (using service role to bypass RLS)
+          const serviceSupabase = createClient(
+            Deno.env.get('SUPABASE_URL') ?? '',
+            Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+          );
+
+          await serviceSupabase
+            .from('chat_messages')
+            .insert({
+              room_id: payload.room_id,
+              user_id: user.id, // Use the same user ID so it appears in their chat
+              content: `**Dave:** ${aiResponse}`
+            });
+        } catch (aiError) {
+          console.error('Error generating AI response:', aiError);
+          // Don't fail the whole request if AI fails
+        }
+      }
 
       return new Response(
         JSON.stringify({ success: true, message }),
