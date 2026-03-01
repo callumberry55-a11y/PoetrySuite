@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
+import { useToast } from '@/contexts/ToastContext';
 import {
   Plus,
   X,
@@ -8,6 +9,10 @@ import {
   ChevronRight,
   Eye,
   Upload,
+  Trash2,
+  Download,
+  Pause,
+  Play,
 } from 'lucide-react';
 
 interface Story {
@@ -34,6 +39,7 @@ interface StoryGroup {
 
 export default function Stories() {
   const { user } = useAuth();
+  const { showToast } = useToast();
   const [storyGroups, setStoryGroups] = useState<StoryGroup[]>([]);
   const [selectedGroup, setSelectedGroup] = useState<StoryGroup | null>(null);
   const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
@@ -43,6 +49,9 @@ export default function Stories() {
   const [previewUrl, setPreviewUrl] = useState<string>('');
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const [showViewers, setShowViewers] = useState(false);
+  const [viewers, setViewers] = useState<any[]>([]);
   const progressInterval = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -53,7 +62,7 @@ export default function Stories() {
 
   // Auto-advance story progress
   useEffect(() => {
-    if (selectedGroup && selectedGroup.stories[currentStoryIndex]) {
+    if (selectedGroup && selectedGroup.stories[currentStoryIndex] && !isPaused) {
       setProgress(0);
       progressInterval.current = setInterval(() => {
         setProgress((prev) => {
@@ -71,7 +80,7 @@ export default function Stories() {
         }
       };
     }
-  }, [selectedGroup, currentStoryIndex]);
+  }, [selectedGroup, currentStoryIndex, isPaused]);
 
   const loadStories = async () => {
     if (!user) return;
@@ -234,48 +243,95 @@ export default function Stories() {
 
     setUploading(true);
 
-    // Upload file to Supabase Storage
-    const fileExt = uploadFile.name.split('.').pop();
-    const fileName = `${user.id}/${Date.now()}.${fileExt}`;
-    const contentType = uploadFile.type.startsWith('video/') ? 'video' : 'image';
+    try {
+      const fileExt = uploadFile.name.split('.').pop();
+      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+      const contentType = uploadFile.type.startsWith('video/') ? 'video' : 'image';
 
-    const { error: uploadError } = await supabase.storage
-      .from('stories')
-      .upload(fileName, uploadFile);
+      const { error: uploadError } = await supabase.storage
+        .from('stories')
+        .upload(fileName, uploadFile);
 
-    if (uploadError) {
-      console.error('Upload error:', uploadError);
-      alert('Failed to upload story');
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from('stories')
+        .getPublicUrl(fileName);
+
+      const { error: dbError } = await supabase.from('stories').insert({
+        user_id: user.id,
+        content_url: urlData.publicUrl,
+        content_type: contentType,
+        caption: caption,
+      });
+
+      if (dbError) throw dbError;
+
+      showToast('Story shared successfully!', 'success');
+      setShowCreateModal(false);
+      setUploadFile(null);
+      setPreviewUrl('');
+      setCaption('');
+      loadStories();
+    } catch (error) {
+      console.error('Error uploading story:', error);
+      showToast('Failed to upload story', 'error');
+    } finally {
       setUploading(false);
-      return;
     }
+  };
 
-    // Get public URL
-    const { data: urlData } = supabase.storage
-      .from('stories')
-      .getPublicUrl(fileName);
+  const deleteStory = async (storyId: string) => {
+    if (!confirm('Delete this story?')) return;
 
-    // Create story record
-    const { error: dbError } = await supabase.from('stories').insert({
-      user_id: user.id,
-      content_url: urlData.publicUrl,
-      content_type: contentType,
-      caption: caption,
-    });
+    try {
+      const { error } = await supabase
+        .from('stories')
+        .delete()
+        .eq('id', storyId);
 
-    if (dbError) {
-      console.error('Database error:', dbError);
-      alert('Failed to create story');
-      setUploading(false);
-      return;
+      if (error) throw error;
+
+      showToast('Story deleted', 'success');
+      closeStoryViewer();
+      loadStories();
+    } catch (error) {
+      console.error('Error deleting story:', error);
+      showToast('Failed to delete story', 'error');
     }
+  };
 
-    setUploading(false);
-    setShowCreateModal(false);
-    setUploadFile(null);
-    setPreviewUrl('');
-    setCaption('');
-    loadStories();
+  const togglePause = () => {
+    setIsPaused(!isPaused);
+  };
+
+  const loadViewers = async (storyId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('story_views')
+        .select(`
+          viewer_id,
+          viewed_at,
+          user_profiles!story_views_viewer_id_fkey(username, avatar_url)
+        `)
+        .eq('story_id', storyId)
+        .order('viewed_at', { ascending: false });
+
+      if (error) throw error;
+
+      setViewers(data || []);
+      setShowViewers(true);
+    } catch (error) {
+      console.error('Error loading viewers:', error);
+      showToast('Failed to load viewers', 'error');
+    }
+  };
+
+  const downloadStory = (url: string) => {
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'story';
+    link.click();
   };
 
   const currentStory = selectedGroup?.stories[currentStoryIndex];
@@ -283,18 +339,18 @@ export default function Stories() {
   return (
     <>
       {/* Stories Horizontal Scroll */}
-      <div className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-4 py-3 overflow-x-auto">
-        <div className="flex gap-3">
+      <div className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-4 py-4 overflow-x-auto scrollbar-hide">
+        <div className="flex gap-4">
           {/* Add Story Button */}
           <button
             onClick={() => setShowCreateModal(true)}
-            className="flex-shrink-0 flex flex-col items-center gap-1.5 w-16"
+            className="flex-shrink-0 flex flex-col items-center gap-2 w-20 group"
           >
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center border-2 border-white dark:border-slate-800 shadow-sm">
-              <Plus size={24} className="text-white" />
+            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all group-hover:scale-105">
+              <Plus size={28} className="text-white" />
             </div>
-            <span className="text-xs text-slate-600 dark:text-slate-400 truncate w-full text-center">
-              Add Story
+            <span className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate w-full text-center">
+              Your Story
             </span>
           </button>
 
@@ -303,26 +359,32 @@ export default function Stories() {
             <button
               key={group.user_id}
               onClick={() => openStoryViewer(group, 0)}
-              className="flex-shrink-0 flex flex-col items-center gap-1.5 w-16"
+              className="flex-shrink-0 flex flex-col items-center gap-2 w-20 group"
             >
               <div
-                className={`w-16 h-16 rounded-full p-0.5 ${
+                className={`w-20 h-20 rounded-full p-0.5 transition-all group-hover:scale-105 ${
                   group.has_unviewed
-                    ? 'bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600'
+                    ? 'bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 shadow-lg'
                     : 'bg-slate-300 dark:bg-slate-600'
                 }`}
               >
                 <div className="w-full h-full rounded-full bg-white dark:bg-slate-800 p-0.5">
-                  <div className="w-full h-full rounded-full bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center text-white text-lg font-bold">
+                  <div className="w-full h-full rounded-full bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center text-white text-xl font-bold">
                     {group.username.charAt(0).toUpperCase()}
                   </div>
                 </div>
               </div>
-              <span className="text-xs text-slate-600 dark:text-slate-400 truncate w-full text-center">
+              <span className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate w-full text-center">
                 {group.user_id === user?.id ? 'You' : group.username}
               </span>
             </button>
           ))}
+
+          {storyGroups.length === 0 && (
+            <div className="flex-1 flex items-center justify-center py-8 text-slate-500 dark:text-slate-400">
+              <p className="text-sm">No stories yet. Be the first to share!</p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -367,12 +429,37 @@ export default function Stories() {
                 </div>
               </div>
             </div>
-            <button
-              onClick={closeStoryViewer}
-              className="text-white hover:bg-white/20 p-2 rounded-full transition-colors"
-            >
-              <X size={24} />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={togglePause}
+                className="text-white hover:bg-white/20 p-2 rounded-full transition-colors"
+                aria-label={isPaused ? 'Play' : 'Pause'}
+              >
+                {isPaused ? <Play size={20} /> : <Pause size={20} />}
+              </button>
+              {currentStory.user_id === user?.id && (
+                <button
+                  onClick={() => deleteStory(currentStory.id)}
+                  className="text-white hover:bg-white/20 p-2 rounded-full transition-colors"
+                  aria-label="Delete story"
+                >
+                  <Trash2 size={20} />
+                </button>
+              )}
+              <button
+                onClick={() => downloadStory(currentStory.content_url)}
+                className="text-white hover:bg-white/20 p-2 rounded-full transition-colors"
+                aria-label="Download"
+              >
+                <Download size={20} />
+              </button>
+              <button
+                onClick={closeStoryViewer}
+                className="text-white hover:bg-white/20 p-2 rounded-full transition-colors"
+              >
+                <X size={24} />
+              </button>
+            </div>
           </div>
 
           {/* Story Content */}
@@ -429,11 +516,61 @@ export default function Stories() {
 
           {/* View Count (for own stories) */}
           {currentStory.user_id === user?.id && (
-            <div className="absolute bottom-6 left-4 flex items-center gap-2 bg-black/50 backdrop-blur-sm rounded-full px-3 py-1.5 text-white">
+            <button
+              onClick={() => loadViewers(currentStory.id)}
+              className="absolute bottom-6 left-4 flex items-center gap-2 bg-black/50 backdrop-blur-sm rounded-full px-3 py-1.5 text-white hover:bg-black/70 transition-colors"
+            >
               <Eye size={16} />
               <span className="text-sm">{currentStory.view_count} views</span>
-            </div>
+            </button>
           )}
+        </div>
+      )}
+
+      {/* Viewers Modal */}
+      {showViewers && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl max-w-md w-full max-h-[600px] overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700">
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+                Viewers
+              </h2>
+              <button
+                onClick={() => setShowViewers(false)}
+                className="text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto">
+              {viewers.length === 0 ? (
+                <div className="p-8 text-center text-slate-500 dark:text-slate-400">
+                  No views yet
+                </div>
+              ) : (
+                <div className="divide-y divide-slate-200 dark:divide-slate-700">
+                  {viewers.map((view: any) => (
+                    <div
+                      key={view.viewer_id}
+                      className="p-4 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+                    >
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center text-white font-bold flex-shrink-0">
+                        {view.user_profiles?.username?.charAt(0).toUpperCase() || '?'}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-slate-900 dark:text-white truncate">
+                          {view.user_profiles?.username || 'Unknown User'}
+                        </div>
+                        <div className="text-sm text-slate-500 dark:text-slate-400">
+                          {new Date(view.viewed_at).toLocaleString()}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
 
@@ -441,7 +578,7 @@ export default function Stories() {
       {showCreateModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl max-w-lg w-full p-6">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-slate-900 dark:text-white">
                 Create Story
               </h2>
@@ -452,22 +589,29 @@ export default function Stories() {
                   setPreviewUrl('');
                   setCaption('');
                 }}
-                className="text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                className="text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
               >
                 <X size={24} />
               </button>
             </div>
 
             {!previewUrl ? (
-              <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+              <label className="flex flex-col items-center justify-center w-full h-96 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-all duration-200 group">
                 <div className="flex flex-col items-center justify-center py-6">
-                  <Upload size={48} className="text-slate-400 mb-3" />
-                  <p className="text-sm text-slate-600 dark:text-slate-400">
-                    Click to upload image or video
+                  <div className="p-4 bg-gradient-to-br from-pink-500 to-purple-600 rounded-full mb-4 group-hover:scale-110 transition-transform">
+                    <Upload size={32} className="text-white" />
+                  </div>
+                  <p className="text-base font-medium text-slate-700 dark:text-slate-300 mb-1">
+                    Click to upload
                   </p>
-                  <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
-                    Story will expire in 24 hours
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                    Image or video (max 50MB)
                   </p>
+                  <div className="mt-4 px-4 py-2 bg-slate-100 dark:bg-slate-700 rounded-lg">
+                    <p className="text-xs text-slate-600 dark:text-slate-400">
+                      Your story will be visible for 24 hours
+                    </p>
+                  </div>
                 </div>
                 <input
                   type="file"
@@ -478,7 +622,7 @@ export default function Stories() {
               </label>
             ) : (
               <div className="space-y-4">
-                <div className="relative w-full h-64 bg-slate-100 dark:bg-slate-700 rounded-lg overflow-hidden">
+                <div className="relative w-full h-96 bg-slate-100 dark:bg-slate-700 rounded-xl overflow-hidden">
                   {uploadFile?.type.startsWith('video/') ? (
                     <video
                       src={previewUrl}
@@ -492,41 +636,49 @@ export default function Stories() {
                       className="w-full h-full object-contain"
                     />
                   )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                    Caption (optional)
-                  </label>
-                  <textarea
-                    value={caption}
-                    onChange={(e) => setCaption(e.target.value)}
-                    rows={2}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
-                    placeholder="Add a caption..."
-                    maxLength={200}
-                  />
-                </div>
-
-                <div className="flex gap-2">
                   <button
                     onClick={() => {
                       setUploadFile(null);
                       setPreviewUrl('');
                     }}
-                    className="flex-1 px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
+                    className="absolute top-3 right-3 p-2 bg-black/50 hover:bg-black/70 rounded-full text-white transition-colors"
                     disabled={uploading}
                   >
-                    Change
-                  </button>
-                  <button
-                    onClick={uploadStory}
-                    disabled={uploading}
-                    className="flex-1 px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-lg hover:from-pink-600 hover:to-purple-700 transition-colors disabled:opacity-50"
-                  >
-                    {uploading ? 'Uploading...' : 'Share Story'}
+                    <X size={20} />
                   </button>
                 </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    Caption
+                  </label>
+                  <textarea
+                    value={caption}
+                    onChange={(e) => setCaption(e.target.value)}
+                    rows={3}
+                    className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all"
+                    placeholder="Share your thoughts..."
+                    maxLength={200}
+                  />
+                  <div className="mt-1 text-xs text-slate-500 dark:text-slate-400 text-right">
+                    {caption.length}/200
+                  </div>
+                </div>
+
+                <button
+                  onClick={uploadStory}
+                  disabled={uploading}
+                  className="w-full px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-lg hover:from-pink-600 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-lg hover:shadow-xl"
+                >
+                  {uploading ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Uploading...
+                    </span>
+                  ) : (
+                    'Share Story'
+                  )}
+                </button>
               </div>
             )}
           </div>
