@@ -83,5 +83,18 @@ export default defineConfig({
   },
   css: {
     postcss: './postcss.config.js',
+  },
+  optimizeDeps: {
+    include: [
+      '@aparajita/capacitor-biometric-auth',
+      '@capacitor/core',
+      '@capacitor/app',
+      '@capacitor/haptics',
+      '@capacitor/keyboard',
+      '@capacitor/share',
+      '@capacitor/splash-screen',
+      '@capacitor/status-bar',
+      '@capacitor/toast'
+    ]
   }
 })
