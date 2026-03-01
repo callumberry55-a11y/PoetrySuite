@@ -4,7 +4,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import {
   Moon, Sun, User, Mail, Download, Smartphone, Trash2, AlertTriangle, Bell, BellOff, MessageSquare,
   Send, Coins, Activity, TrendingUp, DollarSign, Settings as SettingsIcon,
-  Palette, Globe, Award, HelpCircle, Sparkles, ChevronUp, ChevronDown, Fingerprint, Shield, Wand2, Hand
+  Palette, Globe, Award, HelpCircle, Sparkles, ChevronUp, ChevronDown, Fingerprint, Shield, Wand2, Hand, Eye
 } from 'lucide-react';
 import { functions } from '../lib/firebase';
 import { httpsCallable, Functions } from 'firebase/functions';
@@ -12,6 +12,8 @@ import { subscribeToNotifications, unsubscribeFromNotifications, isSubscribed } 
 import packageJson from '../../package.json';
 import ThemeManager from './ThemeManager';
 import HandGestureSettings from './HandGestureSettings';
+import EyeTrackingSettings from './EyeTrackingSettings';
+import { eyeTrackingManager } from '../utils/eyeTracking';
 
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[];
@@ -46,6 +48,8 @@ export default function Settings() {
   const [biometricEnabled, setBiometricEnabled] = useState(false);
   const [isTogglingBiometric, setIsTogglingBiometric] = useState(false);
   const [biometricError, setBiometricError] = useState<string | null>(null);
+  const [eyeTrackingEnabled, setEyeTrackingEnabled] = useState(false);
+  const [showEyeTrackingSettings, setShowEyeTrackingSettings] = useState(false);
 
   const loadNotificationPreference = useCallback(async () => {
     if (!user) return;
@@ -86,6 +90,20 @@ export default function Settings() {
       console.warn('Error loading biometric settings:', error);
     }
   }, [user]);
+
+  useEffect(() => {
+    const config = eyeTrackingManager.getConfig();
+    setEyeTrackingEnabled(config.enabled);
+
+    const interval = setInterval(() => {
+      const currentConfig = eyeTrackingManager.getConfig();
+      setEyeTrackingEnabled(currentConfig.enabled);
+    }, 1000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, []);
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -299,6 +317,14 @@ export default function Settings() {
     } finally {
       setIsTogglingBiometric(false);
     }
+  };
+
+  const handleToggleEyeTracking = () => {
+    const newState = !showEyeTrackingSettings;
+    setShowEyeTrackingSettings(newState);
+
+    const config = eyeTrackingManager.getConfig();
+    setEyeTrackingEnabled(config.enabled);
   };
 
   const tabs = [
@@ -1174,12 +1200,63 @@ export default function Settings() {
           {activeTab === 'accessibility' && (
             <div className="space-y-6">
               <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+                <div className="bg-gradient-to-r from-blue-500 to-cyan-500 px-6 py-4">
+                  <div className="flex items-center gap-3">
+                    <Eye className="text-white" size={24} />
+                    <div>
+                      <h2 className="text-2xl font-bold text-white">Eye Tracking</h2>
+                      <p className="text-blue-100 text-sm">Control your device with your eyes</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-6 space-y-6">
+                  <div className="flex items-start gap-4">
+                    <div className="flex-1">
+                      <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Enable Eye Tracking</h3>
+                      <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                        Use your webcam to track eye movement and control the interface. This feature uses advanced computer vision to detect where you're looking and enables hands-free interaction.
+                      </p>
+                      <div className="mt-4 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl">
+                        <div className="flex gap-3">
+                          <AlertTriangle className="text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" size={18} />
+                          <p className="text-sm text-amber-800 dark:text-amber-200 leading-relaxed">
+                            <strong>Experimental Feature:</strong> Eye tracking requires camera access and may not work perfectly on all devices. Performance depends on lighting conditions and camera quality.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      onClick={handleToggleEyeTracking}
+                      className={`relative inline-flex h-12 w-20 items-center rounded-full transition-all shadow-lg ${
+                        eyeTrackingEnabled
+                          ? 'bg-gradient-to-r from-blue-500 to-cyan-500'
+                          : 'bg-slate-300 dark:bg-slate-600'
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-10 w-10 transform rounded-full bg-white shadow-md transition-transform ${
+                          eyeTrackingEnabled ? 'translate-x-9' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
+                  </div>
+
+                  {showEyeTrackingSettings && (
+                    <div className="pt-6 border-t border-slate-200 dark:border-slate-700">
+                      <EyeTrackingSettings />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
                 <div className="bg-gradient-to-r from-purple-500 to-pink-500 px-6 py-4">
                   <div className="flex items-center gap-3">
                     <Hand className="text-white" size={24} />
                     <div>
-                      <h2 className="text-2xl font-bold text-white">Accessibility Features</h2>
-                      <p className="text-purple-100 text-sm">Experimental accessibility tools</p>
+                      <h2 className="text-2xl font-bold text-white">Hand Gestures</h2>
+                      <p className="text-purple-100 text-sm">Control with hand movements</p>
                     </div>
                   </div>
                 </div>
