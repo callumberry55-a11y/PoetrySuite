@@ -220,17 +220,36 @@ export default function DeveloperDashboard() {
         return;
       }
 
-      const { data: devData, error: devError } = await supabase
+      let devData = await supabase
         .from('paas_developers')
         .select('*')
         .eq('user_id', user.id)
-        .maybeSingle();
+        .maybeSingle()
+        .then(res => res.data);
 
-      if (devError || !devData) {
-        setError('Developer profile not found');
-        setLoading(false);
-        setRefreshing(false);
-        return;
+      // If no developer profile exists, create one automatically
+      if (!devData) {
+        const { data: newDev, error: createError } = await supabase
+          .from('paas_developers')
+          .insert({
+            user_id: user.id,
+            email: user.email || `user_${user.id}@poetry-suite.app`,
+            organization_name: 'Personal',
+            subscription_status: 'active',
+            is_verified: true
+          })
+          .select()
+          .single();
+
+        if (createError) {
+          console.error('Error creating developer profile:', createError);
+          setError('Unable to initialize developer dashboard');
+          setLoading(false);
+          setRefreshing(false);
+          return;
+        }
+
+        devData = newDev;
       }
 
       const [
@@ -262,8 +281,25 @@ export default function DeveloperDashboard() {
           .limit(50)
       ]);
 
+      // Create point account if it doesn't exist
+      let finalAccountData = accountData;
+      if (!accountData) {
+        const { data: newAccount } = await supabase
+          .from('paas_point_accounts')
+          .insert({
+            developer_id: devData.id,
+            balance_points: 1000, // Starting balance
+            balance_gbp: 750,
+            total_earned: 1000,
+            total_spent: 0
+          })
+          .select()
+          .single();
+        finalAccountData = newAccount;
+      }
+
       setProfile(devData);
-      setPointAccount(accountData || null);
+      setPointAccount(finalAccountData || null);
       setApiKeys(keysData || []);
       setTransactions(txData || []);
       setFeedback(feedbackData || []);
