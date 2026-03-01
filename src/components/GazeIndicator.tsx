@@ -4,10 +4,24 @@ import { eyeTrackingManager, GazePoint } from '@/utils/eyeTracking';
 export default function GazeIndicator() {
   const [gazePoint, setGazePoint] = useState<GazePoint | null>(null);
   const [dwellProgress, setDwellProgress] = useState(0);
-  const config = eyeTrackingManager.getConfig();
+  const [config, setConfig] = useState(eyeTrackingManager.getConfig());
+
+  useEffect(() => {
+    const updateConfig = () => {
+      setConfig(eyeTrackingManager.getConfig());
+    };
+
+    const configInterval = setInterval(updateConfig, 1000);
+
+    return () => {
+      clearInterval(configInterval);
+    };
+  }, []);
 
   useEffect(() => {
     if (!config.enabled || !config.showGazeIndicator) {
+      setGazePoint(null);
+      setDwellProgress(0);
       return;
     }
 

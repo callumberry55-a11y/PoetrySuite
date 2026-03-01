@@ -85,6 +85,11 @@ class EyeTrackingManager {
 
   async initialize(): Promise<boolean> {
     try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        console.error('Camera API not supported');
+        return false;
+      }
+
       this.stream = await navigator.mediaDevices.getUserMedia({
         video: {
           width: { ideal: 640 },
@@ -98,6 +103,13 @@ class EyeTrackingManager {
       this.videoElement.autoplay = true;
       this.videoElement.playsInline = true;
       this.videoElement.style.display = 'none';
+      this.videoElement.muted = true;
+
+      this.videoElement.addEventListener('error', (e) => {
+        console.error('Video element error:', e);
+        this.stop();
+      });
+
       document.body.appendChild(this.videoElement);
 
       this.canvas = document.createElement('canvas');
@@ -105,12 +117,19 @@ class EyeTrackingManager {
       this.canvas.height = 480;
       this.ctx = this.canvas.getContext('2d', { willReadFrequently: true });
 
+      if (!this.ctx) {
+        console.error('Failed to get canvas context');
+        this.stop();
+        return false;
+      }
+
       await this.videoElement.play();
 
       console.log('Eye tracking initialized successfully');
       return true;
     } catch (error) {
       console.error('Failed to initialize eye tracking:', error);
+      this.stop();
       return false;
     }
   }
@@ -141,13 +160,25 @@ class EyeTrackingManager {
       this.stream = null;
     }
 
-    if (this.videoElement && document.body.contains(this.videoElement)) {
-      document.body.removeChild(this.videoElement);
+    if (this.videoElement) {
+      if (document.body.contains(this.videoElement)) {
+        document.body.removeChild(this.videoElement);
+      }
+      this.videoElement.srcObject = null;
       this.videoElement = null;
     }
 
+    if (this.canvas) {
+      this.canvas = null;
+    }
+
+    this.ctx = null;
     this.gazeHistory = [];
     this.currentGaze = null;
+    this.gazeListeners = [];
+    this.dwellListeners = [];
+    this.currentDwellElement = null;
+    this.dwellStartTime = 0;
   }
 
   private startTracking(): void {
@@ -156,7 +187,13 @@ class EyeTrackingManager {
         return;
       }
 
-      this.ctx.drawImage(this.videoElement, 0, 0, this.canvas.width, this.canvas.height);
+      try {
+        this.ctx.drawImage(this.videoElement, 0, 0, this.canvas.width, this.canvas.height);
+      } catch (error) {
+        console.error('Error drawing video frame:', error);
+        this.animationFrameId = requestAnimationFrame(processFrame);
+        return;
+      }
 
       const gaze = this.detectGaze();
 
@@ -328,10 +365,12 @@ class EyeTrackingManager {
     this.config.calibrated = false;
   }
 
-  addCalibrationPoint(screenX: number, screenY: number): void {
+  async addCalibrationPoint(screenX: number, screenY: number): Promise<void> {
     const samples: EyePosition[] = [];
+    const sampleCount = 30;
+    const sampleDelay = 50;
 
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < sampleCount; i++) {
       const gaze = this.detectGaze();
       if (gaze) {
         samples.push({
@@ -339,6 +378,10 @@ class EyeTrackingManager {
           y: gaze.y,
           timestamp: Date.now()
         });
+      }
+
+      if (i < sampleCount - 1) {
+        await new Promise(resolve => setTimeout(resolve, sampleDelay));
       }
     }
 
@@ -351,24 +394,38 @@ class EyeTrackingManager {
 
   finishCalibration(): void {
     if (this.calibrationPoints.length === 0) {
+      console.warn('No calibration points to process');
       return;
     }
 
     let totalOffsetX = 0;
     let totalOffsetY = 0;
+    let validPoints = 0;
 
     this.calibrationPoints.forEach(point => {
+      if (point.samples.length === 0) {
+        console.warn('Calibration point has no samples');
+        return;
+      }
+
       const avgX = point.samples.reduce((sum, s) => sum + s.x, 0) / point.samples.length;
       const avgY = point.samples.reduce((sum, s) => sum + s.y, 0) / point.samples.length;
 
       totalOffsetX += point.x - avgX;
       totalOffsetY += point.y - avgY;
+      validPoints++;
     });
 
-    this.calibrationOffsetX = totalOffsetX / this.calibrationPoints.length;
-    this.calibrationOffsetY = totalOffsetY / this.calibrationPoints.length;
+    if (validPoints === 0) {
+      console.warn('No valid calibration points');
+      return;
+    }
+
+    this.calibrationOffsetX = totalOffsetX / validPoints;
+    this.calibrationOffsetY = totalOffsetY / validPoints;
 
     this.config.calibrated = true;
+    console.log('Calibration completed with offsets:', this.calibrationOffsetX, this.calibrationOffsetY);
   }
 
   onGaze(callback: (point: GazePoint) => void): () => void {

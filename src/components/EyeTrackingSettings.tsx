@@ -25,21 +25,36 @@ export default function EyeTrackingSettings() {
   const [calibrationStep, setCalibrationStep] = useState(0);
 
   useEffect(() => {
-    checkCameraPermission();
-  }, []);
+    let permissionStatus: PermissionStatus | null = null;
 
-  const checkCameraPermission = async () => {
-    try {
-      const result = await navigator.permissions.query({ name: 'camera' as PermissionName });
-      setCameraPermission(result.state === 'granted' ? 'granted' : result.state === 'denied' ? 'denied' : 'unknown');
-
-      result.addEventListener('change', () => {
+    const checkCameraPermission = async () => {
+      try {
+        const result = await navigator.permissions.query({ name: 'camera' as PermissionName });
+        permissionStatus = result;
         setCameraPermission(result.state === 'granted' ? 'granted' : result.state === 'denied' ? 'denied' : 'unknown');
-      });
-    } catch (error) {
-      setCameraPermission('unknown');
-    }
-  };
+
+        const handleChange = () => {
+          setCameraPermission(result.state === 'granted' ? 'granted' : result.state === 'denied' ? 'denied' : 'unknown');
+        };
+
+        result.addEventListener('change', handleChange);
+
+        return () => {
+          result.removeEventListener('change', handleChange);
+        };
+      } catch (error) {
+        setCameraPermission('unknown');
+      }
+    };
+
+    checkCameraPermission();
+
+    return () => {
+      if (permissionStatus) {
+        permissionStatus.removeEventListener('change', () => {});
+      }
+    };
+  }, []);
 
   const handleEnableToggle = async () => {
     if (!config.enabled) {
@@ -80,25 +95,28 @@ export default function EyeTrackingSettings() {
     await eyeTrackingManager.startCalibration();
   };
 
-  const calibratePoint = (x: number, y: number) => {
-    eyeTrackingManager.addCalibrationPoint(x, y);
-    if (calibrationStep < 5) {
-      setCalibrationStep(calibrationStep + 1);
-    } else {
-      eyeTrackingManager.finishCalibration();
-      setIsCalibrating(false);
-      setCalibrationStep(0);
-      setConfig(eyeTrackingManager.getConfig());
-      toast?.showToast('Calibration completed', 'success');
-    }
+  const calibratePoint = async (x: number, y: number) => {
+    await eyeTrackingManager.addCalibrationPoint(x, y);
+
+    setCalibrationStep((prevStep) => {
+      if (prevStep < 5) {
+        return prevStep + 1;
+      } else {
+        eyeTrackingManager.finishCalibration();
+        setIsCalibrating(false);
+        setConfig(eyeTrackingManager.getConfig());
+        toast?.showToast('Calibration completed', 'success');
+        return 0;
+      }
+    });
   };
 
   const calibrationPoints = [
-    { x: window.innerWidth * 0.1, y: window.innerHeight * 0.1 },
-    { x: window.innerWidth * 0.9, y: window.innerHeight * 0.1 },
+    { x: Math.max(50, window.innerWidth * 0.1), y: Math.max(50, window.innerHeight * 0.1) },
+    { x: Math.min(window.innerWidth - 50, window.innerWidth * 0.9), y: Math.max(50, window.innerHeight * 0.1) },
     { x: window.innerWidth * 0.5, y: window.innerHeight * 0.5 },
-    { x: window.innerWidth * 0.1, y: window.innerHeight * 0.9 },
-    { x: window.innerWidth * 0.9, y: window.innerHeight * 0.9 }
+    { x: Math.max(50, window.innerWidth * 0.1), y: Math.min(window.innerHeight - 50, window.innerHeight * 0.9) },
+    { x: Math.min(window.innerWidth - 50, window.innerWidth * 0.9), y: Math.min(window.innerHeight - 50, window.innerHeight * 0.9) }
   ];
 
   if (showWarning) {
