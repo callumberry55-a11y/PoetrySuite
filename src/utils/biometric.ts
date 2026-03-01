@@ -1,5 +1,3 @@
-import { Capacitor } from '@capacitor/core';
-
 const BIOMETRIC_CREDENTIAL_KEY = 'biometric_credential';
 
 export interface BiometricAvailability {
@@ -8,99 +6,20 @@ export interface BiometricAvailability {
   error?: string;
 }
 
-async function getBiometricModule() {
-  try {
-    return await import('@aparajita/capacitor-biometric-auth');
-  } catch (error) {
-    console.warn('Biometric authentication module not available:', error);
-    return null;
-  }
-}
-
 export async function isBiometricAvailable(): Promise<BiometricAvailability> {
-  if (!Capacitor.isNativePlatform()) {
-    return {
-      isAvailable: false,
-      error: 'Biometric authentication is only available on native platforms'
-    };
-  }
-
-  const module = await getBiometricModule();
-  if (!module) {
-    return {
-      isAvailable: false,
-      error: 'Biometric authentication module not loaded'
-    };
-  }
-
-  try {
-    const result = await module.BiometricAuth.checkBiometry();
-    return {
-      isAvailable: result.isAvailable,
-      biometryType: result.biometryType
-    };
-  } catch (error) {
-    console.error('Error checking biometric availability:', error);
-    return {
-      isAvailable: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
-    };
-  }
+  return {
+    isAvailable: false,
+    error: 'Biometric authentication is currently disabled'
+  };
 }
 
-export async function getBiometricTypeName(type: any): Promise<string> {
-  const module = await getBiometricModule();
-  if (!module) return 'Biometric';
-
-  const BiometryType = module.BiometryType;
-
-  switch (type) {
-    case BiometryType.touchId:
-      return 'Touch ID';
-    case BiometryType.faceId:
-      return 'Face ID';
-    case BiometryType.fingerprintAuthentication:
-      return 'Fingerprint';
-    case BiometryType.faceAuthentication:
-      return 'Face';
-    case BiometryType.irisAuthentication:
-      return 'Iris';
-    case BiometryType.none:
-      return 'None';
-    default:
-      return 'Biometric';
-  }
+export async function getBiometricTypeName(_type: any): Promise<string> {
+  return 'Biometric';
 }
 
-export async function authenticateWithBiometric(reason: string = 'Authenticate to continue'): Promise<boolean> {
-  if (!Capacitor.isNativePlatform()) {
-    console.warn('Biometric authentication is only available on native platforms');
-    return false;
-  }
-
-  const module = await getBiometricModule();
-  if (!module) {
-    console.warn('Biometric authentication module not loaded');
-    return false;
-  }
-
-  try {
-    const options = {
-      reason,
-      cancelTitle: 'Cancel',
-      allowDeviceCredential: true,
-      iosFallbackTitle: 'Use Passcode',
-      androidTitle: 'Authentication Required',
-      androidSubtitle: reason,
-      androidConfirmationRequired: false
-    };
-
-    await module.BiometricAuth.authenticate(options);
-    return true;
-  } catch (error) {
-    console.error('Biometric authentication failed:', error);
-    return false;
-  }
+export async function authenticateWithBiometric(_reason: string = 'Authenticate to continue'): Promise<boolean> {
+  console.warn('Biometric authentication is currently disabled');
+  return false;
 }
 
 export async function getBiometricPreference(userId: string): Promise<boolean> {

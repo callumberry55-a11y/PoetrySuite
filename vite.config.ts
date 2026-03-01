@@ -86,7 +86,6 @@ export default defineConfig({
   },
   optimizeDeps: {
     include: [
-      '@aparajita/capacitor-biometric-auth',
       '@capacitor/core',
       '@capacitor/app',
       '@capacitor/haptics',
