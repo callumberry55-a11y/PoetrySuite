@@ -7,6 +7,7 @@ import { ToastProvider } from '@/contexts/ToastContext';
 import AuthPage from '@/components/AuthPage';
 import Layout from '@/components/Layout';
 import NetworkIndicator from '@/components/NetworkIndicator';
+import GazeIndicator from '@/components/GazeIndicator';
 import GestureFeedback from '@/components/GestureFeedback';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { statusBar, splashScreen, isNative, app } from '@/utils/native';
@@ -168,6 +169,7 @@ function AppContent() {
 
   return (
     <>
+      <GazeIndicator />
       <NetworkIndicator />
       <GestureFeedback />
       <Routes>
