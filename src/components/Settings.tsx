@@ -7,7 +7,7 @@ import {
   Palette, Globe, Award, HelpCircle, Sparkles, ChevronUp, ChevronDown, Fingerprint, Shield, Wand2
 } from 'lucide-react';
 import { functions } from '../lib/firebase';
-import { httpsCallable } from 'firebase/functions';
+import { httpsCallable, Functions } from 'firebase/functions';
 import { subscribeToNotifications, unsubscribeFromNotifications, isSubscribed } from '../utils/notifications';
 import packageJson from '../../package.json';
 import ThemeManager from './ThemeManager';
@@ -172,7 +172,7 @@ export default function Settings() {
         throw new Error('Account deletion requires Firebase configuration');
       }
 
-      const deleteAccount = httpsCallable(functions, 'deleteAccount');
+      const deleteAccount = httpsCallable(functions as Functions, 'deleteAccount');
       await deleteAccount();
 
       await signOut();
