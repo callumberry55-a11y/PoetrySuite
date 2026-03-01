@@ -67,7 +67,28 @@ export function CommentsSection({ poemId }: CommentsSectionProps) {
 
   useEffect(() => {
     loadComments();
-  }, [loadComments]);
+
+    // Subscribe to realtime comment changes
+    const channel = supabase
+      .channel(`comments:${poemId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'comments',
+          filter: `poem_id=eq.${poemId}`,
+        },
+        () => {
+          loadComments();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [loadComments, poemId]);
 
   const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -156,6 +156,44 @@ export default function SocialFeed() {
     } else {
       loadFeed();
     }
+
+    // Subscribe to realtime changes for reactions and comments
+    if (activeTab !== 'contests') {
+      const reactionsChannel = supabase
+        .channel('public-reactions')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'reactions',
+          },
+          () => {
+            loadFeed();
+          }
+        )
+        .subscribe();
+
+      const commentsChannel = supabase
+        .channel('public-comments')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'comments',
+          },
+          () => {
+            loadFeed();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(reactionsChannel);
+        supabase.removeChannel(commentsChannel);
+      };
+    }
   }, [activeTab, user, loadContests, loadFeed]);
 
   useEffect(() => {
