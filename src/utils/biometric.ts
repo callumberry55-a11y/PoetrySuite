@@ -1,12 +1,20 @@
-import { BiometricAuth, BiometryType, AuthenticateOptions } from '@aparajita/capacitor-biometric-auth';
 import { Capacitor } from '@capacitor/core';
 
 const BIOMETRIC_CREDENTIAL_KEY = 'biometric_credential';
 
 export interface BiometricAvailability {
   isAvailable: boolean;
-  biometryType?: BiometryType;
+  biometryType?: any;
   error?: string;
+}
+
+async function getBiometricModule() {
+  try {
+    return await import('@aparajita/capacitor-biometric-auth');
+  } catch (error) {
+    console.warn('Biometric authentication module not available:', error);
+    return null;
+  }
 }
 
 export async function isBiometricAvailable(): Promise<BiometricAvailability> {
@@ -17,8 +25,16 @@ export async function isBiometricAvailable(): Promise<BiometricAvailability> {
     };
   }
 
+  const module = await getBiometricModule();
+  if (!module) {
+    return {
+      isAvailable: false,
+      error: 'Biometric authentication module not loaded'
+    };
+  }
+
   try {
-    const result = await BiometricAuth.checkBiometry();
+    const result = await module.BiometricAuth.checkBiometry();
     return {
       isAvailable: result.isAvailable,
       biometryType: result.biometryType
@@ -32,7 +48,12 @@ export async function isBiometricAvailable(): Promise<BiometricAvailability> {
   }
 }
 
-export function getBiometricTypeName(type: BiometryType): string {
+export async function getBiometricTypeName(type: any): Promise<string> {
+  const module = await getBiometricModule();
+  if (!module) return 'Biometric';
+
+  const BiometryType = module.BiometryType;
+
   switch (type) {
     case BiometryType.touchId:
       return 'Touch ID';
@@ -57,8 +78,14 @@ export async function authenticateWithBiometric(reason: string = 'Authenticate t
     return false;
   }
 
+  const module = await getBiometricModule();
+  if (!module) {
+    console.warn('Biometric authentication module not loaded');
+    return false;
+  }
+
   try {
-    const options: AuthenticateOptions = {
+    const options = {
       reason,
       cancelTitle: 'Cancel',
       allowDeviceCredential: true,
@@ -68,7 +95,7 @@ export async function authenticateWithBiometric(reason: string = 'Authenticate t
       androidConfirmationRequired: false
     };
 
-    await BiometricAuth.authenticate(options);
+    await module.BiometricAuth.authenticate(options);
     return true;
   } catch (error) {
     console.error('Biometric authentication failed:', error);

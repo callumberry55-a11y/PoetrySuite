@@ -75,7 +75,8 @@ export default function Settings() {
       setBiometricAvailable(available.isAvailable);
 
       if (available.isAvailable && available.biometryType) {
-        setBiometricType(getBiometricTypeName(available.biometryType));
+        const typeName = await getBiometricTypeName(available.biometryType);
+        setBiometricType(typeName);
       }
 
       const enabled = await getBiometricPreference(user.id);
