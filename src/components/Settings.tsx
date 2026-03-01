@@ -1002,14 +1002,19 @@ export default function Settings() {
                   </p>
 
                   {feedbackSuccess && (
-                    <div className="mb-6 p-6 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl">
+                    <div className="mb-6 p-6 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border-2 border-emerald-200 dark:border-emerald-800 rounded-xl animate-in fade-in slide-in-from-top-2 duration-300">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
-                          <Send className="text-white" size={20} />
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg animate-in zoom-in duration-500">
+                          <Sparkles className="text-white" size={22} />
                         </div>
-                        <p className="text-emerald-800 dark:text-emerald-200 font-semibold">
-                          Thank you for your feedback! We'll review it shortly.
-                        </p>
+                        <div>
+                          <p className="text-emerald-900 dark:text-emerald-100 font-bold text-lg">
+                            Feedback Received!
+                          </p>
+                          <p className="text-emerald-700 dark:text-emerald-300 text-sm">
+                            Thank you for helping us improve. We'll review it shortly.
+                          </p>
+                        </div>
                       </div>
                     </div>
                   )}
@@ -1017,62 +1022,147 @@ export default function Settings() {
                   <div className="space-y-6">
                     <div>
                       <label className="block text-sm font-bold text-slate-900 dark:text-white mb-3">
-                        Category
+                        What type of feedback do you have?
                       </label>
-                      <select
-                        value={feedbackCategory}
-                        onChange={(e) => setFeedbackCategory(e.target.value as 'bug' | 'feature' | 'improvement' | 'other')}
-                        className="w-full px-4 py-3 border-2 border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                        disabled={isSubmittingFeedback}
-                      >
-                        <option value="bug">Bug Report</option>
-                        <option value="feature">Feature Request</option>
-                        <option value="improvement">Improvement Suggestion</option>
-                        <option value="other">Other</option>
-                      </select>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        {[
+                          { value: 'bug', label: 'Bug Report', icon: AlertTriangle, color: 'red', desc: 'Something isn\'t working' },
+                          { value: 'feature', label: 'Feature Request', icon: Sparkles, color: 'blue', desc: 'Suggest a new feature' },
+                          { value: 'improvement', label: 'Improvement', icon: TrendingUp, color: 'green', desc: 'Make something better' },
+                          { value: 'other', label: 'Other', icon: MessageSquare, color: 'slate', desc: 'General feedback' },
+                        ].map((category) => (
+                          <button
+                            key={category.value}
+                            type="button"
+                            onClick={() => setFeedbackCategory(category.value as any)}
+                            disabled={isSubmittingFeedback}
+                            className={`relative p-4 rounded-xl border-2 transition-all duration-200 ${
+                              feedbackCategory === category.value
+                                ? `border-${category.color}-500 bg-${category.color}-50 dark:bg-${category.color}-900/20 shadow-lg scale-105`
+                                : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-md'
+                            } disabled:opacity-50 disabled:cursor-not-allowed`}
+                          >
+                            <div className="flex flex-col items-center gap-2">
+                              <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                                feedbackCategory === category.value
+                                  ? `bg-gradient-to-br from-${category.color}-500 to-${category.color}-600 shadow-md`
+                                  : 'bg-slate-100 dark:bg-slate-700'
+                              }`}>
+                                <category.icon
+                                  size={20}
+                                  className={feedbackCategory === category.value ? 'text-white' : 'text-slate-600 dark:text-slate-400'}
+                                />
+                              </div>
+                              <span className={`text-xs font-semibold text-center ${
+                                feedbackCategory === category.value
+                                  ? `text-${category.color}-900 dark:text-${category.color}-100`
+                                  : 'text-slate-700 dark:text-slate-300'
+                              }`}>
+                                {category.label}
+                              </span>
+                              <span className="text-[10px] text-slate-500 dark:text-slate-400 text-center leading-tight">
+                                {category.desc}
+                              </span>
+                            </div>
+                            {feedbackCategory === category.value && (
+                              <div className={`absolute -top-1 -right-1 w-5 h-5 rounded-full bg-${category.color}-500 flex items-center justify-center shadow-md`}>
+                                <span className="text-white text-xs">✓</span>
+                              </div>
+                            )}
+                          </button>
+                        ))}
+                      </div>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-bold text-slate-900 dark:text-white mb-3">
-                        Title
-                      </label>
+                      <div className="flex items-center justify-between mb-3">
+                        <label className="text-sm font-bold text-slate-900 dark:text-white">
+                          Title
+                        </label>
+                        <span className={`text-xs font-medium ${
+                          feedbackTitle.length > 90
+                            ? 'text-red-600 dark:text-red-400'
+                            : 'text-slate-500 dark:text-slate-400'
+                        }`}>
+                          {feedbackTitle.length}/100
+                        </span>
+                      </div>
                       <input
                         type="text"
                         value={feedbackTitle}
                         onChange={(e) => setFeedbackTitle(e.target.value)}
-                        placeholder="Brief summary of your feedback"
-                        className="w-full px-4 py-3 border-2 border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        placeholder={
+                          feedbackCategory === 'bug' ? 'e.g., Unable to save poems' :
+                          feedbackCategory === 'feature' ? 'e.g., Add voice recording for poems' :
+                          feedbackCategory === 'improvement' ? 'e.g., Improve search performance' :
+                          'Brief summary of your feedback'
+                        }
+                        className="w-full px-4 py-3 border-2 border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                         disabled={isSubmittingFeedback}
                         maxLength={100}
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-bold text-slate-900 dark:text-white mb-3">
-                        Message
-                      </label>
+                      <div className="flex items-center justify-between mb-3">
+                        <label className="text-sm font-bold text-slate-900 dark:text-white">
+                          Details
+                        </label>
+                        <span className={`text-xs font-medium ${
+                          feedbackMessage.length > 900
+                            ? 'text-red-600 dark:text-red-400'
+                            : 'text-slate-500 dark:text-slate-400'
+                        }`}>
+                          {feedbackMessage.length}/1000
+                        </span>
+                      </div>
                       <textarea
                         value={feedbackMessage}
                         onChange={(e) => setFeedbackMessage(e.target.value)}
-                        placeholder="Provide details about your feedback..."
-                        rows={6}
-                        className="w-full px-4 py-3 border-2 border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none transition-all"
+                        placeholder={
+                          feedbackCategory === 'bug'
+                            ? 'Please describe what happened, what you expected, and steps to reproduce the issue...'
+                            : feedbackCategory === 'feature'
+                            ? 'Describe the feature you\'d like to see and how it would help you...'
+                            : feedbackCategory === 'improvement'
+                            ? 'Tell us what could be better and your suggestions for improvement...'
+                            : 'Share your thoughts with us...'
+                        }
+                        rows={7}
+                        className="w-full px-4 py-3 border-2 border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none transition-all"
                         disabled={isSubmittingFeedback}
                         maxLength={1000}
                       />
-                      <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">
-                        {feedbackMessage.length}/1000 characters
-                      </p>
                     </div>
 
-                    <button
-                      onClick={handleSubmitFeedback}
-                      disabled={!feedbackTitle.trim() || !feedbackMessage.trim() || isSubmittingFeedback}
-                      className="flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 disabled:from-slate-300 disabled:to-slate-400 disabled:cursor-not-allowed text-white rounded-xl font-bold text-lg shadow-lg shadow-blue-500/30 transition-all"
-                    >
-                      <Send size={20} />
-                      {isSubmittingFeedback ? 'Submitting...' : 'Submit Feedback'}
-                    </button>
+                    <div className="pt-2">
+                      <button
+                        onClick={handleSubmitFeedback}
+                        disabled={!feedbackTitle.trim() || !feedbackMessage.trim() || isSubmittingFeedback}
+                        className="w-full flex items-center justify-center gap-3 px-8 py-4 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 disabled:from-slate-300 disabled:to-slate-400 dark:disabled:from-slate-600 dark:disabled:to-slate-700 disabled:cursor-not-allowed text-white rounded-xl font-bold text-lg shadow-lg hover:shadow-xl shadow-blue-500/30 hover:shadow-blue-500/40 disabled:shadow-none transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] disabled:transform-none"
+                      >
+                        {isSubmittingFeedback ? (
+                          <>
+                            <div className="w-5 h-5 border-3 border-white border-t-transparent rounded-full animate-spin" />
+                            <span>Sending Your Feedback...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Send size={22} />
+                            <span>Submit Feedback</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+
+                    <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl">
+                      <div className="flex gap-3">
+                        <HelpCircle className="text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" size={18} />
+                        <p className="text-sm text-blue-800 dark:text-blue-200 leading-relaxed">
+                          <strong>Privacy Note:</strong> Your feedback is reviewed by our team and helps shape future updates. We may contact you if we need more information about your submission.
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
