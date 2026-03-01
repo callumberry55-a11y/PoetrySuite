@@ -4,13 +4,14 @@ import { useTheme } from '../contexts/ThemeContext';
 import {
   Moon, Sun, User, Mail, Download, Smartphone, Trash2, AlertTriangle, Bell, BellOff, MessageSquare,
   Send, Coins, Activity, TrendingUp, DollarSign, Settings as SettingsIcon,
-  Palette, Globe, Award, HelpCircle, Sparkles, ChevronUp, ChevronDown, Fingerprint, Shield, Wand2
+  Palette, Globe, Award, HelpCircle, Sparkles, ChevronUp, ChevronDown, Fingerprint, Shield, Wand2, Hand
 } from 'lucide-react';
 import { functions } from '../lib/firebase';
 import { httpsCallable, Functions } from 'firebase/functions';
 import { subscribeToNotifications, unsubscribeFromNotifications, isSubscribed } from '../utils/notifications';
 import packageJson from '../../package.json';
 import ThemeManager from './ThemeManager';
+import HandGestureSettings from './HandGestureSettings';
 
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[];
@@ -18,7 +19,7 @@ interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
 }
 
-type TabType = 'general' | 'appearance' | 'themes' | 'points' | 'feedback';
+type TabType = 'general' | 'appearance' | 'themes' | 'points' | 'feedback' | 'accessibility';
 
 export default function Settings() {
   const { user, signOut } = useAuth();
@@ -304,6 +305,7 @@ export default function Settings() {
     { id: 'general' as TabType, label: 'General', icon: SettingsIcon },
     { id: 'appearance' as TabType, label: 'Appearance', icon: Palette },
     { id: 'themes' as TabType, label: 'Advanced Themes', icon: Wand2 },
+    { id: 'accessibility' as TabType, label: 'Accessibility', icon: Hand },
     { id: 'points' as TabType, label: 'Points System', icon: Coins },
     { id: 'feedback' as TabType, label: 'Feedback', icon: MessageSquare },
   ];
@@ -1164,6 +1166,26 @@ export default function Settings() {
                       </div>
                     </div>
                   </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'accessibility' && (
+            <div className="space-y-6">
+              <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+                <div className="bg-gradient-to-r from-purple-500 to-pink-500 px-6 py-4">
+                  <div className="flex items-center gap-3">
+                    <Hand className="text-white" size={24} />
+                    <div>
+                      <h2 className="text-2xl font-bold text-white">Accessibility Features</h2>
+                      <p className="text-purple-100 text-sm">Experimental accessibility tools</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-6">
+                  <HandGestureSettings />
                 </div>
               </div>
             </div>
