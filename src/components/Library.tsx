@@ -16,7 +16,13 @@ import {
   RefreshCw,
   BookOpen,
   Heart,
-  MessageSquare
+  MessageSquare,
+  Copy,
+  Share2,
+  Filter,
+  Calendar,
+  FileText,
+  BarChart3
 } from 'lucide-react';
 import CollectionManager from './CollectionManager';
 import AISearchBar from './AISearchBar';
@@ -28,9 +34,12 @@ interface Poem {
   is_public: boolean;
   word_count: number;
   created_at: string;
+  updated_at: string;
   favorited: boolean;
   like_count?: number;
   comment_count?: number;
+  form_type?: string;
+  tags?: string[];
 }
 
 interface InternetPoem {
@@ -62,6 +71,9 @@ function Library({ onEditPoem }: LibraryProps) {
   const [selectedCollection, setSelectedCollection] = useState<string | null>(null);
   const [showCollectionMenu, setShowCollectionMenu] = useState<string | null>(null);
   const [poemCollections, setPoemCollections] = useState<Record<string, string[]>>({});
+  const [sortBy, setSortBy] = useState<'recent' | 'oldest' | 'title' | 'likes' | 'comments' | 'words'>('recent');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [showStats, setShowStats] = useState(false);
 
   const [activeTab, setActiveTab] = useState<'library' | 'discover'>('library');
   const [internetPoems, setInternetPoems] = useState<InternetPoem[]>([]);
@@ -351,8 +363,41 @@ function Library({ onEditPoem }: LibraryProps) {
       filtered = filtered.filter(poem => poemCollections[poem.id]?.includes(selectedCollection));
     }
 
+    // Apply sorting
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'recent':
+          return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+        case 'oldest':
+          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        case 'title':
+          return a.title.localeCompare(b.title);
+        case 'likes':
+          return (b.like_count || 0) - (a.like_count || 0);
+        case 'comments':
+          return (b.comment_count || 0) - (a.comment_count || 0);
+        case 'words':
+          return b.word_count - a.word_count;
+        default:
+          return 0;
+      }
+    });
+
     return filtered;
-  }, [poems, searchQuery, filterBy, selectedCollection, poemCollections]);
+  }, [poems, searchQuery, filterBy, selectedCollection, poemCollections, sortBy]);
+
+  const libraryStats = useMemo(() => {
+    return {
+      total: poems.length,
+      public: poems.filter(p => p.is_public).length,
+      private: poems.filter(p => !p.is_public).length,
+      favorites: poems.filter(p => p.favorited).length,
+      totalWords: poems.reduce((sum, p) => sum + p.word_count, 0),
+      totalLikes: poems.reduce((sum, p) => sum + (p.like_count || 0), 0),
+      totalComments: poems.reduce((sum, p) => sum + (p.comment_count || 0), 0),
+      avgWordsPerPoem: poems.length > 0 ? Math.round(poems.reduce((sum, p) => sum + p.word_count, 0) / poems.length) : 0
+    };
+  }, [poems]);
 
   const deletePoem = useCallback(async (poemId: string) => {
     if (!confirm('Are you sure you want to delete this poem?')) return;
@@ -375,6 +420,89 @@ function Library({ onEditPoem }: LibraryProps) {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   }, []);
+
+  const duplicatePoem = useCallback(async (poemId: string) => {
+    if (!user) return;
+
+    const poem = poems.find(p => p.id === poemId);
+    if (!poem) return;
+
+    const { error } = await supabase
+      .from('poems')
+      .insert([{
+        title: `${poem.title} (Copy)`,
+        content: poem.content,
+        user_id: user.id,
+        is_public: false,
+        word_count: poem.word_count,
+        form_type: poem.form_type
+      }]);
+
+    if (error) {
+      console.error('Error duplicating poem:', error);
+      toast?.showToast('Failed to duplicate poem', 'error');
+      return;
+    }
+
+    toast?.showToast('Poem duplicated successfully', 'success');
+    loadPoems();
+  }, [user, poems, loadPoems, toast]);
+
+  const exportPoem = useCallback((poem: Poem) => {
+    const content = `${poem.title}\n\n${poem.content}\n\nWritten on ${formatDate(poem.created_at)}`;
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${poem.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast?.showToast('Poem exported successfully', 'success');
+  }, [formatDate, toast]);
+
+  const sharePoem = useCallback(async (poem: Poem) => {
+    const shareText = `Check out my poem: "${poem.title}"\n\n${poem.content.substring(0, 100)}...`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: poem.title,
+          text: shareText
+        });
+        toast?.showToast('Poem shared successfully', 'success');
+      } catch (error) {
+        if ((error as Error).name !== 'AbortError') {
+          console.error('Error sharing:', error);
+        }
+      }
+    } else {
+      await navigator.clipboard.writeText(shareText);
+      toast?.showToast('Poem copied to clipboard', 'success');
+    }
+  }, [toast]);
+
+  const togglePublic = useCallback(async (poemId: string) => {
+    if (!user) return;
+
+    const poem = poems.find(p => p.id === poemId);
+    if (!poem) return;
+
+    const { error } = await supabase
+      .from('poems')
+      .update({ is_public: !poem.is_public })
+      .eq('id', poemId);
+
+    if (error) {
+      console.error('Error updating visibility:', error);
+      toast?.showToast('Failed to update visibility', 'error');
+      return;
+    }
+
+    toast?.showToast(`Poem is now ${!poem.is_public ? 'public' : 'private'}`, 'success');
+    loadPoems();
+  }, [user, poems, loadPoems, toast]);
 
   const popularAuthors = [
     'William Shakespeare', 'Emily Dickinson', 'Walt Whitman', 'Robert Frost',
@@ -490,6 +618,110 @@ function Library({ onEditPoem }: LibraryProps) {
               onSelectCollection={setSelectedCollection}
               poemCollections={poemCollections}
             />
+
+            <div className="flex flex-wrap items-center gap-3 mb-6">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setShowStats(!showStats)}
+                  className={`px-4 py-2 rounded-xl font-medium transition-all flex items-center gap-2 text-sm ${
+                    showStats
+                      ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                      : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600'
+                  }`}
+                >
+                  <BarChart3 size={16} />
+                  Stats
+                </button>
+              </div>
+
+              <div className="h-6 w-px bg-slate-300 dark:bg-slate-600" />
+
+              <div className="flex items-center gap-2">
+                <Filter size={16} className="text-slate-500 dark:text-slate-400" />
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+                  className="px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-600 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="recent">Most Recent</option>
+                  <option value="oldest">Oldest First</option>
+                  <option value="title">Title (A-Z)</option>
+                  <option value="likes">Most Liked</option>
+                  <option value="comments">Most Commented</option>
+                  <option value="words">Most Words</option>
+                </select>
+              </div>
+
+              <div className="h-6 w-px bg-slate-300 dark:bg-slate-600" />
+
+              <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-700 rounded-lg p-1">
+                <button
+                  onClick={() => setViewMode('grid')}
+                  className={`p-2 rounded transition-colors ${
+                    viewMode === 'grid'
+                      ? 'bg-white dark:bg-slate-600 text-blue-600 dark:text-blue-400'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                  }`}
+                  aria-label="Grid view"
+                >
+                  <Folder size={16} />
+                </button>
+                <button
+                  onClick={() => setViewMode('list')}
+                  className={`p-2 rounded transition-colors ${
+                    viewMode === 'list'
+                      ? 'bg-white dark:bg-slate-600 text-blue-600 dark:text-blue-400'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                  }`}
+                  aria-label="List view"
+                >
+                  <FileText size={16} />
+                </button>
+              </div>
+            </div>
+
+            {showStats && (
+              <div className="mb-6 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-2xl p-6 border border-blue-200 dark:border-blue-800">
+                <div className="flex items-center gap-2 mb-4">
+                  <BarChart3 size={20} className="text-blue-600 dark:text-blue-400" />
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">Library Statistics</h3>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  <div className="bg-white dark:bg-slate-800 rounded-xl p-4 shadow-sm">
+                    <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{libraryStats.total}</div>
+                    <div className="text-xs text-slate-600 dark:text-slate-400 mt-1">Total Poems</div>
+                  </div>
+                  <div className="bg-white dark:bg-slate-800 rounded-xl p-4 shadow-sm">
+                    <div className="text-2xl font-bold text-green-600 dark:text-green-400">{libraryStats.public}</div>
+                    <div className="text-xs text-slate-600 dark:text-slate-400 mt-1">Public</div>
+                  </div>
+                  <div className="bg-white dark:bg-slate-800 rounded-xl p-4 shadow-sm">
+                    <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">{libraryStats.favorites}</div>
+                    <div className="text-xs text-slate-600 dark:text-slate-400 mt-1">Favorites</div>
+                  </div>
+                  <div className="bg-white dark:bg-slate-800 rounded-xl p-4 shadow-sm">
+                    <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">{libraryStats.totalWords.toLocaleString()}</div>
+                    <div className="text-xs text-slate-600 dark:text-slate-400 mt-1">Total Words</div>
+                  </div>
+                  <div className="bg-white dark:bg-slate-800 rounded-xl p-4 shadow-sm">
+                    <div className="text-2xl font-bold text-rose-600 dark:text-rose-400">{libraryStats.totalLikes}</div>
+                    <div className="text-xs text-slate-600 dark:text-slate-400 mt-1">Total Likes</div>
+                  </div>
+                  <div className="bg-white dark:bg-slate-800 rounded-xl p-4 shadow-sm">
+                    <div className="text-2xl font-bold text-cyan-600 dark:text-cyan-400">{libraryStats.totalComments}</div>
+                    <div className="text-xs text-slate-600 dark:text-slate-400 mt-1">Total Comments</div>
+                  </div>
+                  <div className="bg-white dark:bg-slate-800 rounded-xl p-4 shadow-sm">
+                    <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{libraryStats.avgWordsPerPoem}</div>
+                    <div className="text-xs text-slate-600 dark:text-slate-400 mt-1">Avg Words/Poem</div>
+                  </div>
+                  <div className="bg-white dark:bg-slate-800 rounded-xl p-4 shadow-sm">
+                    <div className="text-2xl font-bold text-slate-600 dark:text-slate-400">{collections.length}</div>
+                    <div className="text-xs text-slate-600 dark:text-slate-400 mt-1">Collections</div>
+                  </div>
+                </div>
+              </div>
+            )}
           </>
         ) : (
           <div className="space-y-6 mb-6">
@@ -557,7 +789,7 @@ function Library({ onEditPoem }: LibraryProps) {
       </div>
 
       {activeTab === 'library' ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" role="list" aria-label="Poem library">
+        <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4' : 'space-y-3'} role="list" aria-label="Poem library">
           {filteredPoems.length === 0 ? (
             <div className="col-span-full text-center py-12" role="status">
               <p className="text-slate-500 dark:text-slate-400">
@@ -568,6 +800,7 @@ function Library({ onEditPoem }: LibraryProps) {
             </div>
           ) : (
             filteredPoems.map((poem) => (
+              viewMode === 'grid' ? (
               <article
                 key={poem.id}
                 className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden hover:border-slate-300 dark:hover:border-slate-600 transition-all hover:shadow-xl hover:-translate-y-1 group relative cursor-pointer"
@@ -604,7 +837,7 @@ function Library({ onEditPoem }: LibraryProps) {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity" role="group" aria-label="Poem actions">
+                    <div className="flex flex-wrap items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity" role="group" aria-label="Poem actions">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -612,8 +845,53 @@ function Library({ onEditPoem }: LibraryProps) {
                         }}
                         className="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-cyan-600 dark:text-cyan-400 hover:bg-cyan-100 dark:hover:bg-cyan-900/30 transition-colors"
                         aria-label={`Edit ${poem.title}`}
+                        title="Edit poem"
                       >
                         <Edit3 size={16} aria-hidden="true" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          duplicatePoem(poem.id);
+                        }}
+                        className="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+                        aria-label={`Duplicate ${poem.title}`}
+                        title="Duplicate poem"
+                      >
+                        <Copy size={16} aria-hidden="true" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          sharePoem(poem);
+                        }}
+                        className="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors"
+                        aria-label={`Share ${poem.title}`}
+                        title="Share poem"
+                      >
+                        <Share2 size={16} aria-hidden="true" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          exportPoem(poem);
+                        }}
+                        className="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors"
+                        aria-label={`Export ${poem.title}`}
+                        title="Export poem as text file"
+                      >
+                        <Download size={16} aria-hidden="true" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          togglePublic(poem.id);
+                        }}
+                        className="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors"
+                        aria-label={`Make ${poem.title} ${poem.is_public ? 'private' : 'public'}`}
+                        title={`Make ${poem.is_public ? 'private' : 'public'}`}
+                      >
+                        {poem.is_public ? <Lock size={16} aria-hidden="true" /> : <Globe size={16} aria-hidden="true" />}
                       </button>
                       <div className="relative">
                         <button
@@ -708,6 +986,91 @@ function Library({ onEditPoem }: LibraryProps) {
                   </div>
                 </div>
               </article>
+              ) : (
+              <article
+                key={poem.id}
+                className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-all hover:shadow-lg group cursor-pointer"
+                role="listitem"
+                aria-label={`Poem: ${poem.title}`}
+                onClick={() => onEditPoem(poem.id)}
+              >
+                <div className="p-4 flex items-center gap-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3 mb-1">
+                      <h3 className="text-lg font-bold text-slate-900 dark:text-white truncate group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
+                        {poem.title}
+                      </h3>
+                      {poem.favorited && (
+                        <Star size={14} fill="currentColor" className="text-amber-500 flex-shrink-0" aria-hidden="true" />
+                      )}
+                      {poem.is_public ? (
+                        <Globe size={14} className="text-green-500 flex-shrink-0" aria-hidden="true" />
+                      ) : (
+                        <Lock size={14} className="text-slate-400 flex-shrink-0" aria-hidden="true" />
+                      )}
+                    </div>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-1">
+                      {poem.content || 'No content yet...'}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-6 text-sm text-slate-500 dark:text-slate-400 flex-shrink-0">
+                    <span className="flex items-center gap-1.5">
+                      <Heart size={14} className="text-rose-500" aria-hidden="true" />
+                      {poem.like_count || 0}
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <MessageSquare size={14} className="text-blue-500" aria-hidden="true" />
+                      {poem.comment_count || 0}
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <FileText size={14} aria-hidden="true" />
+                      {poem.word_count}
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <Calendar size={14} aria-hidden="true" />
+                      {formatDate(poem.created_at)}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEditPoem(poem.id);
+                      }}
+                      className="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-cyan-600 dark:text-cyan-400 hover:bg-cyan-100 dark:hover:bg-cyan-900/30 transition-colors"
+                      aria-label={`Edit ${poem.title}`}
+                      title="Edit"
+                    >
+                      <Edit3 size={14} aria-hidden="true" />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        duplicatePoem(poem.id);
+                      }}
+                      className="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+                      aria-label={`Duplicate ${poem.title}`}
+                      title="Duplicate"
+                    >
+                      <Copy size={14} aria-hidden="true" />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deletePoem(poem.id);
+                      }}
+                      className="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+                      aria-label={`Delete ${poem.title}`}
+                      title="Delete"
+                    >
+                      <Trash2 size={14} aria-hidden="true" />
+                    </button>
+                  </div>
+                </div>
+              </article>
+              )
             ))
           )}
         </div>
