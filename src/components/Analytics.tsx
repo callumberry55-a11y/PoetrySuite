@@ -81,7 +81,7 @@ function Analytics() {
   }, []);
 
   useEffect(() => {
-    if (!user?.id) return;
+    if (!user?.id || !db) return;
 
     const poemsRef = collection(db, "poems");
     const q = query(poemsRef, where("user_id", "==", user.id), orderBy("created_at", "desc"));
@@ -133,6 +133,19 @@ function Analytics() {
   const totalPoemsLast7Days = useMemo(() => {
     return last7Days.reduce((sum, stat) => sum + stat.poems_written, 0);
   }, [last7Days]);
+
+  if (!db) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-8 flex-1">
+        <h2 className="text-3xl font-bold text-on-surface mb-8">Your Analytics</h2>
+        <div className="bg-surface rounded-xl p-8 text-center">
+          <p className="text-on-surface-variant">
+            Analytics require Firebase configuration. Please contact the administrator.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 flex-1">

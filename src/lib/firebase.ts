@@ -1,12 +1,10 @@
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
-import { getAnalytics } from "firebase/analytics";
-import { getFunctions } from "firebase/functions";
+import { initializeApp, FirebaseApp } from "firebase/app";
+import { getAuth, Auth } from "firebase/auth";
+import { getFirestore, Firestore } from "firebase/firestore";
+import { getAnalytics, Analytics } from "firebase/analytics";
+import { getFunctions, Functions } from "firebase/functions";
 
-// Validate required Firebase environment variables
-const requiredEnvVars = {
+const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
@@ -15,31 +13,24 @@ const requiredEnvVars = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
-// Check for missing environment variables
-const missingVars = Object.entries(requiredEnvVars)
-  .filter(([, value]) => !value)
-  .map(([key]) => `VITE_FIREBASE_${key.replace(/([A-Z])/g, '_$1').toUpperCase()}`);
+const hasFirebaseConfig = Object.values(firebaseConfig).every(value => !!value);
 
-if (missingVars.length > 0) {
-  throw new Error(
-    `Missing required Firebase environment variables: ${missingVars.join(', ')}. ` +
-    `Please check your .env file.`
-  );
+let app: FirebaseApp | null = null;
+let auth: Auth | null = null;
+let db: Firestore | null = null;
+let analytics: Analytics | null = null;
+let functions: Functions | null = null;
+
+if (hasFirebaseConfig) {
+  app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  db = getFirestore(app);
+  if (typeof window !== 'undefined') {
+    analytics = getAnalytics(app);
+  }
+  functions = getFunctions(app);
+} else {
+  console.warn('Firebase is not configured. Some features may be unavailable.');
 }
 
-// Your web app's Firebase configuration
-const firebaseConfig = {
-  apiKey: requiredEnvVars.apiKey,
-  authDomain: requiredEnvVars.authDomain,
-  projectId: requiredEnvVars.projectId,
-  storageBucket: requiredEnvVars.storageBucket,
-  messagingSenderId: requiredEnvVars.messagingSenderId,
-  appId: requiredEnvVars.appId,
-};
-
-// Initialize Firebase
-export const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const analytics = getAnalytics(app);
-export const functions = getFunctions(app);
+export { app, auth, db, analytics, functions };

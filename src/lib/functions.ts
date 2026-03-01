@@ -1,6 +1,10 @@
-import { getFunctions, httpsCallable } from 'firebase/functions';
+import { getFunctions, httpsCallable, Functions } from 'firebase/functions';
 import { app } from './firebase';
 
-const functions = getFunctions(app);
+let functions: Functions | null = null;
 
-export const generateTags = httpsCallable(functions, 'generateTags');
+if (app) {
+  functions = getFunctions(app);
+}
+
+export const generateTags = functions ? httpsCallable(functions, 'generateTags') : null;

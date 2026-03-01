@@ -168,6 +168,10 @@ export default function Settings() {
     setIsDeleting(true);
 
     try {
+      if (!functions) {
+        throw new Error('Account deletion requires Firebase configuration');
+      }
+
       const deleteAccount = httpsCallable(functions, 'deleteAccount');
       await deleteAccount();
 

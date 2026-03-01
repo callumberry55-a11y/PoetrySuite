@@ -70,7 +70,7 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
         }
       }
 
-      if (poemId && content.trim()) {
+      if (poemId && content.trim() && generateTags) {
         try {
           const result = await generateTags({ poemContent: content });
           const data = result.data as { tags?: string[] };
