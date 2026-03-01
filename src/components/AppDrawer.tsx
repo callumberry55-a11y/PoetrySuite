@@ -1,6 +1,6 @@
-import { BookHeart, PenLine, Library, BarChart3, Settings, Compass, Lightbulb, BookOpen, X, User, Users, UsersRound, Zap, Target, Trophy, Award, ShoppingBag, Shield, Landmark, UserPlus, BookMarked, Book, LibraryBig, Sparkles, GraduationCap, Flame, MessageSquare, FolderOpen, Heart, Timer, Brain, MessagesSquare } from 'lucide-react';
+import { BookHeart, PenLine, Library, Settings, Compass, Lightbulb, BookOpen, X, User, Users, UsersRound, Zap, Target, Trophy, Award, ShoppingBag, Shield, Landmark, UserPlus, BookMarked, Book, LibraryBig, Sparkles, GraduationCap, Flame, MessageSquare, FolderOpen, Heart, Timer, Brain, MessagesSquare } from 'lucide-react';
 
-type ViewType = 'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'profile' | 'feed' | 'workshops' | 'collaborative' | 'challenges' | 'goals' | 'contests' | 'badges' | 'store' | 'paas-admin' | 'points-bank' | 'following' | 'reading-lists' | 'glossary' | 'famous-poems' | 'writing-tips' | 'daily-prompts' | 'book-clubs' | 'study-groups' | 'writing-streaks' | 'forums' | 'collections' | 'favorites' | 'writing-timer' | 'quizzes' | 'chat-view';
+type ViewType = 'write' | 'library' | 'settings' | 'discover' | 'prompts' | 'forms' | 'profile' | 'feed' | 'workshops' | 'collaborative' | 'challenges' | 'goals' | 'contests' | 'badges' | 'store' | 'paas-admin' | 'points-bank' | 'following' | 'reading-lists' | 'glossary' | 'famous-poems' | 'writing-tips' | 'daily-prompts' | 'book-clubs' | 'study-groups' | 'writing-streaks' | 'forums' | 'collections' | 'favorites' | 'writing-timer' | 'quizzes' | 'chat-view';
 
 interface AppDrawerProps {
   isOpen: boolean;
@@ -68,7 +68,6 @@ const navSections = [
     title: 'Account',
     items: [
       { id: 'profile' as const, icon: User, label: 'Profile', color: 'text-blue-500' },
-      { id: 'analytics' as const, icon: BarChart3, label: 'Analytics', color: 'text-violet-500' },
       { id: 'settings' as const, icon: Settings, label: 'Settings', color: 'text-gray-500' },
       { id: 'paas-admin' as const, icon: Shield, label: 'PaaS Admin', color: 'text-red-500' },
     ]

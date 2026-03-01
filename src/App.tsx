@@ -12,7 +12,6 @@ import { statusBar, splashScreen, isNative, app } from '@/utils/native';
 
 const PoemEditor = lazy(() => import('@/components/PoemEditor'));
 const Library = lazy(() => import('@/components/Library'));
-const Analytics = lazy(() => import('@/components/Analytics'));
 const Settings = lazy(() => import('@/components/Settings'));
 const Discover = lazy(() => import('@/components/Discover'));
 const Prompts = lazy(() => import('@/components/Prompts'));
@@ -177,7 +176,7 @@ function AppContent() {
 }
 
 function MainApp() {
-    const [currentView, setCurrentView] = useState<'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'profile' | 'feed' | 'workshops' | 'collaborative' | 'challenges' | 'goals' | 'contests' | 'badges' | 'store' | 'paas-admin' | 'points-bank' | 'following' | 'reading-lists' | 'glossary' | 'famous-poems' | 'writing-tips' | 'daily-prompts' | 'book-clubs' | 'study-groups' | 'writing-streaks' | 'forums' | 'collections' | 'favorites' | 'writing-timer' | 'quizzes' | 'chat-view'>('library');
+    const [currentView, setCurrentView] = useState<'write' | 'library' | 'settings' | 'discover' | 'prompts' | 'forms' | 'profile' | 'feed' | 'workshops' | 'collaborative' | 'challenges' | 'goals' | 'contests' | 'badges' | 'store' | 'paas-admin' | 'points-bank' | 'following' | 'reading-lists' | 'glossary' | 'famous-poems' | 'writing-tips' | 'daily-prompts' | 'book-clubs' | 'study-groups' | 'writing-streaks' | 'forums' | 'collections' | 'favorites' | 'writing-timer' | 'quizzes' | 'chat-view'>('library');
     const [selectedPoemId, setSelectedPoemId] = useState<string | null>(null);
 
     useEffect(() => {
@@ -275,7 +274,6 @@ function MainApp() {
               }}
             />
           )}
-          {currentView === 'analytics' && <Analytics />}
           {currentView === 'settings' && <Settings />}
           {currentView === 'profile' && <Profile />}
           {currentView === 'feed' && <SocialFeed />}
