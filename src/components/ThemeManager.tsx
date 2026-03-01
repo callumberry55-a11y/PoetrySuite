@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Palette, Download, Upload, Trash2, Check, Sparkles, Sun, Waves } from 'lucide-react';
+import { Palette, Download, Upload, Trash2, Check, Sparkles, Sun, Waves, Zap, AlertCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import {
@@ -200,9 +200,9 @@ export default function ThemeManager() {
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex gap-1 sm:gap-2">
             {[
-              { id: 'browse', label: 'Browse Themes', icon: Palette },
-              { id: 'import', label: 'Import/Export', icon: Download },
-              { id: 'ai', label: 'AI Generator', icon: Sparkles }
+              { id: 'browse', label: 'Browse Themes', icon: Palette, beta: false },
+              { id: 'import', label: 'Import/Export', icon: Download, beta: false },
+              { id: 'ai', label: 'AI Generator', icon: Sparkles, beta: true }
             ].map((tab) => {
               const Icon = tab.icon;
               return (
@@ -217,6 +217,11 @@ export default function ThemeManager() {
                 >
                   <Icon size={18} className="sm:w-5 sm:h-5" />
                   <span className="hidden sm:inline">{tab.label}</span>
+                  {tab.beta && (
+                    <span className="text-[10px] px-1.5 py-0.5 bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 rounded font-bold">
+                      BETA
+                    </span>
+                  )}
                 </button>
               );
             })}
@@ -228,6 +233,19 @@ export default function ThemeManager() {
         <div className="max-w-6xl mx-auto p-4 sm:p-6">
           {selectedTab === 'browse' && (
             <div className="space-y-4">
+              <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
+                <div className="flex gap-3">
+                  <AlertCircle className="text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" size={20} />
+                  <div>
+                    <p className="text-sm text-amber-900 dark:text-amber-100 font-semibold mb-1">
+                      Advanced Themes (Beta)
+                    </p>
+                    <p className="text-xs text-amber-800 dark:text-amber-200 leading-relaxed">
+                      Adaptive, Live, and AI-generated themes are experimental features. They may not work perfectly in all situations. If you experience issues, please switch back to a standard theme.
+                    </p>
+                  </div>
+                </div>
+              </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {themes.map((theme) => {
                   const Icon = getThemeIcon(theme.type);
@@ -259,13 +277,19 @@ export default function ThemeManager() {
 
                         <div className="flex-1 min-w-0">
                           <h3 className="font-bold text-on-surface truncate">{theme.name}</h3>
-                          <div className="flex items-center gap-2 mt-1">
+                          <div className="flex items-center gap-2 mt-1 flex-wrap">
                             <span className="text-xs px-2 py-0.5 bg-primary-container text-on-primary-container rounded-full capitalize">
                               {theme.type}
                             </span>
                             {theme.is_premium && (
                               <span className="text-xs px-2 py-0.5 bg-secondary-container text-on-secondary-container rounded-full">
                                 Premium
+                              </span>
+                            )}
+                            {(theme.type === 'adaptive' || theme.type === 'live' || theme.type === 'ai-generated') && (
+                              <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 rounded-full font-semibold flex items-center gap-1">
+                                <Zap size={10} />
+                                BETA
                               </span>
                             )}
                           </div>
@@ -350,11 +374,28 @@ export default function ThemeManager() {
               <div className="bg-gradient-to-br from-primary/10 to-secondary/10 rounded-2xl p-4 sm:p-6 border border-primary/20">
                 <div className="flex items-center gap-3 mb-4">
                   <Sparkles size={24} className="text-primary" />
-                  <h2 className="text-xl font-bold text-on-surface">AI Theme Generator</h2>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-xl font-bold text-on-surface">AI Theme Generator</h2>
+                      <span className="text-xs px-2 py-1 bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 rounded-full font-bold flex items-center gap-1">
+                        <Zap size={12} />
+                        BETA
+                      </span>
+                    </div>
+                  </div>
                 </div>
                 <p className="text-sm text-on-surface-variant mb-4">
                   Describe your ideal theme and let AI create it for you
                 </p>
+
+                <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                  <div className="flex gap-2">
+                    <AlertCircle className="text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" size={16} />
+                    <p className="text-xs text-amber-800 dark:text-amber-200 leading-relaxed">
+                      <strong>Beta Feature:</strong> AI-generated themes are experimental and may produce unexpected results. Generated themes are saved to your account and can be deleted if needed.
+                    </p>
+                  </div>
+                </div>
 
                 <div className="space-y-4">
                   <input
