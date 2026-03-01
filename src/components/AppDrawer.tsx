@@ -1,6 +1,6 @@
-import { BookHeart, PenLine, Library, BarChart3, Settings, Compass, Lightbulb, BookOpen, X, User, Users, UsersRound, Zap, Target, Trophy, Award, ShoppingBag, Shield, Landmark, UserPlus, BookMarked, Book, LibraryBig, Sparkles, GraduationCap, Flame, MessageSquare, FolderOpen, Heart, Timer, Brain } from 'lucide-react';
+import { BookHeart, PenLine, Library, BarChart3, Settings, Compass, Lightbulb, BookOpen, X, User, Users, UsersRound, Zap, Target, Trophy, Award, ShoppingBag, Shield, Landmark, UserPlus, BookMarked, Book, LibraryBig, Sparkles, GraduationCap, Flame, MessageSquare, FolderOpen, Heart, Timer, Brain, MessagesSquare } from 'lucide-react';
 
-type ViewType = 'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'profile' | 'feed' | 'workshops' | 'collaborative' | 'challenges' | 'goals' | 'contests' | 'badges' | 'store' | 'paas-admin' | 'points-bank' | 'following' | 'reading-lists' | 'glossary' | 'famous-poems' | 'writing-tips' | 'daily-prompts' | 'book-clubs' | 'study-groups' | 'writing-streaks' | 'forums' | 'collections' | 'favorites' | 'writing-timer' | 'quizzes';
+type ViewType = 'write' | 'library' | 'analytics' | 'settings' | 'discover' | 'prompts' | 'forms' | 'profile' | 'feed' | 'workshops' | 'collaborative' | 'challenges' | 'goals' | 'contests' | 'badges' | 'store' | 'paas-admin' | 'points-bank' | 'following' | 'reading-lists' | 'glossary' | 'famous-poems' | 'writing-tips' | 'daily-prompts' | 'book-clubs' | 'study-groups' | 'writing-streaks' | 'forums' | 'collections' | 'favorites' | 'writing-timer' | 'quizzes' | 'chat-view';
 
 interface AppDrawerProps {
   isOpen: boolean;
@@ -24,6 +24,7 @@ const navSections = [
     title: 'Community',
     items: [
       { id: 'feed' as const, icon: Users, label: 'Social Feed', color: 'text-violet-500' },
+      { id: 'chat-view' as const, icon: MessagesSquare, label: 'Chat', color: 'text-blue-500' },
       { id: 'following' as const, icon: UserPlus, label: 'Community', color: 'text-pink-500' },
       { id: 'book-clubs' as const, icon: BookHeart, label: 'Book Clubs', color: 'text-fuchsia-500' },
       { id: 'study-groups' as const, icon: GraduationCap, label: 'Study Groups', color: 'text-amber-500' },
