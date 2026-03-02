@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { FolderOpen, Plus, Globe, Lock } from 'lucide-react';
+import { useToast } from '../contexts/ToastContext';
+import { FolderOpen, Plus, Globe, Lock, BarChart3, Filter, Folder, FileText } from 'lucide-react';
 
 interface Collection {
   id: string;
@@ -12,11 +13,18 @@ interface Collection {
   poem_count?: number;
 }
 
+type SortOption = 'recent' | 'name' | 'count';
+type ViewMode = 'grid' | 'list';
+
 export default function Collections() {
   const { user } = useAuth();
+  const { showToast } = useToast();
   const [collections, setCollections] = useState<Collection[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [sortBy, setSortBy] = useState<SortOption>('recent');
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const [showStats, setShowStats] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -34,14 +42,24 @@ export default function Collections() {
     try {
       const { data, error } = await supabase
         .from('poetry_collections')
-        .select('*')
+        .select(`
+          *,
+          collection_poems(count)
+        `)
         .eq('user_id', user?.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setCollections(data || []);
+
+      const collectionsWithCounts = (data || []).map(col => ({
+        ...col,
+        poem_count: col.collection_poems?.[0]?.count || 0
+      }));
+
+      setCollections(collectionsWithCounts);
     } catch (error) {
       console.error('Error loading collections:', error);
+      showToast('Failed to load collections', 'error');
     } finally {
       setLoading(false);
     }
@@ -59,13 +77,27 @@ export default function Collections() {
 
       if (error) throw error;
 
+      showToast('Collection created successfully!', 'success');
       setShowCreateModal(false);
       setFormData({ name: '', description: '', is_public: false });
       loadCollections();
     } catch (error) {
       console.error('Error creating collection:', error);
+      showToast('Failed to create collection', 'error');
     }
   };
+
+  const sortedCollections = [...collections].sort((a, b) => {
+    switch (sortBy) {
+      case 'name':
+        return a.name.localeCompare(b.name);
+      case 'count':
+        return (b.poem_count || 0) - (a.poem_count || 0);
+      case 'recent':
+      default:
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    }
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 pb-24">
@@ -80,17 +112,92 @@ export default function Collections() {
 
       <div className="max-w-7xl mx-auto px-4 -mt-8 space-y-6">
         <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-xl border border-slate-200 dark:border-slate-800 p-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <p className="text-slate-600 dark:text-slate-400 font-medium">
-              Organize your poems into curated collections and anthologies
-            </p>
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
-            >
-              <Plus className="w-5 h-5" />
-              New Collection
-            </button>
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <p className="text-slate-600 dark:text-slate-400 font-medium">
+                Organize your poems into curated collections and anthologies
+              </p>
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+              >
+                <Plus className="w-5 h-5" />
+                New Collection
+              </button>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={() => setShowStats(!showStats)}
+                className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl font-semibold text-slate-700 dark:text-slate-300 hover:border-rose-300 dark:hover:border-rose-700 transition-all"
+              >
+                <BarChart3 className="w-4 h-4" />
+                Stats
+              </button>
+
+              <div className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl">
+                <Filter className="w-4 h-4 text-slate-500" />
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as SortOption)}
+                  className="bg-transparent font-semibold text-slate-700 dark:text-slate-300 text-sm border-none outline-none cursor-pointer"
+                >
+                  <option value="recent">Most Recent</option>
+                  <option value="name">Name (A-Z)</option>
+                  <option value="count">Poem Count</option>
+                </select>
+              </div>
+
+              <div className="flex items-center gap-1 ml-auto">
+                <button
+                  onClick={() => setViewMode('grid')}
+                  className={`p-2 rounded-lg transition-all ${
+                    viewMode === 'grid'
+                      ? 'bg-rose-500 text-white'
+                      : 'bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-rose-300'
+                  }`}
+                >
+                  <Folder className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={() => setViewMode('list')}
+                  className={`p-2 rounded-lg transition-all ${
+                    viewMode === 'list'
+                      ? 'bg-rose-500 text-white'
+                      : 'bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-rose-300'
+                  }`}
+                >
+                  <FileText className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {showStats && collections.length > 0 && (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-rose-600 dark:text-rose-400">{collections.length}</div>
+                  <div className="text-sm text-slate-600 dark:text-slate-400 font-medium">Total Collections</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                    {collections.reduce((sum, col) => sum + (col.poem_count || 0), 0)}
+                  </div>
+                  <div className="text-sm text-slate-600 dark:text-slate-400 font-medium">Total Poems</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                    {collections.filter(c => c.is_public).length}
+                  </div>
+                  <div className="text-sm text-slate-600 dark:text-slate-400 font-medium">Public</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-slate-600 dark:text-slate-400">
+                    {collections.filter(c => !c.is_public).length}
+                  </div>
+                  <div className="text-sm text-slate-600 dark:text-slate-400 font-medium">Private</div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -102,14 +209,14 @@ export default function Collections() {
             </div>
           </div>
         ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {collections.length === 0 ? (
-              <div className="col-span-full text-center py-16 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-lg">
+          <div className={viewMode === 'grid' ? 'grid gap-6 md:grid-cols-2 lg:grid-cols-3' : 'space-y-4'}>
+            {sortedCollections.length === 0 ? (
+              <div className="col-span-full text-center py-16 bg-white dark:bg-slate-900 rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700">
                 <FolderOpen className="w-16 h-16 mx-auto mb-4 text-slate-300 dark:text-slate-700" />
-                <p className="text-lg text-slate-500 dark:text-slate-400 font-medium">No collections yet. Create one to get started!</p>
+                <p className="text-lg text-slate-500 dark:text-slate-400 font-medium">No collections yet. Create one to organize your poems!</p>
               </div>
             ) : (
-              collections.map(collection => (
+              sortedCollections.map(collection => (
                 <div
                   key={collection.id}
                   className="group bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] cursor-pointer shadow-lg"
