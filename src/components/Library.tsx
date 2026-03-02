@@ -535,18 +535,18 @@ function Library({ onEditPoem }: LibraryProps) {
   ];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-4 sm:py-8">
-      <div className="mb-8">
-        <div className="mb-6">
-          <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">
+    <div className="max-w-7xl mx-auto px-4 py-3 sm:py-6">
+      <div className="mb-4">
+        <div className="mb-3">
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
             {activeTab === 'library' ? 'Your Library' : 'Discover Poems'}
           </h2>
         </div>
 
-        <div className="inline-flex p-1 bg-slate-100 dark:bg-slate-800 rounded-xl mb-6">
+        <div className="inline-flex p-1 bg-slate-100 dark:bg-slate-800 rounded-xl mb-4">
           <button
             onClick={() => setActiveTab('library')}
-            className={`flex items-center gap-2 px-6 py-2.5 rounded-lg font-medium transition-all ${
+            className={`flex items-center gap-2 px-6 py-2 rounded-lg font-medium transition-all ${
               activeTab === 'library'
                 ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
@@ -557,7 +557,7 @@ function Library({ onEditPoem }: LibraryProps) {
           </button>
           <button
             onClick={() => setActiveTab('discover')}
-            className={`flex items-center gap-2 px-6 py-2.5 rounded-lg font-medium transition-all ${
+            className={`flex items-center gap-2 px-6 py-2 rounded-lg font-medium transition-all ${
               activeTab === 'discover'
                 ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
@@ -570,7 +570,7 @@ function Library({ onEditPoem }: LibraryProps) {
 
         {activeTab === 'library' ? (
           <>
-            <div className="mb-6">
+            <div className="mb-3">
               <AISearchBar
                 value={searchQuery}
                 onChange={setSearchQuery}
@@ -581,11 +581,11 @@ function Library({ onEditPoem }: LibraryProps) {
               />
             </div>
 
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-              <div className="flex gap-2 overflow-x-auto pb-2" role="group" aria-label="Filter poems">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+              <div className="flex gap-2 overflow-x-auto" role="group" aria-label="Filter poems">
                 <button
                   onClick={() => setFilterBy('all')}
-                  className={`px-4 py-2.5 rounded-xl font-semibold transition-all text-sm whitespace-nowrap ${
+                  className={`px-3 py-2 rounded-lg font-semibold transition-all text-xs sm:text-sm whitespace-nowrap ${
                     filterBy === 'all'
                       ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg'
                       : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-300 dark:hover:bg-slate-600'
@@ -597,7 +597,7 @@ function Library({ onEditPoem }: LibraryProps) {
                 </button>
               <button
                 onClick={() => setFilterBy('favorites')}
-                className={`px-4 py-2.5 rounded-xl font-semibold transition-all flex items-center gap-2 text-sm whitespace-nowrap ${
+                className={`px-3 py-1.5 rounded-xl font-semibold transition-all flex items-center gap-2 text-sm whitespace-nowrap ${
                   filterBy === 'favorites'
                     ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg'
                     : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-300 dark:hover:bg-slate-600'
@@ -610,7 +610,7 @@ function Library({ onEditPoem }: LibraryProps) {
               </button>
               <button
                 onClick={() => setFilterBy('public')}
-                className={`px-4 py-2.5 rounded-xl font-semibold transition-all flex items-center gap-2 text-sm whitespace-nowrap ${
+                className={`px-3 py-1.5 rounded-xl font-semibold transition-all flex items-center gap-2 text-sm whitespace-nowrap ${
                   filterBy === 'public'
                     ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg'
                     : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-300 dark:hover:bg-slate-600'
@@ -623,7 +623,7 @@ function Library({ onEditPoem }: LibraryProps) {
               </button>
               <button
                 onClick={() => setFilterBy('private')}
-                className={`px-4 py-2.5 rounded-xl font-semibold transition-all flex items-center gap-2 text-sm whitespace-nowrap ${
+                className={`px-3 py-1.5 rounded-xl font-semibold transition-all flex items-center gap-2 text-sm whitespace-nowrap ${
                   filterBy === 'private'
                     ? 'bg-gradient-to-r from-slate-500 to-slate-600 text-white shadow-lg'
                     : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-300 dark:hover:bg-slate-600'
@@ -640,7 +640,7 @@ function Library({ onEditPoem }: LibraryProps) {
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as SortOption)}
-                  className="px-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 font-medium text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 font-medium text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   aria-label="Sort poems by"
                 >
                   <option value="updated">Recently Updated</option>
@@ -656,7 +656,7 @@ function Library({ onEditPoem }: LibraryProps) {
                     setSelectedPoems(new Set());
                     setShowBulkActions(false);
                   }}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold transition-all text-sm whitespace-nowrap ${
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-xl font-semibold transition-all text-sm whitespace-nowrap ${
                     bulkMode
                       ? 'bg-gradient-to-r from-violet-500 to-purple-500 text-white shadow-lg'
                       : 'bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
@@ -670,7 +670,7 @@ function Library({ onEditPoem }: LibraryProps) {
                   <div className="relative">
                     <button
                       onClick={() => setShowBulkActions(!showBulkActions)}
-                      className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 font-semibold transition-all text-sm hover:bg-slate-50 dark:hover:bg-slate-700"
+                      className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 font-semibold transition-all text-sm hover:bg-slate-50 dark:hover:bg-slate-700"
                     >
                       <FileDown size={16} />
                       <span>Actions</span>
@@ -716,7 +716,7 @@ function Library({ onEditPoem }: LibraryProps) {
             </div>
 
             {bulkMode && selectedPoems.size > 0 && (
-              <div className="mb-6 p-4 bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20 border border-violet-200 dark:border-violet-800 rounded-xl">
+              <div className="mb-3 p-3 bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20 border border-violet-200 dark:border-violet-800 rounded-lg">
                 <div className="flex items-center justify-between flex-wrap gap-3">
                   <div className="flex items-center gap-3">
                     <CheckSquare className="text-violet-600 dark:text-violet-400" size={20} />
@@ -728,7 +728,7 @@ function Library({ onEditPoem }: LibraryProps) {
                     <div className="relative">
                       <button
                         onClick={() => setShowCollectionMenu('bulk')}
-                        className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-violet-300 dark:border-violet-700 text-violet-700 dark:text-violet-300 rounded-lg font-medium hover:bg-violet-50 dark:hover:bg-violet-900/30 transition-colors"
+                        className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-slate-800 border border-violet-300 dark:border-violet-700 text-violet-700 dark:text-violet-300 rounded-lg font-medium hover:bg-violet-50 dark:hover:bg-violet-900/30 transition-colors"
                       >
                         <FolderPlus size={16} />
                         <span>Add to Collection</span>
@@ -766,7 +766,7 @@ function Library({ onEditPoem }: LibraryProps) {
 
                     <button
                       onClick={bulkDelete}
-                      className="flex items-center gap-2 px-4 py-2 bg-red-50 dark:bg-red-900/20 border border-red-300 dark:border-red-700 text-red-700 dark:text-red-300 rounded-lg font-medium hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+                      className="flex items-center gap-2 px-3 py-1.5 bg-red-50 dark:bg-red-900/20 border border-red-300 dark:border-red-700 text-red-700 dark:text-red-300 rounded-lg font-medium hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
                     >
                       <Trash size={16} />
                       <span>Delete Selected</span>
@@ -777,19 +777,19 @@ function Library({ onEditPoem }: LibraryProps) {
             )}
 
             {bulkMode && sortedPoems.length > 0 && (
-              <div className="mb-4">
+              <div className="mb-2">
                 <button
                   onClick={selectAllPoems}
-                  className="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-medium hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+                  className="flex items-center gap-2 text-blue-600 dark:text-blue-400 text-sm font-medium hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
                 >
                   {selectedPoems.size === sortedPoems.length ? (
                     <>
-                      <Square size={16} />
+                      <Square size={14} />
                       <span>Deselect All</span>
                     </>
                   ) : (
                     <>
-                      <CheckSquare size={16} />
+                      <CheckSquare size={14} />
                       <span>Select All ({sortedPoems.length})</span>
                     </>
                   )}
@@ -797,17 +797,19 @@ function Library({ onEditPoem }: LibraryProps) {
               </div>
             )}
 
-            <CollectionManager
-              collections={collections}
-              onCollectionChange={loadCollections}
-              selectedCollection={selectedCollection}
-              onSelectCollection={setSelectedCollection}
-              poemCollections={poemCollections}
-            />
+            <div className="mb-3">
+              <CollectionManager
+                collections={collections}
+                onCollectionChange={loadCollections}
+                selectedCollection={selectedCollection}
+                onSelectCollection={setSelectedCollection}
+                poemCollections={poemCollections}
+              />
+            </div>
           </>
         ) : (
-          <div className="space-y-6 mb-6">
-            <div className="flex flex-col sm:flex-row gap-4">
+          <div className="space-y-3 mb-4">
+            <div className="flex flex-col sm:flex-row gap-3">
               <div className="flex-1">
                 <AISearchBar
                   value={internetSearchQuery}
@@ -820,17 +822,17 @@ function Library({ onEditPoem }: LibraryProps) {
               <button
                 onClick={loadRandomPoems}
                 disabled={loadingInternet}
-                className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 disabled:from-slate-400 disabled:to-slate-400 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all disabled:cursor-not-allowed flex items-center gap-2 justify-center"
+                className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 disabled:from-slate-400 disabled:to-slate-400 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all disabled:cursor-not-allowed flex items-center gap-2 justify-center text-sm"
               >
-                <RefreshCw size={18} />
+                <RefreshCw size={16} />
                 Random Poems
               </button>
             </div>
 
-            <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-800/50 rounded-3xl p-6 border-2 border-slate-200 dark:border-slate-700">
-              <div className="flex items-center justify-between mb-4">
-                <p className="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
-                  <Sparkles size={16} className="text-blue-500" />
+            <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-800/50 rounded-xl p-4 border border-slate-200 dark:border-slate-700">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                  <Sparkles size={14} className="text-blue-500" />
                   Popular Authors
                 </p>
                 {selectedAuthor && (
@@ -839,14 +841,14 @@ function Library({ onEditPoem }: LibraryProps) {
                       setSelectedAuthor('');
                       loadRandomPoems();
                     }}
-                    className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 flex items-center gap-1 font-semibold"
+                    className="text-xs sm:text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 flex items-center gap-1 font-semibold"
                   >
-                    <X size={14} />
+                    <X size={12} />
                     Clear
                   </button>
                 )}
               </div>
-              <div className="flex gap-2 flex-wrap">
+              <div className="flex gap-1.5 flex-wrap">
                 {popularAuthors.map((author) => (
                   <button
                     key={author}
@@ -855,7 +857,7 @@ function Library({ onEditPoem }: LibraryProps) {
                       setInternetSearchQuery('');
                       fetchInternetPoems('by_author', { author });
                     }}
-                    className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all shadow-sm hover:shadow-md ${
+                    className={`px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all shadow-sm hover:shadow-md ${
                       selectedAuthor === author
                         ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white scale-105'
                         : 'bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600'
@@ -871,7 +873,7 @@ function Library({ onEditPoem }: LibraryProps) {
       </div>
 
       {activeTab === 'library' ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" role="list" aria-label="Poem library">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3" role="list" aria-label="Poem library">
           {filteredPoems.length === 0 ? (
             <div className="col-span-full text-center py-12" role="status">
               <p className="text-slate-500 dark:text-slate-400">
@@ -895,10 +897,10 @@ function Library({ onEditPoem }: LibraryProps) {
                 aria-label={`Poem: ${poem.title}`}
                 onClick={() => bulkMode ? togglePoemSelection(poem.id) : onEditPoem(poem.id)}
               >
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-cyan-500 to-teal-500"></div>
+                <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500 via-cyan-500 to-teal-500"></div>
 
                 {bulkMode && (
-                  <div className="absolute top-3 left-3 z-10">
+                  <div className="absolute top-2 left-2 z-10">
                     <div
                       className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all ${
                         selectedPoems.has(poem.id)
@@ -913,13 +915,13 @@ function Library({ onEditPoem }: LibraryProps) {
                   </div>
                 )}
 
-                <div className={`p-6 ${bulkMode ? 'pl-12' : ''}`}>
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1 min-w-0 pr-4">
-                      <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2 line-clamp-2 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
+                <div className={`p-4 ${bulkMode ? 'pl-10' : ''}`}>
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1 min-w-0 pr-3">
+                      <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1.5 line-clamp-2 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
                         {poem.title}
                       </h3>
-                      <div className="flex items-center gap-2 text-xs">
+                      <div className="flex items-center gap-1.5 text-xs">
                         {poem.favorited && (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-full font-medium">
                             <Star size={12} fill="currentColor" aria-hidden="true" />
@@ -1021,11 +1023,11 @@ function Library({ onEditPoem }: LibraryProps) {
                     </div>
                   </div>
 
-                  <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed line-clamp-4 mb-6 font-serif">
+                  <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed line-clamp-3 mb-4 font-serif">
                     {poem.content || 'No content yet...'}
                   </p>
 
-                  <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-700">
+                  <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-700">
                     <div className="flex items-center gap-4">
                       <span className="flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400">
                         <Heart size={16} className="text-rose-500" aria-hidden="true" />
@@ -1048,7 +1050,7 @@ function Library({ onEditPoem }: LibraryProps) {
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {loadingInternet ? (
             <div className="col-span-full text-center py-12">
               <div className="inline-flex items-center justify-center">
@@ -1080,28 +1082,28 @@ function Library({ onEditPoem }: LibraryProps) {
               return (
                 <article
                   key={poemKey}
-                  className="bg-white dark:bg-slate-800 rounded-2xl border-2 border-slate-200 dark:border-slate-700 overflow-hidden hover:border-emerald-300 dark:hover:border-emerald-600 transition-all hover:shadow-xl hover:-translate-y-1 group relative"
+                  className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden hover:border-emerald-300 dark:hover:border-emerald-600 transition-all hover:shadow-xl hover:-translate-y-1 group relative"
                 >
-                  <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500"></div>
+                  <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500"></div>
 
-                  <div className="p-4 sm:p-6">
-                    <div className="flex items-start justify-between gap-3 mb-4">
+                  <div className="p-4">
+                    <div className="flex items-start justify-between gap-2 mb-3">
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white mb-2 line-clamp-2 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                        <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-1.5 line-clamp-2 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
                           {poem.title}
                         </h3>
-                        <p className="text-sm font-medium text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
+                        <p className="text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-400 flex items-center gap-1">
                           <span className="text-slate-400">by</span> {poem.author}
                         </p>
                       </div>
                     </div>
 
-                    <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-base leading-relaxed line-clamp-6 mb-4 sm:mb-6 font-serif whitespace-pre-wrap">
-                      {poem.lines.slice(0, 8).join('\n')}
-                      {poem.lines.length > 8 && '\n...'}
+                    <p className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm leading-relaxed line-clamp-4 mb-3 font-serif whitespace-pre-wrap">
+                      {poem.lines.slice(0, 6).join('\n')}
+                      {poem.lines.length > 6 && '\n...'}
                     </p>
 
-                    <div className="flex items-center justify-between pt-4 border-t-2 border-slate-100 dark:border-slate-700 gap-3">
+                    <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-700 gap-2">
                       <span className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
                         <BookOpen size={14} className="flex-shrink-0" />
                         {poem.linecount} lines
@@ -1109,7 +1111,7 @@ function Library({ onEditPoem }: LibraryProps) {
                       <button
                         onClick={() => saveInternetPoem(poem, index)}
                         disabled={isSaving || isSaved}
-                        className={`inline-flex items-center justify-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl font-semibold transition-all text-xs sm:text-sm shadow-md hover:shadow-lg min-h-[44px] ${
+                        className={`inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold transition-all text-xs shadow-md hover:shadow-lg ${
                           isSaved
                             ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white scale-105'
                             : isSaving
