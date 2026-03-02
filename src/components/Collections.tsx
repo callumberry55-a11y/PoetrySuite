@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
-import { FolderOpen, Plus, Globe, Lock, BarChart3, Filter, Folder, FileText } from 'lucide-react';
+import { FolderOpen, Plus, Globe, Lock, BarChart3, Folder, FileText } from 'lucide-react';
 
 interface Collection {
   id: string;
@@ -126,35 +126,61 @@ export default function Collections() {
               </button>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                onClick={() => setShowStats(!showStats)}
-                className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl font-semibold text-slate-700 dark:text-slate-300 hover:border-rose-300 dark:hover:border-rose-700 transition-all"
-              >
-                <BarChart3 className="w-4 h-4" />
-                Stats
-              </button>
-
-              <div className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl">
-                <Filter className="w-4 h-4 text-slate-500" />
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as SortOption)}
-                  className="bg-transparent font-semibold text-slate-700 dark:text-slate-300 text-sm border-none outline-none cursor-pointer"
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  onClick={() => setShowStats(!showStats)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold transition-all ${
+                    showStats
+                      ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-lg'
+                      : 'bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-rose-300 dark:hover:border-rose-700'
+                  }`}
                 >
-                  <option value="recent">Most Recent</option>
-                  <option value="name">Name (A-Z)</option>
-                  <option value="count">Poem Count</option>
-                </select>
+                  <BarChart3 className="w-4 h-4" />
+                  Stats
+                </button>
+
+                <div className="inline-flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl">
+                  <button
+                    onClick={() => setSortBy('recent')}
+                    className={`px-3 py-1.5 rounded-lg font-semibold text-sm transition-all ${
+                      sortBy === 'recent'
+                        ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                    }`}
+                  >
+                    Recent
+                  </button>
+                  <button
+                    onClick={() => setSortBy('name')}
+                    className={`px-3 py-1.5 rounded-lg font-semibold text-sm transition-all ${
+                      sortBy === 'name'
+                        ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                    }`}
+                  >
+                    Name
+                  </button>
+                  <button
+                    onClick={() => setSortBy('count')}
+                    className={`px-3 py-1.5 rounded-lg font-semibold text-sm transition-all ${
+                      sortBy === 'count'
+                        ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                    }`}
+                  >
+                    Count
+                  </button>
+                </div>
               </div>
 
-              <div className="flex items-center gap-1 ml-auto">
+              <div className="flex items-center gap-1">
                 <button
                   onClick={() => setViewMode('grid')}
                   className={`p-2 rounded-lg transition-all ${
                     viewMode === 'grid'
-                      ? 'bg-rose-500 text-white'
-                      : 'bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-rose-300'
+                      ? 'bg-rose-500 text-white shadow-md'
+                      : 'bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-rose-300 dark:hover:border-rose-700'
                   }`}
                 >
                   <Folder className="w-5 h-5" />
@@ -163,8 +189,8 @@ export default function Collections() {
                   onClick={() => setViewMode('list')}
                   className={`p-2 rounded-lg transition-all ${
                     viewMode === 'list'
-                      ? 'bg-rose-500 text-white'
-                      : 'bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-rose-300'
+                      ? 'bg-rose-500 text-white shadow-md'
+                      : 'bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-rose-300 dark:hover:border-rose-700'
                   }`}
                 >
                   <FileText className="w-5 h-5" />
