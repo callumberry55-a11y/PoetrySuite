@@ -4,10 +4,27 @@ import { supabase } from '@/lib/supabase';
 import { generateTags } from '@/lib/functions';
 import {
   Save, Star, Globe, Lock, ArrowLeft, Tags, Sparkles, X,
-  Eye, EyeOff, Type, BookOpen, Clock, Maximize2, Minimize2, Wrench
+  Eye, EyeOff, Type, BookOpen, Clock, Maximize2, Minimize2, Wrench,
+  History, RotateCcw, FileText, Zap, Quote, Heart, Sunrise, Moon, Coffee
 } from 'lucide-react';
 import AIAssistant from './AIAssistant';
 import PoetryTools from './PoetryTools';
+
+interface PoemVersion {
+  id: string;
+  title: string;
+  content: string;
+  version_number: number;
+  created_at: string;
+}
+
+interface PoemTemplate {
+  id: string;
+  name: string;
+  description: string;
+  content: string;
+  icon: typeof Quote;
+}
 
 interface PoemEditorProps {
   selectedPoemId: string | null;
@@ -30,6 +47,10 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
   const [focusMode, setFocusMode] = useState(false);
   const [zenMode, setZenMode] = useState(false);
   const [fontSize, setFontSize] = useState<'small' | 'medium' | 'large'>('medium');
+  const [showVersions, setShowVersions] = useState(false);
+  const [versions, setVersions] = useState<PoemVersion[]>([]);
+  const [loadingVersions, setLoadingVersions] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(false);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const savePoemRef = useRef<(() => Promise<void>) | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -38,6 +59,99 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
   const lineCount = content.trim() ? content.split('\n').length : 1;
   const charCount = content.length;
   const readingTime = Math.ceil(wordCount / 200); // Average reading speed
+
+  const templates: PoemTemplate[] = [
+    {
+      id: 'haiku',
+      name: 'Haiku',
+      description: '3 lines: 5-7-5 syllables',
+      icon: Sunrise,
+      content: `[Line 1 - 5 syllables]
+[Line 2 - 7 syllables]
+[Line 3 - 5 syllables]`,
+    },
+    {
+      id: 'sonnet',
+      name: 'Sonnet',
+      description: '14 lines with ABAB CDCD EFEF GG rhyme',
+      icon: Heart,
+      content: `[Line 1 - A]
+[Line 2 - B]
+[Line 3 - A]
+[Line 4 - B]
+
+[Line 5 - C]
+[Line 6 - D]
+[Line 7 - C]
+[Line 8 - D]
+
+[Line 9 - E]
+[Line 10 - F]
+[Line 11 - E]
+[Line 12 - F]
+
+[Line 13 - G]
+[Line 14 - G]`,
+    },
+    {
+      id: 'acrostic',
+      name: 'Acrostic',
+      description: 'First letter of each line spells a word',
+      icon: Quote,
+      content: `[P]
+[O]
+[E]
+[M]`,
+    },
+    {
+      id: 'free-verse',
+      name: 'Free Verse',
+      description: 'No rules, just expression',
+      icon: Zap,
+      content: ``,
+    },
+    {
+      id: 'limerick',
+      name: 'Limerick',
+      description: '5 lines with AABBA rhyme',
+      icon: Coffee,
+      content: `[Line 1 - A]
+[Line 2 - A]
+[Line 3 - B]
+[Line 4 - B]
+[Line 5 - A]`,
+    },
+    {
+      id: 'villanelle',
+      name: 'Villanelle',
+      description: '19 lines with repeated refrains',
+      icon: Moon,
+      content: `[Line 1 - A1 (refrain)]
+[Line 2 - b]
+[Line 3 - A2 (refrain)]
+
+[Line 4 - a]
+[Line 5 - b]
+[Line 6 - A1]
+
+[Line 7 - a]
+[Line 8 - b]
+[Line 9 - A2]
+
+[Line 10 - a]
+[Line 11 - b]
+[Line 12 - A1]
+
+[Line 13 - a]
+[Line 14 - b]
+[Line 15 - A2]
+
+[Line 16 - a]
+[Line 17 - b]
+[Line 18 - A1]
+[Line 19 - A2]`,
+    },
+  ];
 
   const savePoem = useCallback(async () => {
     if (!user || !user.id || (!content.trim() && !title.trim())) return;
@@ -227,6 +341,92 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
     setContent(text);
   };
 
+  const loadVersionHistory = useCallback(async () => {
+    if (!currentPoemId) return;
+
+    setLoadingVersions(true);
+    try {
+      const { data, error } = await supabase
+        .from('poem_versions')
+        .select('*')
+        .eq('poem_id', currentPoemId)
+        .order('version_number', { ascending: false });
+
+      if (error) throw error;
+
+      setVersions(data || []);
+    } catch (error) {
+      console.error('Error loading version history:', error);
+      setVersions([]);
+    } finally {
+      setLoadingVersions(false);
+    }
+  }, [currentPoemId]);
+
+  const saveVersion = useCallback(async () => {
+    if (!currentPoemId || !content.trim()) return;
+
+    try {
+      const { data: existingVersions } = await supabase
+        .from('poem_versions')
+        .select('version_number')
+        .eq('poem_id', currentPoemId)
+        .order('version_number', { ascending: false })
+        .limit(1);
+
+      const nextVersion = existingVersions && existingVersions.length > 0
+        ? existingVersions[0].version_number + 1
+        : 1;
+
+      const { error } = await supabase
+        .from('poem_versions')
+        .insert({
+          poem_id: currentPoemId,
+          title,
+          content,
+          version_number: nextVersion,
+        });
+
+      if (error) throw error;
+
+      await loadVersionHistory();
+    } catch (error) {
+      console.error('Error saving version:', error);
+    }
+  }, [currentPoemId, title, content, loadVersionHistory]);
+
+  const restoreVersion = useCallback(async (version: PoemVersion) => {
+    if (!confirm(`Restore version ${version.version_number}? Current content will be saved as a new version.`)) return;
+
+    await saveVersion();
+
+    setTitle(version.title);
+    setContent(version.content);
+    setShowVersions(false);
+
+    setTimeout(() => {
+      savePoemRef.current?.();
+    }, 100);
+  }, [saveVersion]);
+
+  const applyTemplate = useCallback((template: PoemTemplate) => {
+    if (content.trim() && !confirm('Replace current content with template?')) return;
+
+    setContent(template.content);
+    setTitle(title || `New ${template.name}`);
+    setShowTemplates(false);
+
+    setTimeout(() => {
+      textareaRef.current?.focus();
+    }, 0);
+  }, [content, title]);
+
+  useEffect(() => {
+    if (showVersions && currentPoemId) {
+      loadVersionHistory();
+    }
+  }, [showVersions, currentPoemId, loadVersionHistory]);
+
   const fontSizeClasses = {
     small: 'text-base',
     medium: 'text-lg',
@@ -372,6 +572,34 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
                       <Sparkles size={16} className={showAI ? 'animate-pulse' : ''} />
                       <span className="text-sm font-semibold">AI Assistant</span>
                     </button>
+
+                    <button
+                      onClick={() => setShowTemplates(!showTemplates)}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all hover:scale-105 active:scale-95 ${
+                        showTemplates
+                          ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/30'
+                          : 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 hover:shadow-md'
+                      }`}
+                      aria-pressed={showTemplates}
+                    >
+                      <FileText size={16} className={showTemplates ? 'animate-pulse' : ''} />
+                      <span className="text-sm font-semibold">Templates</span>
+                    </button>
+
+                    {currentPoemId && (
+                      <button
+                        onClick={() => setShowVersions(!showVersions)}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all hover:scale-105 active:scale-95 ${
+                          showVersions
+                            ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/30'
+                            : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 hover:shadow-md'
+                        }`}
+                        aria-pressed={showVersions}
+                      >
+                        <History size={16} className={showVersions ? 'animate-pulse' : ''} />
+                        <span className="text-sm font-semibold">Versions</span>
+                      </button>
+                    )}
 
                     {/* Font Size Selector */}
                     <div className="flex items-center gap-1 bg-surface-variant/50 rounded-xl p-1 ml-auto">
@@ -556,6 +784,137 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
             onInsertText={handleInsertText}
             onReplaceText={handleReplaceText}
           />
+        </div>
+      )}
+
+      {/* Templates Panel */}
+      {showTemplates && !zenMode && (
+        <div className="w-full lg:w-96 border-l border-outline/20 bg-surface flex-shrink-0 overflow-hidden flex flex-col shadow-2xl animate-in slide-in-from-right duration-300">
+          <div className="flex justify-between items-center p-4 border-b border-outline/20 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20">
+            <div className="flex items-center gap-2">
+              <FileText size={18} className="text-emerald-600 dark:text-emerald-400" />
+              <h3 className="font-bold text-on-surface">Poem Templates</h3>
+            </div>
+            <button
+              onClick={() => setShowTemplates(false)}
+              className="p-2 hover:bg-surface rounded-lg transition-all hover:rotate-90"
+              aria-label="Close templates"
+            >
+              <X size={20} />
+            </button>
+          </div>
+          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            {templates.map((template) => {
+              const Icon = template.icon;
+              return (
+                <button
+                  key={template.id}
+                  onClick={() => applyTemplate(template)}
+                  className="w-full p-4 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-emerald-400 dark:hover:border-emerald-600 hover:shadow-lg transition-all group text-left"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/30 dark:to-teal-900/30 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                      <Icon className="text-emerald-600 dark:text-emerald-400" size={20} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-bold text-slate-900 dark:text-white mb-1 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                        {template.name}
+                      </h4>
+                      <p className="text-sm text-slate-600 dark:text-slate-400">
+                        {template.description}
+                      </p>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Version History Panel */}
+      {showVersions && !zenMode && currentPoemId && (
+        <div className="w-full lg:w-96 border-l border-outline/20 bg-surface flex-shrink-0 overflow-hidden flex flex-col shadow-2xl animate-in slide-in-from-right duration-300">
+          <div className="flex justify-between items-center p-4 border-b border-outline/20 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20">
+            <div className="flex items-center gap-2">
+              <History size={18} className="text-amber-600 dark:text-amber-400" />
+              <h3 className="font-bold text-on-surface">Version History</h3>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={saveVersion}
+                disabled={!content.trim()}
+                className="px-3 py-1.5 bg-amber-600 text-white rounded-lg font-medium text-sm hover:bg-amber-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+              >
+                <Save size={14} />
+                <span>Save Version</span>
+              </button>
+              <button
+                onClick={() => setShowVersions(false)}
+                className="p-2 hover:bg-surface rounded-lg transition-all hover:rotate-90"
+                aria-label="Close version history"
+              >
+                <X size={20} />
+              </button>
+            </div>
+          </div>
+          <div className="flex-1 overflow-y-auto p-4">
+            {loadingVersions ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500"></div>
+              </div>
+            ) : versions.length === 0 ? (
+              <div className="text-center py-12 px-4">
+                <History className="mx-auto text-slate-400 dark:text-slate-600 mb-3" size={48} />
+                <p className="text-slate-600 dark:text-slate-400 font-medium mb-2">No saved versions yet</p>
+                <p className="text-sm text-slate-500 dark:text-slate-500">
+                  Click "Save Version" to create your first version snapshot
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {versions.map((version) => (
+                  <div
+                    key={version.id}
+                    className="p-4 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-amber-400 dark:hover:border-amber-600 hover:shadow-lg transition-all group"
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-full text-xs font-bold">
+                          v{version.version_number}
+                        </span>
+                        <span className="text-xs text-slate-500 dark:text-slate-400">
+                          {new Date(version.created_at).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => restoreVersion(version)}
+                        className="flex items-center gap-1.5 px-2 py-1 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 rounded-lg text-xs font-medium hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors opacity-0 group-hover:opacity-100"
+                      >
+                        <RotateCcw size={12} />
+                        <span>Restore</span>
+                      </button>
+                    </div>
+                    <h4 className="font-semibold text-slate-900 dark:text-white text-sm mb-1 line-clamp-1">
+                      {version.title}
+                    </h4>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2">
+                      {version.content}
+                    </p>
+                    <div className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                      {version.content.split(/\s+/).length} words
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
