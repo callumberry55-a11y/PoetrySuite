@@ -1,18 +1,10 @@
 // @refresh reset
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { supabase } from '@/lib/supabase';
-import {
-  getUserThemePreferences,
-  getThemeById,
-  applyThemeToDocument,
-  type Theme
-} from '@/utils/themes';
 
 interface ThemeContextType {
   isDark: boolean;
   toggleTheme: () => void;
-  activeTheme: Theme | null;
-  refreshTheme: () => Promise<void>;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -21,23 +13,42 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [isDark, setIsDark] = useState(() => {
     try {
       const saved = localStorage.getItem('theme');
-      if (saved) return saved === 'dark';
-      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+      return saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
     } catch (error) {
       console.warn('Error accessing localStorage:', error);
       return false;
     }
   });
   const [userId, setUserId] = useState<string | null>(null);
-  const [activeTheme, setActiveTheme] = useState<Theme | null>(null);
+
+  useEffect(() => {
+    const loadSavedTheme = () => {
+      try {
+        const savedTheme = localStorage.getItem('activeTheme');
+        if (savedTheme) {
+          const theme = JSON.parse(savedTheme);
+          const root = document.documentElement;
+
+          root.style.setProperty('--color-primary', theme.colors.primary);
+          root.style.setProperty('--color-secondary', theme.colors.secondary);
+          root.style.setProperty('--color-accent', theme.colors.accent);
+          root.style.setProperty('--color-background', theme.colors.background);
+          root.style.setProperty('--color-surface', theme.colors.surface);
+          root.style.setProperty('--color-text', theme.colors.text);
+        }
+      } catch (error) {
+        console.warn('Error loading saved theme:', error);
+      }
+    };
+
+    loadSavedTheme();
+  }, []);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         setUserId(session.user.id);
         loadThemeFromDatabase(session.user.id);
-      } else {
-        applyBasicTheme(isDark);
       }
     });
 
@@ -47,53 +58,29 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         loadThemeFromDatabase(session.user.id);
       } else {
         setUserId(null);
-        setActiveTheme(null);
-        applyBasicTheme(isDark);
       }
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  const applyBasicTheme = (dark: boolean) => {
-    if (dark) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  };
-
   const loadThemeFromDatabase = async (uid: string) => {
     try {
-      const [preferences, basicPrefs] = await Promise.all([
-        getUserThemePreferences(uid),
-        supabase
-          .from('user_preferences')
-          .select('theme')
-          .eq('user_id', uid)
-          .maybeSingle()
-      ]);
+      const { data, error } = await supabase
+        .from('user_preferences')
+        .select('theme')
+        .eq('user_id', uid)
+        .maybeSingle();
 
-      if (preferences?.active_theme_id) {
-        const theme = await getThemeById(preferences.active_theme_id);
-        if (theme) {
-          setActiveTheme(theme);
-          applyThemeToDocument(theme);
-          return;
-        }
-      }
+      if (error) throw error;
 
-      if (basicPrefs.data?.theme) {
-        const darkMode = basicPrefs.data.theme === 'dark';
+      if (data?.theme) {
+        const darkMode = data.theme === 'dark';
         setIsDark(darkMode);
-        localStorage.setItem('theme', basicPrefs.data.theme);
-        applyBasicTheme(darkMode);
-      } else {
-        applyBasicTheme(isDark);
+        localStorage.setItem('theme', data.theme);
       }
     } catch (error) {
       console.warn('Error loading theme from database:', error);
-      applyBasicTheme(isDark);
     }
   };
 
@@ -116,8 +103,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    if (activeTheme) return;
-
     try {
       if (isDark) {
         document.documentElement.classList.add('dark');
@@ -133,23 +118,12 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.warn('Error setting theme:', error);
     }
-  }, [isDark, userId, activeTheme]);
+  }, [isDark, userId]);
 
-  const toggleTheme = () => {
-    if (activeTheme) {
-      setActiveTheme(null);
-    }
-    setIsDark(!isDark);
-  };
-
-  const refreshTheme = async () => {
-    if (userId) {
-      await loadThemeFromDatabase(userId);
-    }
-  };
+  const toggleTheme = () => setIsDark(!isDark);
 
   return (
-    <ThemeContext.Provider value={{ isDark, toggleTheme, activeTheme, refreshTheme }}>
+    <ThemeContext.Provider value={{ isDark, toggleTheme }}>
       {children}
     </ThemeContext.Provider>
   );

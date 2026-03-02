@@ -94,7 +94,13 @@ export default function AppDrawer({ isOpen, onClose, onViewChange, currentView }
               <BookHeart size={20} className="sm:w-6 sm:h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-on-surface">Poetry Suite</h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-on-surface">Poetry Suite</h1>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-violet-500 to-purple-500 rounded-full text-white text-[10px] sm:text-xs font-bold shadow-sm">
+                  <Sparkles size={10} className="sm:w-3 sm:h-3" />
+                  BETA
+                </span>
+              </div>
               <p className="text-xs text-on-surface-variant hidden sm:block">Explore all features</p>
             </div>
           </div>

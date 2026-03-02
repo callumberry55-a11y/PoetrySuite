@@ -5,6 +5,16 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    /* Custom theme variables - can be overridden by advanced themes */
+    --color-primary: theme('colors.blue.500');
+    --color-secondary: theme('colors.cyan.500');
+    --color-accent: theme('colors.violet.500');
+    --color-background: theme('colors.white');
+    --color-surface: theme('colors.slate.50');
+    --color-text: theme('colors.slate.900');
+  }
+
   html, body {
     @apply bg-background text-on-background transition-colors duration-200;
     margin: 0;
@@ -12,6 +22,12 @@
     width: 100%;
     height: 100%;
     overflow: hidden;
+  }
+
+  /* Apply custom theme colors when set */
+  html[style*="--color-background"] body {
+    background-color: var(--color-background) !important;
+    color: var(--color-text) !important;
   }
 
   #root {
