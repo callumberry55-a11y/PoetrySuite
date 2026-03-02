@@ -10,8 +10,8 @@ interface Message {
   content: string;
   created_at: string;
   user_profiles: {
-    display_name: string;
-  };
+    username: string;
+  } | null;
 }
 
 interface ChatRoom {
@@ -123,7 +123,7 @@ export default function ChatView() {
             .from('chat_messages')
             .select(`
               *,
-              user_profiles!inner(display_name)
+              user_profiles(username)
             `)
             .eq('id', payload.new.id)
             .single();
@@ -283,7 +283,7 @@ export default function ChatView() {
                       {isAiMessage ? (
                         <Bot className="w-6 h-6" />
                       ) : (
-                        message.user_profiles.display_name.charAt(0).toUpperCase()
+                        (message.user_profiles?.username || 'U').charAt(0).toUpperCase()
                       )}
                     </div>
                     <div
@@ -293,7 +293,7 @@ export default function ChatView() {
                     >
                       <div className="flex items-baseline gap-2 mb-1">
                         <span className="font-medium text-slate-900 dark:text-white">
-                          {isAiMessage ? 'Dave' : message.user_profiles.display_name}
+                          {isAiMessage ? 'Dave' : (message.user_profiles?.username || 'Anonymous')}
                         </span>
                         {isAiMessage && (
                           <span className="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 px-2 py-0.5 rounded-full">

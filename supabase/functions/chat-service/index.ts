@@ -157,7 +157,7 @@ Deno.serve(async (req: Request) => {
         .from('chat_messages')
         .select(`
           *,
-          user_profiles!inner(display_name, username)
+          user_profiles(username)
         `)
         .eq('room_id', roomId)
         .order('created_at', { ascending: false })
@@ -216,7 +216,7 @@ Deno.serve(async (req: Request) => {
         })
         .select(`
           *,
-          user_profiles!inner(display_name, username)
+          user_profiles(username)
         `)
         .single();
 
