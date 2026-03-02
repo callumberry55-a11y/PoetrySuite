@@ -4,9 +4,10 @@ import { supabase } from '@/lib/supabase';
 import { generateTags } from '@/lib/functions';
 import {
   Save, Star, Globe, Lock, ArrowLeft, Tags, Sparkles, X,
-  Eye, EyeOff, Type, BookOpen, Clock, Maximize2, Minimize2
+  Eye, EyeOff, Type, BookOpen, Clock, Maximize2, Minimize2, Wrench
 } from 'lucide-react';
 import AIAssistant from './AIAssistant';
+import PoetryTools from './PoetryTools';
 
 interface PoemEditorProps {
   selectedPoemId: string | null;
@@ -25,6 +26,7 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showAI, setShowAI] = useState(false);
+  const [showTools, setShowTools] = useState(false);
   const [focusMode, setFocusMode] = useState(false);
   const [zenMode, setZenMode] = useState(false);
   const [fontSize, setFontSize] = useState<'small' | 'medium' | 'large'>('medium');
@@ -340,7 +342,26 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
                     </button>
 
                     <button
-                      onClick={() => setShowAI(!showAI)}
+                      onClick={() => {
+                        setShowTools(!showTools);
+                        if (!showTools) setShowAI(false);
+                      }}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all hover:scale-105 active:scale-95 ${
+                        showTools
+                          ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-500/30'
+                          : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 hover:shadow-md'
+                      }`}
+                      aria-pressed={showTools}
+                    >
+                      <Wrench size={16} className={showTools ? 'animate-pulse' : ''} />
+                      <span className="text-sm font-semibold">Poetry Tools</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setShowAI(!showAI);
+                        if (!showAI) setShowTools(false);
+                      }}
                       className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all hover:scale-105 active:scale-95 ${
                         showAI
                           ? 'bg-gradient-to-r from-violet-500 to-purple-500 text-white shadow-lg shadow-purple-500/30'
@@ -493,6 +514,26 @@ export default function PoemEditor({ selectedPoemId, onBack }: PoemEditorProps) 
           </div>
         </div>
       </div>
+
+      {/* Poetry Tools Panel */}
+      {showTools && !zenMode && (
+        <div className="w-full lg:w-96 border-l border-outline/20 bg-surface flex-shrink-0 overflow-hidden flex flex-col shadow-2xl animate-in slide-in-from-right duration-300">
+          <div className="flex justify-between items-center p-4 border-b border-outline/20 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20">
+            <div className="flex items-center gap-2">
+              <Wrench size={18} className="text-blue-600 dark:text-blue-400" />
+              <h3 className="font-bold text-on-surface">Poetry Tools</h3>
+            </div>
+            <button
+              onClick={() => setShowTools(false)}
+              className="p-2 hover:bg-surface rounded-lg transition-all hover:rotate-90"
+              aria-label="Close Poetry Tools"
+            >
+              <X size={20} />
+            </button>
+          </div>
+          <PoetryTools content={content} />
+        </div>
+      )}
 
       {/* AI Assistant Panel */}
       {showAI && !zenMode && (
