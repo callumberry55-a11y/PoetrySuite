@@ -42,6 +42,18 @@ export default function PaaSAuth() {
         </div>
 
         <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8 border border-slate-200 dark:border-slate-700">
+          {mode === 'select' && (
+            <div className="space-y-3">
+              <button
+                onClick={() => setMode('admin')}
+                className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl font-semibold transition-all transform hover:scale-105"
+              >
+                <Shield size={20} />
+                Admin Access
+              </button>
+            </div>
+          )}
+
           {mode === 'admin' && (
             <>
               <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6">Admin Access</h2>
@@ -64,16 +76,23 @@ export default function PaaSAuth() {
                     {error}
                   </div>
                 )}
-                <button
-                  onClick={handleAdminLogin}
-                  className="w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
-                >
-                  Access Admin Panel
-                </button>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => { setMode('select'); setError(''); setAdminCode(''); }}
+                    className="flex-1 px-4 py-3 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-lg font-medium transition-colors"
+                  >
+                    Back
+                  </button>
+                  <button
+                    onClick={handleAdminLogin}
+                    className="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+                  >
+                    Access
+                  </button>
+                </div>
               </div>
             </>
           )}
-
         </div>
 
         <p className="text-center text-sm text-slate-600 dark:text-slate-400 mt-6">
