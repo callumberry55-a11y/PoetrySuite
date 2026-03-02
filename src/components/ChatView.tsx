@@ -69,7 +69,11 @@ export default function ChatView() {
         }
       );
 
-      if (!response.ok) throw new Error('Failed to load rooms');
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Failed to load rooms:', response.status, errorText);
+        throw new Error(`Failed to load rooms: ${response.status}`);
+      }
 
       const result = await response.json();
       setRooms(result.rooms || []);
@@ -77,6 +81,7 @@ export default function ChatView() {
         setCurrentRoom(result.rooms[0].id);
       }
     } catch (error) {
+      console.error('Error loading chat rooms:', error);
       showToast('Failed to load chat rooms', 'error');
     } finally {
       setLoading(false);
@@ -98,11 +103,16 @@ export default function ChatView() {
         }
       );
 
-      if (!response.ok) throw new Error('Failed to load messages');
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Failed to load messages:', response.status, errorText);
+        throw new Error(`Failed to load messages: ${response.status}`);
+      }
 
       const result = await response.json();
       setMessages(result.messages || []);
     } catch (error) {
+      console.error('Error loading messages:', error);
       showToast('Failed to load messages', 'error');
     }
   };
@@ -167,10 +177,15 @@ export default function ChatView() {
         }
       );
 
-      if (!response.ok) throw new Error('Failed to send message');
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Failed to send message:', response.status, errorText);
+        throw new Error(`Failed to send message: ${response.status}`);
+      }
 
       setNewMessage('');
     } catch (error) {
+      console.error('Error sending message:', error);
       showToast('Failed to send message', 'error');
     }
   };
