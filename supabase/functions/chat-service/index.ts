@@ -19,87 +19,76 @@ interface GetMessagesParams {
 }
 
 // AI Response Generator for Dave using Gemini
-async function generateAIResponse(userMessage: string, userId: string, supabase: any): Promise<string> {
+async function generateAIResponse(userMessage: string, conversationHistory: string[]): Promise<string> {
   const GEMINI_API_KEY = Deno.env.get('gemini_api_key') || Deno.env.get('GEMINI_API_KEY');
 
   if (!GEMINI_API_KEY) {
     console.error('Missing Gemini API key');
-    return "Hello! I'm Dave, your AI poetry assistant. I'm here to help you with writing, analyzing poetry, and creative inspiration. How can I assist you today?";
+    throw new Error('API key not configured');
   }
 
-  const systemPrompt = `You are Dave, a friendly and knowledgeable AI assistant for a poetry community app. You help users with:
-- Writing poetry and offering creative feedback
-- Understanding poetic forms, techniques, and literary devices
-- Analyzing famous poems and poets
-- Providing writing prompts and inspiration
-- Discussing poetry history and movements
-- Offering constructive critique on their work
+  // Build conversation context
+  const historyText = conversationHistory.length > 0
+    ? `Previous conversation:\n${conversationHistory.join('\n')}\n\n`
+    : '';
 
-Keep your responses warm, encouraging, and conversational. Be helpful but concise (2-3 paragraphs max). When discussing poetry, be specific and insightful.`;
+  const prompt = `You are Dave, a friendly and knowledgeable AI poetry assistant. Help users with poetry writing, analysis, forms, techniques, and creative inspiration.
+
+Be warm, encouraging, and conversational. Keep responses concise (2-3 paragraphs). Be specific and insightful about poetry.
+
+${historyText}User: ${userMessage}
+
+Dave:`;
 
   try {
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: `${systemPrompt}\n\nUser: ${userMessage}\n\nRespond as Dave the poetry assistant:`
-            }]
-          }],
+          contents: [{ parts: [{ text: prompt }] }],
           generationConfig: {
-            temperature: 0.9,
-            maxOutputTokens: 400,
-            topP: 1,
+            temperature: 0.8,
+            maxOutputTokens: 500,
+            topP: 0.95,
             topK: 40,
           },
           safetySettings: [
-            {
-              category: "HARM_CATEGORY_HARASSMENT",
-              threshold: "BLOCK_NONE"
-            },
-            {
-              category: "HARM_CATEGORY_HATE_SPEECH",
-              threshold: "BLOCK_NONE"
-            },
-            {
-              category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-              threshold: "BLOCK_NONE"
-            },
-            {
-              category: "HARM_CATEGORY_DANGEROUS_CONTENT",
-              threshold: "BLOCK_NONE"
-            }
+            { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_ONLY_HIGH" },
+            { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_ONLY_HIGH" },
+            { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_ONLY_HIGH" },
+            { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_ONLY_HIGH" }
           ]
         })
       }
     );
 
     if (!response.ok) {
-      const errorData = await response.text();
-      console.error('Gemini API error:', response.status, errorData);
-      throw new Error(`Gemini API error: ${response.statusText}`);
+      const errorText = await response.text();
+      console.error('Gemini API error:', response.status, errorText);
+      throw new Error(`Gemini API error: ${response.status}`);
     }
 
     const data = await response.json();
+
+    // Check if response was blocked
+    if (data.promptFeedback?.blockReason) {
+      console.error('Response blocked:', data.promptFeedback.blockReason);
+      throw new Error('Response blocked by safety filters');
+    }
+
     const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!aiResponse) {
-      console.error('No AI response in data:', JSON.stringify(data));
-      return "I'm here to help with your poetry! What would you like to know or discuss?";
+      console.error('No AI response:', JSON.stringify(data));
+      throw new Error('No response generated');
     }
 
     return aiResponse.trim();
   } catch (error) {
     console.error('Error calling Gemini API:', error);
-    if (error instanceof Error) {
-      console.error('Error details:', error.message);
-    }
-    return "Hello! I'm Dave, your poetry assistant. I'm ready to help with writing tips, poem analysis, or creative inspiration. What can I help you with?";
+    throw error;
   }
 }
 
@@ -260,30 +249,66 @@ Deno.serve(async (req: Request) => {
 
       // If this is an AI room, generate and send AI response
       if (room.is_ai) {
-        try {
-          const aiResponse = await generateAIResponse(payload.content.trim(), user.id, supabase);
+        // Don't await - respond in background
+        (async () => {
+          try {
+            // Get recent conversation history (last 10 messages)
+            const { data: recentMessages } = await supabase
+              .from('chat_messages')
+              .select('content, user_id')
+              .eq('room_id', payload.room_id)
+              .order('created_at', { ascending: false })
+              .limit(10);
 
-          // Insert AI response (using service role to bypass RLS)
-          const serviceSupabase = createClient(
-            Deno.env.get('SUPABASE_URL') ?? '',
-            Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-          );
+            // Build conversation history (reverse to chronological order)
+            const history: string[] = [];
+            if (recentMessages) {
+              recentMessages.reverse().forEach((msg: any) => {
+                if (msg.content.startsWith('**Dave:**')) {
+                  history.push(`Dave: ${msg.content.replace('**Dave:** ', '')}`);
+                } else {
+                  history.push(`User: ${msg.content}`);
+                }
+              });
+            }
 
-          const { error: aiInsertError } = await serviceSupabase
-            .from('chat_messages')
-            .insert({
-              room_id: payload.room_id,
-              user_id: user.id,
-              content: `**Dave:** ${aiResponse}`
-            });
+            const aiResponse = await generateAIResponse(payload.content.trim(), history);
 
-          if (aiInsertError) {
-            console.error('Error inserting AI response:', aiInsertError);
+            // Insert AI response using service role
+            const serviceSupabase = createClient(
+              Deno.env.get('SUPABASE_URL') ?? '',
+              Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+            );
+
+            const { error: aiInsertError } = await serviceSupabase
+              .from('chat_messages')
+              .insert({
+                room_id: payload.room_id,
+                user_id: user.id,
+                content: `**Dave:** ${aiResponse}`
+              });
+
+            if (aiInsertError) {
+              console.error('Error inserting AI response:', aiInsertError);
+            }
+          } catch (aiError) {
+            console.error('Error generating AI response:', aiError);
+
+            // Insert fallback message on error
+            const serviceSupabase = createClient(
+              Deno.env.get('SUPABASE_URL') ?? '',
+              Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+            );
+
+            await serviceSupabase
+              .from('chat_messages')
+              .insert({
+                room_id: payload.room_id,
+                user_id: user.id,
+                content: `**Dave:** I'm having trouble connecting right now. Could you try asking your question again?`
+              });
           }
-        } catch (aiError) {
-          console.error('Error generating AI response:', aiError);
-          // Don't fail the whole request if AI fails
-        }
+        })();
       }
 
       return new Response(
