@@ -155,10 +155,7 @@ Deno.serve(async (req: Request) => {
 
       let query = supabase
         .from('chat_messages')
-        .select(`
-          *,
-          user_profiles(username)
-        `)
+        .select('*')
         .eq('room_id', roomId)
         .order('created_at', { ascending: false })
         .limit(limit);
@@ -171,10 +168,26 @@ Deno.serve(async (req: Request) => {
 
       if (error) throw error;
 
+      // Fetch usernames separately to avoid FK issues
+      const messagesWithUsernames = await Promise.all(
+        (messages || []).map(async (msg: any) => {
+          const { data: profile } = await supabase
+            .from('user_profiles')
+            .select('username')
+            .eq('user_id', msg.user_id)
+            .maybeSingle();
+
+          return {
+            ...msg,
+            user_profiles: profile ? { username: profile.username } : null
+          };
+        })
+      );
+
       return new Response(
         JSON.stringify({
           success: true,
-          messages: messages?.reverse() || [],
+          messages: messagesWithUsernames.reverse(),
           hasMore: messages?.length === limit
         }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -214,13 +227,22 @@ Deno.serve(async (req: Request) => {
           user_id: user.id,
           content: payload.content.trim()
         })
-        .select(`
-          *,
-          user_profiles(username)
-        `)
+        .select('*')
         .single();
 
       if (insertError) throw insertError;
+
+      // Fetch username separately
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('username')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      const messageWithProfile = {
+        ...message,
+        user_profiles: profile ? { username: profile.username } : null
+      };
 
       // If this is an AI room, generate and send AI response
       if (room.is_ai) {
@@ -247,7 +269,7 @@ Deno.serve(async (req: Request) => {
       }
 
       return new Response(
-        JSON.stringify({ success: true, message }),
+        JSON.stringify({ success: true, message: messageWithProfile }),
         { status: 201, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
