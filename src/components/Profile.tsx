@@ -13,7 +13,14 @@ import {
   Coins,
   Camera,
   Upload,
-  Loader2
+  Loader2,
+  Heart,
+  BookOpen,
+  Users,
+  Calendar,
+  TrendingUp,
+  Target,
+  Sparkles
 } from 'lucide-react';
 
 interface UserProfile {
@@ -50,6 +57,15 @@ interface WritingStreak {
   last_activity_date: string;
 }
 
+interface ActivityStats {
+  total_poems: number;
+  public_poems: number;
+  total_words: number;
+  avg_words_per_poem: number;
+  this_month_poems: number;
+  this_week_poems: number;
+}
+
 export default function Profile() {
   const { user } = useAuth();
   const toast = useToast();
@@ -62,6 +78,8 @@ export default function Profile() {
   const [loadError, setLoadError] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [activityStats, setActivityStats] = useState<ActivityStats | null>(null);
+  const [activeTab, setActiveTab] = useState<'overview' | 'activity' | 'achievements'>('overview');
 
   const createProfile = useCallback(async () => {
     if (!user) return;
@@ -198,14 +216,51 @@ export default function Profile() {
     setPoemCount(count || 0);
   }, [user]);
 
+  const loadActivityStats = useCallback(async () => {
+    if (!user) return;
+
+    try {
+      // Get all poems with their details
+      const { data: poems, error } = await supabase
+        .from('poems')
+        .select('word_count, is_public, created_at')
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const startOfWeek = new Date(now);
+      startOfWeek.setDate(now.getDate() - now.getDay());
+
+      const totalPoems = poems?.length || 0;
+      const publicPoems = poems?.filter(p => p.is_public).length || 0;
+      const totalWords = poems?.reduce((sum, p) => sum + (p.word_count || 0), 0) || 0;
+      const thisMonthPoems = poems?.filter(p => new Date(p.created_at) >= startOfMonth).length || 0;
+      const thisWeekPoems = poems?.filter(p => new Date(p.created_at) >= startOfWeek).length || 0;
+
+      setActivityStats({
+        total_poems: totalPoems,
+        public_poems: publicPoems,
+        total_words: totalWords,
+        avg_words_per_poem: totalPoems > 0 ? Math.round(totalWords / totalPoems) : 0,
+        this_month_poems: thisMonthPoems,
+        this_week_poems: thisWeekPoems
+      });
+    } catch (error) {
+      console.error('Error loading activity stats:', error);
+    }
+  }, [user]);
+
   useEffect(() => {
     if (user) {
       loadProfile();
       loadBadges();
       loadStreak();
       loadPoemCount();
+      loadActivityStats();
     }
-  }, [user, loadProfile, loadBadges, loadStreak, loadPoemCount]);
+  }, [user, loadProfile, loadBadges, loadStreak, loadPoemCount, loadActivityStats]);
 
   const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!user || !event.target.files || event.target.files.length === 0) return;
@@ -449,41 +504,300 @@ export default function Profile() {
               )}
             </div>
 
+            <div className="inline-flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl mb-6">
+              <button
+                onClick={() => setActiveTab('overview')}
+                className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
+                  activeTab === 'overview'
+                    ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                Overview
+              </button>
+              <button
+                onClick={() => setActiveTab('activity')}
+                className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
+                  activeTab === 'activity'
+                    ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                Activity
+              </button>
+              <button
+                onClick={() => setActiveTab('achievements')}
+                className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
+                  activeTab === 'achievements'
+                    ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                Achievements
+              </button>
+            </div>
+
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
               <div className="group bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-2xl p-5 text-center hover:shadow-lg transition-all border border-blue-100 dark:border-blue-900/30">
+                <BookOpen className="w-6 h-6 mx-auto mb-2 text-blue-600 dark:text-blue-400" />
                 <div className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent mb-1">
                   {poemCount}
                 </div>
                 <div className="text-sm font-semibold text-blue-700 dark:text-blue-300">Poems</div>
               </div>
               <div className="group bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-2xl p-5 text-center hover:shadow-lg transition-all border border-emerald-100 dark:border-emerald-900/30">
+                <Users className="w-6 h-6 mx-auto mb-2 text-emerald-600 dark:text-emerald-400" />
                 <div className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent mb-1">
                   {profile.follower_count}
                 </div>
                 <div className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">Followers</div>
               </div>
               <div className="group bg-gradient-to-br from-sky-50 to-blue-50 dark:from-sky-900/20 dark:to-blue-900/20 rounded-2xl p-5 text-center hover:shadow-lg transition-all border border-sky-100 dark:border-sky-900/30">
+                <Heart className="w-6 h-6 mx-auto mb-2 text-sky-600 dark:text-sky-400" />
                 <div className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-sky-600 to-blue-600 bg-clip-text text-transparent mb-1">
                   {profile.following_count}
                 </div>
                 <div className="text-sm font-semibold text-sky-700 dark:text-sky-300">Following</div>
               </div>
               <div className="group bg-gradient-to-br from-rose-50 to-pink-50 dark:from-rose-900/20 dark:to-pink-900/20 rounded-2xl p-5 text-center hover:shadow-lg transition-all border border-rose-100 dark:border-rose-900/30">
+                <Heart className="w-6 h-6 mx-auto mb-2 text-rose-600 dark:text-rose-400 fill-current" />
                 <div className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-rose-600 to-pink-600 bg-clip-text text-transparent mb-1">
                   {profile.total_likes_received}
                 </div>
                 <div className="text-sm font-semibold text-rose-700 dark:text-rose-300">Likes</div>
               </div>
               <div className="group bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 rounded-2xl p-5 text-center hover:shadow-lg transition-all border border-amber-100 dark:border-amber-900/30">
-                <div className="flex items-center justify-center gap-2 mb-1">
-                  <Coins size={20} className="text-amber-600 dark:text-amber-400" />
-                  <div className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-amber-600 to-yellow-600 bg-clip-text text-transparent">
-                    {profile.points_balance || 0}
-                  </div>
+                <Coins className="w-6 h-6 mx-auto mb-2 text-amber-600 dark:text-amber-400" />
+                <div className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-amber-600 to-yellow-600 bg-clip-text text-transparent mb-1">
+                  {profile.points_balance || 0}
                 </div>
                 <div className="text-sm font-semibold text-amber-700 dark:text-amber-300">Points</div>
               </div>
             </div>
+
+            {activeTab === 'overview' && !isEditing && (
+              <div className="space-y-6">
+                {profile.bio && (
+                  <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-5">
+                    <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-wide">About</h3>
+                    <p className="text-slate-700 dark:text-slate-300 leading-relaxed">{profile.bio}</p>
+                  </div>
+                )}
+                {profile.website && (
+                  <div className="flex items-center gap-3 text-cyan-600 dark:text-cyan-400">
+                    <div className="p-2 bg-cyan-100 dark:bg-cyan-900/30 rounded-xl">
+                      <Globe size={18} />
+                    </div>
+                    <a
+                      href={profile.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:underline font-medium"
+                    >
+                      {profile.website}
+                    </a>
+                  </div>
+                )}
+                {profile.writing_style && (
+                  <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-5">
+                    <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-wide">Writing Style</h3>
+                    <p className="text-slate-700 dark:text-slate-300 leading-relaxed">{profile.writing_style}</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'activity' && !isEditing && activityStats && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-2xl p-6 border border-blue-100 dark:border-blue-900/30">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="p-2 bg-blue-500/10 rounded-lg">
+                        <TrendingUp className="text-blue-600 dark:text-blue-400" size={20} />
+                      </div>
+                      <h3 className="font-bold text-slate-900 dark:text-white">Total Words</h3>
+                    </div>
+                    <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+                      {activityStats.total_words.toLocaleString()}
+                    </div>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">
+                      Across all poems
+                    </p>
+                  </div>
+
+                  <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-2xl p-6 border border-purple-100 dark:border-purple-900/30">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="p-2 bg-purple-500/10 rounded-lg">
+                        <Target className="text-purple-600 dark:text-purple-400" size={20} />
+                      </div>
+                      <h3 className="font-bold text-slate-900 dark:text-white">Average Length</h3>
+                    </div>
+                    <div className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                      {activityStats.avg_words_per_poem}
+                    </div>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">
+                      Words per poem
+                    </p>
+                  </div>
+
+                  <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-2xl p-6 border border-green-100 dark:border-green-900/30">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="p-2 bg-green-500/10 rounded-lg">
+                        <Globe className="text-green-600 dark:text-green-400" size={20} />
+                      </div>
+                      <h3 className="font-bold text-slate-900 dark:text-white">Public Poems</h3>
+                    </div>
+                    <div className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                      {activityStats.public_poems}
+                    </div>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">
+                      Shared with community
+                    </p>
+                  </div>
+
+                  <div className="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 rounded-2xl p-6 border border-orange-100 dark:border-orange-900/30">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="p-2 bg-orange-500/10 rounded-lg">
+                        <Calendar className="text-orange-600 dark:text-orange-400" size={20} />
+                      </div>
+                      <h3 className="font-bold text-slate-900 dark:text-white">This Month</h3>
+                    </div>
+                    <div className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
+                      {activityStats.this_month_poems}
+                    </div>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">
+                      Poems written
+                    </p>
+                  </div>
+
+                  <div className="bg-gradient-to-br from-cyan-50 to-teal-50 dark:from-cyan-900/20 dark:to-teal-900/20 rounded-2xl p-6 border border-cyan-100 dark:border-cyan-900/30">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="p-2 bg-cyan-500/10 rounded-lg">
+                        <Sparkles className="text-cyan-600 dark:text-cyan-400" size={20} />
+                      </div>
+                      <h3 className="font-bold text-slate-900 dark:text-white">This Week</h3>
+                    </div>
+                    <div className="text-3xl font-bold bg-gradient-to-r from-cyan-600 to-teal-600 bg-clip-text text-transparent">
+                      {activityStats.this_week_poems}
+                    </div>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">
+                      Poems written
+                    </p>
+                  </div>
+
+                  <div className="bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20 rounded-2xl p-6 border border-violet-100 dark:border-violet-900/30">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="p-2 bg-violet-500/10 rounded-lg">
+                        <Award className="text-violet-600 dark:text-violet-400" size={20} />
+                      </div>
+                      <h3 className="font-bold text-slate-900 dark:text-white">Total Points</h3>
+                    </div>
+                    <div className="text-3xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">
+                      {profile.points_earned_total || 0}
+                    </div>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">
+                      Lifetime earned
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'achievements' && !isEditing && (
+              <div className="space-y-6">
+                {streak && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="group relative bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-2xl p-6 border-2 border-orange-100 dark:border-orange-900/30 hover:shadow-lg transition-all">
+                      <div className="absolute top-4 right-4">
+                        <Flame className="text-orange-500 dark:text-orange-400" size={32} />
+                      </div>
+                      <div className="text-5xl sm:text-6xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent mb-2">
+                        {streak.current_streak}
+                      </div>
+                      <div className="text-sm sm:text-base font-bold text-orange-700 dark:text-orange-300 uppercase tracking-wide">
+                        Current Streak
+                      </div>
+                      <div className="mt-2 text-xs text-orange-600 dark:text-orange-400">
+                        Keep it going!
+                      </div>
+                    </div>
+                    <div className="group relative bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-2xl p-6 border-2 border-blue-100 dark:border-blue-900/30 hover:shadow-lg transition-all">
+                      <div className="absolute top-4 right-4">
+                        <Award className="text-blue-500 dark:text-blue-400" size={32} />
+                      </div>
+                      <div className="text-5xl sm:text-6xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent mb-2">
+                        {streak.longest_streak}
+                      </div>
+                      <div className="text-sm sm:text-base font-bold text-blue-700 dark:text-blue-300 uppercase tracking-wide">
+                        Longest Streak
+                      </div>
+                      <div className="mt-2 text-xs text-blue-600 dark:text-blue-400">
+                        Personal best
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {badges.length > 0 ? (
+                  <div>
+                    <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                      <Award className="text-amber-600 dark:text-amber-400" />
+                      <span>Earned Badges</span>
+                      <span className="ml-auto text-base font-semibold px-3 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-full">
+                        {badges.length}
+                      </span>
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                      {badges.map((badge) => {
+                        const getRankColor = (rank: string) => {
+                          if (rank.toLowerCase().includes('gold') || rank.toLowerCase().includes('éire')) {
+                            return 'from-amber-50 to-yellow-50 dark:from-amber-900/30 dark:to-yellow-900/30 border-amber-200 dark:border-amber-900/40';
+                          } else if (rank.toLowerCase().includes('silver')) {
+                            return 'from-slate-50 to-gray-50 dark:from-slate-800/50 dark:to-gray-800/50 border-slate-200 dark:border-slate-700';
+                          } else if (rank.toLowerCase().includes('bronze')) {
+                            return 'from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 border-orange-200 dark:border-orange-900/40';
+                          }
+                          return 'from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 border-blue-200 dark:border-blue-900/40';
+                        };
+
+                        return (
+                          <div
+                            key={badge.id}
+                            className={`group bg-gradient-to-br ${getRankColor(badge.rank)} rounded-2xl p-5 text-center border-2 hover:shadow-xl transition-all hover:scale-105`}
+                          >
+                            <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">
+                              {badge.icon === 'award' ? '🏆' : badge.icon === 'flame' ? '🔥' : badge.icon === 'heart' ? '❤️' : badge.icon === 'star' ? '⭐' : '🎖️'}
+                            </div>
+                            <div className="font-bold text-slate-900 dark:text-white text-sm sm:text-base mb-2">
+                              {badge.name}
+                            </div>
+                            <div className="text-xs text-slate-600 dark:text-slate-400 mb-3 line-clamp-2 leading-relaxed">
+                              {badge.description}
+                            </div>
+                            {badge.rank && (
+                              <div className="flex items-center justify-center gap-2">
+                                <span className="px-3 py-1 bg-white/50 dark:bg-slate-900/50 text-xs font-bold text-slate-700 dark:text-slate-300 rounded-full">
+                                  {badge.rank}
+                                </span>
+                                <span className="px-3 py-1 bg-amber-100 dark:bg-amber-900/50 text-xs font-bold text-amber-700 dark:text-amber-300 rounded-full">
+                                  {badge.points} pts
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-12 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-700">
+                    <Award className="w-16 h-16 mx-auto mb-4 text-slate-300 dark:text-slate-700" />
+                    <p className="text-lg text-slate-500 dark:text-slate-400 font-medium">No badges earned yet</p>
+                    <p className="text-sm text-slate-400 dark:text-slate-500 mt-2">Keep writing to unlock achievements!</p>
+                  </div>
+                )}
+              </div>
+            )}
 
             {isEditing ? (
               <div className="space-y-5">
@@ -589,135 +903,9 @@ export default function Profile() {
                   />
                 </div>
               </div>
-            ) : (
-              <div className="space-y-6">
-                {profile.bio && (
-                  <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-5">
-                    <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-wide">About</h3>
-                    <p className="text-slate-700 dark:text-slate-300 leading-relaxed">{profile.bio}</p>
-                  </div>
-                )}
-                {profile.website && (
-                  <div className="flex items-center gap-3 text-cyan-600 dark:text-cyan-400">
-                    <div className="p-2 bg-cyan-100 dark:bg-cyan-900/30 rounded-xl">
-                      <Globe size={18} />
-                    </div>
-                    <a
-                      href={profile.website}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hover:underline font-medium"
-                    >
-                      {profile.website}
-                    </a>
-                  </div>
-                )}
-                {profile.writing_style && (
-                  <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-5">
-                    <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-wide">Writing Style</h3>
-                    <p className="text-slate-700 dark:text-slate-300 leading-relaxed">{profile.writing_style}</p>
-                  </div>
-                )}
-              </div>
-            )}
+            ) : null}
           </div>
         </div>
-
-        {streak && (
-          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 mb-6">
-            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-3">
-              <div className="p-3 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl shadow-lg">
-                <Flame className="text-white" size={24} />
-              </div>
-              <span>Writing Streak</span>
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-              <div className="group relative bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-2xl p-6 border-2 border-orange-100 dark:border-orange-900/30 hover:shadow-lg transition-all">
-                <div className="absolute top-4 right-4">
-                  <Flame className="text-orange-500 dark:text-orange-400" size={32} />
-                </div>
-                <div className="text-5xl sm:text-6xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent mb-2">
-                  {streak.current_streak}
-                </div>
-                <div className="text-sm sm:text-base font-bold text-orange-700 dark:text-orange-300 uppercase tracking-wide">
-                  Current Streak
-                </div>
-                <div className="mt-2 text-xs text-orange-600 dark:text-orange-400">
-                  Keep it going!
-                </div>
-              </div>
-              <div className="group relative bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-2xl p-6 border-2 border-blue-100 dark:border-blue-900/30 hover:shadow-lg transition-all">
-                <div className="absolute top-4 right-4">
-                  <Award className="text-blue-500 dark:text-blue-400" size={32} />
-                </div>
-                <div className="text-5xl sm:text-6xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent mb-2">
-                  {streak.longest_streak}
-                </div>
-                <div className="text-sm sm:text-base font-bold text-blue-700 dark:text-blue-300 uppercase tracking-wide">
-                  Longest Streak
-                </div>
-                <div className="mt-2 text-xs text-blue-600 dark:text-blue-400">
-                  Personal best
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {badges.length > 0 && (
-          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8">
-            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-3">
-              <div className="p-3 bg-gradient-to-br from-amber-500 to-yellow-500 rounded-2xl shadow-lg">
-                <Award className="text-white" size={24} />
-              </div>
-              <span>Badges</span>
-              <span className="ml-auto text-base sm:text-lg font-semibold px-4 py-2 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-full">
-                {badges.length}
-              </span>
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {badges.map((badge) => {
-                const getRankColor = (rank: string) => {
-                  if (rank.toLowerCase().includes('gold') || rank.toLowerCase().includes('éire')) {
-                    return 'from-amber-50 to-yellow-50 dark:from-amber-900/30 dark:to-yellow-900/30 border-amber-200 dark:border-amber-900/40';
-                  } else if (rank.toLowerCase().includes('silver')) {
-                    return 'from-slate-50 to-gray-50 dark:from-slate-800/50 dark:to-gray-800/50 border-slate-200 dark:border-slate-700';
-                  } else if (rank.toLowerCase().includes('bronze')) {
-                    return 'from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 border-orange-200 dark:border-orange-900/40';
-                  }
-                  return 'from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 border-blue-200 dark:border-blue-900/40';
-                };
-
-                return (
-                  <div
-                    key={badge.id}
-                    className={`group bg-gradient-to-br ${getRankColor(badge.rank)} rounded-2xl p-5 text-center border-2 hover:shadow-xl transition-all hover:scale-105`}
-                  >
-                    <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">
-                      {badge.icon === 'award' ? '🏆' : badge.icon === 'flame' ? '🔥' : badge.icon === 'heart' ? '❤️' : badge.icon === 'star' ? '⭐' : '🎖️'}
-                    </div>
-                    <div className="font-bold text-slate-900 dark:text-white text-sm sm:text-base mb-2">
-                      {badge.name}
-                    </div>
-                    <div className="text-xs text-slate-600 dark:text-slate-400 mb-3 line-clamp-2 leading-relaxed">
-                      {badge.description}
-                    </div>
-                    {badge.rank && (
-                      <div className="flex items-center justify-center gap-2">
-                        <span className="px-3 py-1 bg-white/50 dark:bg-slate-900/50 text-xs font-bold text-slate-700 dark:text-slate-300 rounded-full">
-                          {badge.rank}
-                        </span>
-                        <span className="px-3 py-1 bg-amber-100 dark:bg-amber-900/50 text-xs font-bold text-amber-700 dark:text-amber-300 rounded-full">
-                          {badge.points} pts
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
