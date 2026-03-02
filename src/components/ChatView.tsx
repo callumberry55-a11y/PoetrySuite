@@ -192,7 +192,7 @@ export default function ChatView() {
   }
 
   return (
-    <div className="h-full flex bg-white dark:bg-slate-900">
+    <div className="h-full flex bg-white dark:bg-slate-900 pb-20">
       {/* Sidebar - Room List */}
       <div className="w-64 border-r border-slate-200 dark:border-slate-700 flex flex-col">
         <div className="p-4 border-b border-slate-200 dark:border-slate-700">
@@ -325,19 +325,19 @@ export default function ChatView() {
         </div>
 
         {/* Message Input */}
-        <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-700">
+        <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
           <form onSubmit={sendMessage} className="flex gap-3">
             <input
               type="text"
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               placeholder="Type your message..."
-              className="flex-1 px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="flex-1 px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent text-base"
             />
             <button
               type="submit"
               disabled={!newMessage.trim()}
-              className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-semibold"
             >
               <Send className="w-5 h-5" />
               Send

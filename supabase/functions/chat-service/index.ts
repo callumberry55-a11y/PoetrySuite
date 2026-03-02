@@ -122,7 +122,8 @@ Deno.serve(async (req: Request) => {
     }
 
     const url = new URL(req.url);
-    const path = url.pathname.split('/').pop();
+    const pathParts = url.pathname.split('/').filter(Boolean);
+    const path = pathParts[pathParts.length - 1] || '';
 
     // GET /chat-service/rooms - Get all chat rooms
     if (req.method === 'GET' && path === 'rooms') {
