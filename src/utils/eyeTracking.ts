@@ -1,9 +1,10 @@
 /**
- * Eye Tracking for Accessibility
+ * AI-Powered Eye Tracking for Accessibility
  *
- * WARNING: This is an EXPERIMENTAL feature that uses your device's camera
+ * WARNING: This is an EXPERIMENTAL feature that uses AI and your device's camera
  * to track eye movement for navigation. This feature:
  *
+ * - Uses Google Generative AI for enhanced computer vision processing
  * - May not work accurately on all devices or for all users
  * - Can be significantly affected by lighting, glasses, and eye conditions
  * - Requires camera permissions and continuous camera access
@@ -14,6 +15,8 @@
  *
  * USE AT YOUR OWN RISK. This is a beta accessibility feature.
  */
+
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export interface EyePosition {
   x: number;
@@ -57,6 +60,11 @@ class EyeTrackingManager {
   private animationFrameId: number | null = null;
   private canvas: HTMLCanvasElement | null = null;
   private ctx: CanvasRenderingContext2D | null = null;
+  private genAI: GoogleGenerativeAI | null = null;
+  private model: any = null;
+  private useAI = true;
+  private frameCounter = 0;
+  private aiProcessingInterval = 3;
 
   private config: EyeTrackingConfig = {
     enabled: false,
@@ -88,6 +96,27 @@ class EyeTrackingManager {
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         console.error('Camera API not supported');
         return false;
+      }
+
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+      if (apiKey) {
+        try {
+          this.genAI = new GoogleGenerativeAI(apiKey);
+          this.model = this.genAI.getGenerativeModel({
+            model: 'gemini-1.5-flash',
+            generationConfig: {
+              temperature: 0.1,
+              maxOutputTokens: 100
+            }
+          });
+          console.log('AI vision model initialized for eye tracking');
+        } catch (error) {
+          console.warn('AI model initialization failed, falling back to basic tracking:', error);
+          this.useAI = false;
+        }
+      } else {
+        console.warn('No Gemini API key found, using basic eye tracking');
+        this.useAI = false;
       }
 
       this.stream = await navigator.mediaDevices.getUserMedia({
@@ -125,7 +154,7 @@ class EyeTrackingManager {
 
       await this.videoElement.play();
 
-      console.log('Eye tracking initialized successfully');
+      console.log(`Eye tracking initialized successfully (AI: ${this.useAI ? 'enabled' : 'disabled'})`);
       return true;
     } catch (error) {
       console.error('Failed to initialize eye tracking:', error);
@@ -182,7 +211,7 @@ class EyeTrackingManager {
   }
 
   private startTracking(): void {
-    const processFrame = () => {
+    const processFrame = async () => {
       if (!this.config.enabled || !this.videoElement || !this.ctx || !this.canvas) {
         return;
       }
@@ -195,7 +224,7 @@ class EyeTrackingManager {
         return;
       }
 
-      const gaze = this.detectGaze();
+      const gaze = await this.detectGaze();
 
       if (gaze) {
         const smoothedGaze = this.smoothGaze(gaze);
@@ -223,7 +252,70 @@ class EyeTrackingManager {
     processFrame();
   }
 
-  private detectGaze(): GazePoint | null {
+  private async detectGaze(): Promise<GazePoint | null> {
+    if (!this.ctx || !this.canvas) return null;
+
+    this.frameCounter++;
+
+    if (this.useAI && this.model && this.frameCounter % this.aiProcessingInterval === 0) {
+      return this.detectGazeWithAI();
+    }
+
+    return this.detectGazeBasic();
+  }
+
+  private async detectGazeWithAI(): Promise<GazePoint | null> {
+    try {
+      if (!this.canvas) return null;
+
+      const imageBase64 = this.canvas.toDataURL('image/jpeg', 0.7).split(',')[1];
+
+      const prompt = `Analyze this webcam image and detect the person's eye gaze direction.
+Return ONLY a JSON object with this exact format (no other text):
+{"gazeX": <number 0-1>, "gazeY": <number 0-1>, "confidence": <number 0-1>}
+Where gazeX and gazeY represent the estimated gaze point as fractions of the image (0=left/top, 1=right/bottom).
+Confidence should reflect how certain you are about the detection.`;
+
+      const result = await this.model.generateContent([
+        {
+          inlineData: {
+            mimeType: 'image/jpeg',
+            data: imageBase64
+          }
+        },
+        { text: prompt }
+      ]);
+
+      const response = await result.response;
+      const text = response.text();
+
+      const jsonMatch = text.match(/\{[^}]+\}/);
+      if (!jsonMatch) {
+        return this.detectGazeBasic();
+      }
+
+      const parsed = JSON.parse(jsonMatch[0]);
+
+      if (typeof parsed.gazeX !== 'number' || typeof parsed.gazeY !== 'number') {
+        return this.detectGazeBasic();
+      }
+
+      const screenX = (parsed.gazeX * window.innerWidth) + this.calibrationOffsetX;
+      const screenY = (parsed.gazeY * window.innerHeight) + this.calibrationOffsetY;
+
+      return {
+        x: Math.max(0, Math.min(window.innerWidth, screenX)) * this.config.sensitivity,
+        y: Math.max(0, Math.min(window.innerHeight, screenY)) * this.config.sensitivity,
+        confidence: parsed.confidence || 0.7,
+        timestamp: Date.now()
+      };
+    } catch (error) {
+      console.error('AI gaze detection failed, falling back to basic:', error);
+      return this.detectGazeBasic();
+    }
+  }
+
+  private detectGazeBasic(): GazePoint | null {
     if (!this.ctx || !this.canvas) return null;
 
     try {
@@ -371,7 +463,7 @@ class EyeTrackingManager {
     const sampleDelay = 50;
 
     for (let i = 0; i < sampleCount; i++) {
-      const gaze = this.detectGaze();
+      const gaze = await this.detectGaze();
       if (gaze) {
         samples.push({
           x: gaze.x,

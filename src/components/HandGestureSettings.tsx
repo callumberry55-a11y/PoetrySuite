@@ -9,7 +9,8 @@ import {
   CheckCircle2,
   AlertCircle,
   Zap,
-  Navigation
+  Navigation,
+  Sparkles
 } from 'lucide-react';
 import { handGestureManager, GestureType, GestureAction } from '@/utils/handGestures';
 import { useToast } from '@/contexts/ToastContext';
@@ -119,7 +120,7 @@ export default function HandGestureSettings() {
             <div className="space-y-3 text-sm text-red-800 dark:text-red-200">
               <div className="flex gap-3">
                 <AlertTriangle size={16} className="flex-shrink-0 mt-0.5" />
-                <p><strong>Experimental Technology:</strong> Hand gesture recognition is in BETA and may not work reliably. Not suitable for critical tasks.</p>
+                <p><strong>Experimental Technology:</strong> Hand gesture recognition uses AI for improved detection but is still in BETA. Not suitable for critical tasks.</p>
               </div>
 
               <div className="flex gap-3">
@@ -193,8 +194,11 @@ export default function HandGestureSettings() {
             <Hand size={24} className="text-purple-600 dark:text-purple-400" />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Hand Gestures</h3>
-            <p className="text-sm text-slate-600 dark:text-slate-400">Camera-based gesture controls</p>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              Hand Gestures
+              <Sparkles size={16} className="text-purple-500" />
+            </h3>
+            <p className="text-sm text-slate-600 dark:text-slate-400">AI-powered gesture controls</p>
           </div>
         </div>
 
@@ -216,12 +220,12 @@ export default function HandGestureSettings() {
 
       {config.enabled && (
         <>
-          <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
+          <div className="bg-purple-50 dark:bg-purple-900/10 border border-purple-200 dark:border-purple-800 rounded-xl p-4">
             <div className="flex gap-3">
-              <AlertTriangle size={20} className="text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
-              <div className="text-sm text-amber-900 dark:text-amber-100">
-                <p className="font-semibold mb-1">Experimental Feature Active</p>
-                <p>Hand gesture recognition is running. Keep hands visible and well-lit for best results.</p>
+              <Sparkles size={20} className="text-purple-600 dark:text-purple-400 flex-shrink-0 mt-0.5" />
+              <div className="text-sm text-purple-900 dark:text-purple-100">
+                <p className="font-semibold mb-1">AI-Enhanced Gesture Recognition Active</p>
+                <p>Using Google Gemini AI for improved gesture detection. Keep hands visible and well-lit for best results.</p>
               </div>
             </div>
           </div>

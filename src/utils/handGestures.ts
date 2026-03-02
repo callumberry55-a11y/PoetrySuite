@@ -1,9 +1,10 @@
 /**
- * Hand Gesture Recognition for Accessibility
+ * AI-Powered Hand Gesture Recognition for Accessibility
  *
- * WARNING: This is an EXPERIMENTAL feature that uses your device's camera
+ * WARNING: This is an EXPERIMENTAL feature that uses AI and your device's camera
  * to recognize hand gestures for navigation. This feature:
  *
+ * - Uses Google Generative AI for enhanced gesture recognition
  * - May not work accurately on all devices
  * - Can be affected by lighting conditions and background
  * - Requires camera permissions
@@ -12,6 +13,8 @@
  *
  * USE AT YOUR OWN RISK. This is a beta accessibility feature.
  */
+
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export interface HandLandmark {
   x: number;
@@ -68,6 +71,11 @@ class HandGestureManager {
   private animationFrameId: number | null = null;
   private canvas: HTMLCanvasElement | null = null;
   private ctx: CanvasRenderingContext2D | null = null;
+  private genAI: GoogleGenerativeAI | null = null;
+  private model: any = null;
+  private useAI = true;
+  private frameCounter = 0;
+  private aiProcessingInterval = 5;
 
   private config: HandGestureConfig = {
     enabled: false,
@@ -98,7 +106,27 @@ class HandGestureManager {
 
   async initialize(): Promise<boolean> {
     try {
-      // Request camera access
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+      if (apiKey) {
+        try {
+          this.genAI = new GoogleGenerativeAI(apiKey);
+          this.model = this.genAI.getGenerativeModel({
+            model: 'gemini-1.5-flash',
+            generationConfig: {
+              temperature: 0.1,
+              maxOutputTokens: 100
+            }
+          });
+          console.log('AI vision model initialized for hand gesture recognition');
+        } catch (error) {
+          console.warn('AI model initialization failed, falling back to basic detection:', error);
+          this.useAI = false;
+        }
+      } else {
+        console.warn('No Gemini API key found, using basic gesture recognition');
+        this.useAI = false;
+      }
+
       this.stream = await navigator.mediaDevices.getUserMedia({
         video: {
           width: { ideal: 640 },
@@ -107,7 +135,6 @@ class HandGestureManager {
         }
       });
 
-      // Create video element
       this.videoElement = document.createElement('video');
       this.videoElement.srcObject = this.stream;
       this.videoElement.autoplay = true;
@@ -115,7 +142,6 @@ class HandGestureManager {
       this.videoElement.style.display = 'none';
       document.body.appendChild(this.videoElement);
 
-      // Create canvas for processing
       this.canvas = document.createElement('canvas');
       this.canvas.width = 640;
       this.canvas.height = 480;
@@ -123,10 +149,9 @@ class HandGestureManager {
 
       await this.videoElement.play();
 
-      // Initialize default gesture mappings
       this.initializeDefaultMappings();
 
-      console.log('Hand gesture recognition initialized successfully');
+      console.log(`Hand gesture recognition initialized successfully (AI: ${this.useAI ? 'enabled' : 'disabled'})`);
       return true;
     } catch (error) {
       console.error('Failed to initialize hand gesture recognition:', error);
@@ -175,50 +200,58 @@ class HandGestureManager {
   }
 
   private startDetection(): void {
-    const processFrame = () => {
+    const processFrame = async () => {
       if (!this.config.enabled || !this.videoElement || !this.ctx || !this.canvas) {
         return;
       }
 
-      // Draw video frame to canvas
       this.ctx.drawImage(this.videoElement, 0, 0, this.canvas.width, this.canvas.height);
 
-      // Detect hand and gesture
-      const hand = this.detectHand();
+      this.frameCounter++;
 
-      if (hand) {
-        // Add to history
-        this.handHistory.push(hand);
-        if (this.handHistory.length > this.historySize) {
-          this.handHistory.shift();
+      let gesture: GestureType = 'none';
+      let handData: DetectedHand | null = null;
+
+      if (this.useAI && this.model && this.frameCounter % this.aiProcessingInterval === 0) {
+        gesture = await this.recognizeGestureWithAI();
+
+        if (gesture !== 'none') {
+          handData = {
+            landmarks: [],
+            handedness: 'right',
+            confidence: 0.8
+          };
         }
-
-        // Recognize gesture
-        const gesture = this.recognizeGesture(hand);
-
-        if (gesture !== 'none' && this.isGestureEnabled(gesture)) {
-          const now = Date.now();
-          const timeSinceLastGesture = now - this.lastGestureTime;
-
-          // Prevent gesture spam with delay
-          if (gesture !== this.lastGesture || timeSinceLastGesture > this.config.gestureDelay) {
-            this.lastGesture = gesture;
-            this.lastGestureTime = now;
-
-            const event: GestureEvent = {
-              gesture,
-              hand: hand.handedness,
-              confidence: hand.confidence,
-              timestamp: now,
-              position: this.getHandCenter(hand)
-            };
-
-            // Notify listeners
-            this.listeners.forEach(listener => listener(event));
-
-            // Execute mapped action
-            this.executeGestureAction(gesture);
+      } else {
+        const hand = this.detectHand();
+        if (hand) {
+          handData = hand;
+          this.handHistory.push(hand);
+          if (this.handHistory.length > this.historySize) {
+            this.handHistory.shift();
           }
+          gesture = this.recognizeGesture(hand);
+        }
+      }
+
+      if (gesture !== 'none' && this.isGestureEnabled(gesture) && handData) {
+        const now = Date.now();
+        const timeSinceLastGesture = now - this.lastGestureTime;
+
+        if (gesture !== this.lastGesture || timeSinceLastGesture > this.config.gestureDelay) {
+          this.lastGesture = gesture;
+          this.lastGestureTime = now;
+
+          const event: GestureEvent = {
+            gesture,
+            hand: handData.handedness,
+            confidence: handData.confidence,
+            timestamp: now,
+            position: handData.landmarks.length > 0 ? this.getHandCenter(handData) : undefined
+          };
+
+          this.listeners.forEach(listener => listener(event));
+          this.executeGestureAction(gesture);
         }
       }
 
@@ -288,17 +321,60 @@ class HandGestureManager {
            r - Math.min(g, b) > 15;
   }
 
-  private recognizeGesture(hand: DetectedHand): GestureType {
-    // Simplified gesture recognition based on hand position and shape
-    // In production, this would use MediaPipe Hands or similar ML model
+  private async recognizeGestureWithAI(): Promise<GestureType> {
+    try {
+      if (!this.canvas) return 'none';
 
-    // Check for swipe gestures using history
+      const imageBase64 = this.canvas.toDataURL('image/jpeg', 0.7).split(',')[1];
+
+      const prompt = `Analyze this webcam image and detect any hand gesture.
+Possible gestures: fist, open_palm, thumbs_up, thumbs_down, peace, pointing, swipe_left, swipe_right, swipe_up, swipe_down, pinch, none
+Return ONLY a JSON object with this exact format (no other text):
+{"gesture": "<gesture_name>", "confidence": <number 0-1>}
+If no clear gesture is detected, return "none".`;
+
+      const result = await this.model.generateContent([
+        {
+          inlineData: {
+            mimeType: 'image/jpeg',
+            data: imageBase64
+          }
+        },
+        { text: prompt }
+      ]);
+
+      const response = await result.response;
+      const text = response.text();
+
+      const jsonMatch = text.match(/\{[^}]+\}/);
+      if (!jsonMatch) {
+        return 'none';
+      }
+
+      const parsed = JSON.parse(jsonMatch[0]);
+
+      const validGestures: GestureType[] = [
+        'fist', 'open_palm', 'thumbs_up', 'thumbs_down', 'peace', 'pointing',
+        'swipe_left', 'swipe_right', 'swipe_up', 'swipe_down', 'pinch', 'none'
+      ];
+
+      if (validGestures.includes(parsed.gesture as GestureType)) {
+        return parsed.gesture as GestureType;
+      }
+
+      return 'none';
+    } catch (error) {
+      console.error('AI gesture recognition failed:', error);
+      return 'none';
+    }
+  }
+
+  private recognizeGesture(hand: DetectedHand): GestureType {
     if (this.handHistory.length >= 3) {
       const swipe = this.detectSwipe();
       if (swipe !== 'none') return swipe;
     }
 
-    // Detect static gestures based on landmark patterns
     const fingerCount = this.countExtendedFingers(hand);
 
     if (fingerCount === 0) return 'fist';
@@ -306,7 +382,6 @@ class HandGestureManager {
     if (fingerCount === 1) return 'pointing';
     if (fingerCount === 2) return 'peace';
 
-    // Check for thumb gestures
     if (this.isThumbUp(hand)) return 'thumbs_up';
     if (this.isThumbDown(hand)) return 'thumbs_down';
 

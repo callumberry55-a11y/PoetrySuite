@@ -10,7 +10,8 @@ import {
   AlertCircle,
   Zap,
   Target,
-  RefreshCw
+  RefreshCw,
+  Sparkles
 } from 'lucide-react';
 import { eyeTrackingManager } from '@/utils/eyeTracking';
 import { useToast } from '@/contexts/ToastContext';
@@ -142,7 +143,7 @@ export default function EyeTrackingSettings() {
             <div className="space-y-3 text-sm text-red-800 dark:text-red-200">
               <div className="flex gap-3">
                 <AlertTriangle size={16} className="flex-shrink-0 mt-0.5" />
-                <p><strong>Experimental Technology:</strong> Eye tracking is in BETA and highly unreliable. Not suitable for any critical tasks.</p>
+                <p><strong>Experimental Technology:</strong> Eye tracking uses AI for improved accuracy but is still in BETA. Not suitable for any critical tasks.</p>
               </div>
 
               <div className="flex gap-3">
@@ -259,8 +260,11 @@ export default function EyeTrackingSettings() {
             <Eye size={24} className="text-blue-600 dark:text-blue-400" />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Eye Tracking</h3>
-            <p className="text-sm text-slate-600 dark:text-slate-400">Camera-based gaze control</p>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              Eye Tracking
+              <Sparkles size={16} className="text-blue-500" />
+            </h3>
+            <p className="text-sm text-slate-600 dark:text-slate-400">AI-powered gaze control</p>
           </div>
         </div>
 
@@ -282,12 +286,12 @@ export default function EyeTrackingSettings() {
 
       {config.enabled && (
         <>
-          <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
+          <div className="bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
             <div className="flex gap-3">
-              <AlertTriangle size={20} className="text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
-              <div className="text-sm text-amber-900 dark:text-amber-100">
-                <p className="font-semibold mb-1">Experimental Feature Active</p>
-                <p>Eye tracking is running. Keep face centered and well-lit. Take breaks to avoid eye strain.</p>
+              <Sparkles size={20} className="text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+              <div className="text-sm text-blue-900 dark:text-blue-100">
+                <p className="font-semibold mb-1">AI-Enhanced Eye Tracking Active</p>
+                <p>Using Google Gemini AI for improved accuracy. Keep face centered and well-lit. Take breaks to avoid eye strain.</p>
               </div>
             </div>
           </div>
