@@ -27,20 +27,6 @@ async function generateAIResponse(userMessage: string, userId: string, supabase:
     return "Hello! I'm Dave, your AI poetry assistant. I'm here to help you with writing, analyzing poetry, and creative inspiration. How can I assist you today?";
   }
 
-  // Get recent conversation history for context
-  const { data: recentMessages } = await supabase
-    .from('chat_messages')
-    .select('content, user_id')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false })
-    .limit(10);
-
-  const conversationHistory = recentMessages
-    ?.reverse()
-    .filter((msg: any) => !msg.content.startsWith('**Dave:**'))
-    .map((msg: any) => msg.content)
-    .join('\n') || '';
-
   const systemPrompt = `You are Dave, a friendly and knowledgeable AI assistant for a poetry community app. You help users with:
 - Writing poetry and offering creative feedback
 - Understanding poetic forms, techniques, and literary devices
@@ -49,19 +35,11 @@ async function generateAIResponse(userMessage: string, userId: string, supabase:
 - Discussing poetry history and movements
 - Offering constructive critique on their work
 
-Keep your responses warm, encouraging, and conversational. Be helpful but concise (2-3 paragraphs max). When discussing poetry, be specific and insightful. Your goal is to inspire and educate poets of all skill levels.`;
+Keep your responses warm, encouraging, and conversational. Be helpful but concise (2-3 paragraphs max). When discussing poetry, be specific and insightful.`;
 
   try {
-    console.log('Generating AI response for user:', userId);
-    console.log('User message:', userMessage);
-
-    const prompt = conversationHistory
-      ? `${systemPrompt}\n\nRecent conversation:\n${conversationHistory}\n\nUser's new message: ${userMessage}\n\nYour response:`
-      : `${systemPrompt}\n\nUser: ${userMessage}\n\nYour response:`;
-
-    console.log('Calling Gemini API...');
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: 'POST',
         headers: {
@@ -70,13 +48,33 @@ Keep your responses warm, encouraging, and conversational. Be helpful but concis
         body: JSON.stringify({
           contents: [{
             parts: [{
-              text: prompt
+              text: `${systemPrompt}\n\nUser: ${userMessage}\n\nRespond as Dave the poetry assistant:`
             }]
           }],
           generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 500,
-          }
+            temperature: 0.9,
+            maxOutputTokens: 400,
+            topP: 1,
+            topK: 40,
+          },
+          safetySettings: [
+            {
+              category: "HARM_CATEGORY_HARASSMENT",
+              threshold: "BLOCK_NONE"
+            },
+            {
+              category: "HARM_CATEGORY_HATE_SPEECH",
+              threshold: "BLOCK_NONE"
+            },
+            {
+              category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+              threshold: "BLOCK_NONE"
+            },
+            {
+              category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+              threshold: "BLOCK_NONE"
+            }
+          ]
         })
       }
     );
@@ -88,8 +86,6 @@ Keep your responses warm, encouraging, and conversational. Be helpful but concis
     }
 
     const data = await response.json();
-    console.log('Gemini API response:', JSON.stringify(data));
-
     const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!aiResponse) {
@@ -97,13 +93,11 @@ Keep your responses warm, encouraging, and conversational. Be helpful but concis
       return "I'm here to help with your poetry! What would you like to know or discuss?";
     }
 
-    console.log('Generated AI response:', aiResponse);
     return aiResponse.trim();
   } catch (error) {
     console.error('Error calling Gemini API:', error);
     if (error instanceof Error) {
-      console.error('Error message:', error.message);
-      console.error('Error stack:', error.stack);
+      console.error('Error details:', error.message);
     }
     return "Hello! I'm Dave, your poetry assistant. I'm ready to help with writing tips, poem analysis, or creative inspiration. What can I help you with?";
   }
