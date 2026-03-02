@@ -52,10 +52,14 @@ async function generateAIResponse(userMessage: string, userId: string, supabase:
 Keep your responses warm, encouraging, and conversational. Be helpful but concise (2-3 paragraphs max). When discussing poetry, be specific and insightful. Your goal is to inspire and educate poets of all skill levels.`;
 
   try {
+    console.log('Generating AI response for user:', userId);
+    console.log('User message:', userMessage);
+
     const prompt = conversationHistory
       ? `${systemPrompt}\n\nRecent conversation:\n${conversationHistory}\n\nUser's new message: ${userMessage}\n\nYour response:`
       : `${systemPrompt}\n\nUser: ${userMessage}\n\nYour response:`;
 
+    console.log('Calling Gemini API...');
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
       {
@@ -84,6 +88,8 @@ Keep your responses warm, encouraging, and conversational. Be helpful but concis
     }
 
     const data = await response.json();
+    console.log('Gemini API response:', JSON.stringify(data));
+
     const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!aiResponse) {
@@ -91,9 +97,14 @@ Keep your responses warm, encouraging, and conversational. Be helpful but concis
       return "I'm here to help with your poetry! What would you like to know or discuss?";
     }
 
+    console.log('Generated AI response:', aiResponse);
     return aiResponse.trim();
   } catch (error) {
     console.error('Error calling Gemini API:', error);
+    if (error instanceof Error) {
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+    }
     return "Hello! I'm Dave, your poetry assistant. I'm ready to help with writing tips, poem analysis, or creative inspiration. What can I help you with?";
   }
 }
@@ -264,13 +275,17 @@ Deno.serve(async (req: Request) => {
             Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
           );
 
-          await serviceSupabase
+          const { error: aiInsertError } = await serviceSupabase
             .from('chat_messages')
             .insert({
               room_id: payload.room_id,
-              user_id: user.id, // Use the same user ID so it appears in their chat
+              user_id: user.id,
               content: `**Dave:** ${aiResponse}`
             });
+
+          if (aiInsertError) {
+            console.error('Error inserting AI response:', aiInsertError);
+          }
         } catch (aiError) {
           console.error('Error generating AI response:', aiError);
           // Don't fail the whole request if AI fails
