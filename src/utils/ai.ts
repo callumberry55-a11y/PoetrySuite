@@ -1,78 +1,69 @@
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+import OpenAI from 'openai';
+
+const API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
+
+let openaiClient: OpenAI | null = null;
+
+function getOpenAIClient(): OpenAI {
+  if (!API_KEY) {
+    console.error('API Key missing! Check your .env file has VITE_OPENAI_API_KEY');
+    throw new Error('OpenAI API key not found. The VITE_OPENAI_API_KEY environment variable is not set. Please check your .env file and refresh the page.');
+  }
+
+  if (!openaiClient) {
+    openaiClient = new OpenAI({
+      apiKey: API_KEY,
+      dangerouslyAllowBrowser: true
+    });
+    console.log('OpenAI client initialized successfully');
+  }
+
+  return openaiClient;
+}
 
 export interface AIOptions {
   temperature?: number;
   maxTokens?: number;
+  model?: string;
 }
 
-export async function callGeminiAPI(
+export async function callOpenAI(
   systemPrompt: string,
   userPrompt: string,
   options: AIOptions = {}
 ): Promise<string> {
-  if (!API_KEY) {
-    console.error('API Key missing! Check your .env file has VITE_GEMINI_API_KEY');
-    throw new Error('Gemini API key not found. The VITE_GEMINI_API_KEY environment variable is not set. Please check your .env file and refresh the page.');
-  }
+  const client = getOpenAIClient();
 
-  console.log('API Key loaded successfully');
-
-  const { temperature = 0.9, maxTokens = 2048 } = options;
+  const {
+    temperature = 0.9,
+    maxTokens = 2048,
+    model = 'gpt-4o-mini'
+  } = options;
 
   try {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
+    console.log(`Calling OpenAI API with model: ${model}`);
 
-    const requestBody = {
-      contents: [{
-        parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }]
-      }],
-      generationConfig: {
-        temperature,
-        topK: 40,
-        topP: 0.95,
-        maxOutputTokens: maxTokens,
-      },
-    };
-
-    console.log('Calling Gemini API with model: gemini-2.5-flash');
-
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestBody),
+    const response = await client.chat.completions.create({
+      model,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt }
+      ],
+      temperature,
+      max_tokens: maxTokens,
     });
 
-    console.log('Response status:', response.status);
+    console.log('OpenAI Response received successfully');
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('API Error Response:', errorText);
-
-      let errorData;
-      try {
-        errorData = JSON.parse(errorText);
-      } catch {
-        throw new Error(`API request failed with status ${response.status}: ${errorText.substring(0, 200)}`);
-      }
-
-      const errorMessage = errorData?.error?.message || errorData?.message || 'Unknown error from AI service';
-      throw new Error(`AI Service Error: ${errorMessage}`);
-    }
-
-    const data = await response.json();
-    console.log('API Response received successfully');
-
-    const resultText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    const resultText = response.choices[0]?.message?.content;
     if (!resultText) {
-      console.error('Unexpected response structure:', data);
+      console.error('Unexpected response structure:', response);
       throw new Error('No text content in API response');
     }
 
     return resultText;
   } catch (error) {
-    console.error('Gemini API Error:', error);
+    console.error('OpenAI API Error:', error);
     console.error('Error type:', error instanceof TypeError ? 'TypeError' : typeof error);
     console.error('Error message:', error instanceof Error ? error.message : String(error));
 
@@ -102,7 +93,7 @@ Respond with ONLY a JSON object in this exact format:
 }`;
 
   try {
-    const result = await callGeminiAPI(systemPrompt, userPrompt, { temperature: 0.3 });
+    const result = await callOpenAI(systemPrompt, userPrompt, { temperature: 0.3 });
     const jsonMatch = result.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       try {
@@ -130,7 +121,7 @@ export async function generatePoemTitle(poemContent: string): Promise<string> {
 ${poemContent}`;
 
   try {
-    const result = await callGeminiAPI(systemPrompt, userPrompt, { temperature: 0.8, maxTokens: 50 });
+    const result = await callOpenAI(systemPrompt, userPrompt, { temperature: 0.8, maxTokens: 50 });
     return result.trim().replace(/^["']|["']$/g, '');
   } catch (error) {
     console.error('Title generation failed:', error);
@@ -162,7 +153,7 @@ Respond with ONLY a JSON object in this exact format:
 }`;
 
   try {
-    const result = await callGeminiAPI(systemPrompt, userPrompt, { temperature: 0.3 });
+    const result = await callOpenAI(systemPrompt, userPrompt, { temperature: 0.3 });
     const jsonMatch = result.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       try {
@@ -204,7 +195,7 @@ Respond with ONLY a JSON object in this exact format:
 }`;
 
   try {
-    const result = await callGeminiAPI(systemPrompt, userPrompt, { temperature: 0.2 });
+    const result = await callOpenAI(systemPrompt, userPrompt, { temperature: 0.2 });
     const jsonMatch = result.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       try {
@@ -240,7 +231,7 @@ export async function generateWritingPrompt(theme?: string, difficulty?: 'beginn
   userPrompt += ' Provide ONLY the prompt itself (2-3 sentences), no extra formatting or labels.';
 
   try {
-    const result = await callGeminiAPI(systemPrompt, userPrompt, { temperature: 0.9, maxTokens: 200 });
+    const result = await callOpenAI(systemPrompt, userPrompt, { temperature: 0.9, maxTokens: 200 });
     return result.trim();
   } catch (error) {
     console.error('Prompt generation failed:', error);
@@ -260,7 +251,7 @@ ${context}
 Provide 3 alternative versions that improve imagery, rhythm, or impact. List them one per line, no numbering or extra text.`;
 
   try {
-    const result = await callGeminiAPI(systemPrompt, userPrompt, { temperature: 0.8, maxTokens: 300 });
+    const result = await callOpenAI(systemPrompt, userPrompt, { temperature: 0.8, maxTokens: 300 });
     const suggestions = result.split('\n').filter(line => line.trim()).slice(0, 3);
     return suggestions.length > 0 ? suggestions : [line];
   } catch (error) {
@@ -278,7 +269,7 @@ ${context}
 Provide words that work well in poetry, considering tone, rhythm, and imagery. List words separated by commas, no extra text.`;
 
   try {
-    const result = await callGeminiAPI(systemPrompt, userPrompt, { temperature: 0.7, maxTokens: 200 });
+    const result = await callOpenAI(systemPrompt, userPrompt, { temperature: 0.7, maxTokens: 200 });
     const synonyms = result.split(/[,\n]/).map(s => s.trim()).filter(s => s && s.length > 0);
     return synonyms.slice(0, 15);
   } catch (error) {
@@ -288,9 +279,9 @@ Provide words that work well in poetry, considering tone, rhythm, and imagery. L
 }
 
 export async function generateAIResponse(prompt: string, options?: AIOptions): Promise<string> {
-  const systemPrompt = 'You are a helpful poetry assistant. Provide concise, accurate responses.';
+  const systemPrompt = 'You are a helpful poetry assistant named Dave. Provide concise, accurate, and friendly responses. Be encouraging and supportive of creative endeavors.';
   try {
-    const result = await callGeminiAPI(systemPrompt, prompt, options);
+    const result = await callOpenAI(systemPrompt, prompt, options);
     return result.trim();
   } catch (error) {
     console.error('AI response generation failed:', error);
@@ -328,7 +319,7 @@ Ensure good contrast and readability. Respond with ONLY a JSON object in this ex
 }`;
 
   try {
-    const result = await callGeminiAPI(systemPrompt, userPrompt, { temperature: 0.7, maxTokens: 300 });
+    const result = await callOpenAI(systemPrompt, userPrompt, { temperature: 0.7, maxTokens: 300 });
     const jsonMatch = result.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       try {

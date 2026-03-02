@@ -1,6 +1,6 @@
 {
   "name": "poetry-suite",
-  "version": "QPR 2 Beta 3.5",
+  "version": "QPR 2 Beta 3",
   "private": true,
   "type": "module",
   "license": "UNLICENSED",
@@ -26,6 +26,7 @@
     "@supabase/supabase-js": "^2.93.2",
     "firebase": "12.8.0",
     "lucide-react": "^0.563.0",
+    "openai": "^6.25.0",
     "protobufjs": "^7.5.4",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",

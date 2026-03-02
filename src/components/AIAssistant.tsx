@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Sparkles, Wand2, BookOpen, RefreshCw, MessageSquare, Mic, Zap, Award, AlertCircle, CheckCircle } from 'lucide-react';
 import {
-  callGeminiAPI,
+  callOpenAI,
   analyzePoemSentiment,
   scorePoemQuality,
   detectPoemForm
@@ -58,7 +58,7 @@ Please provide:
 
 Be specific and constructive.`;
 
-      const result = await callGeminiAPI(systemPrompt, userPrompt);
+      const result = await callOpenAI(systemPrompt, userPrompt);
       setResponse({ text: result, type: 'success' });
     } catch (error) {
       setResponse({
@@ -143,7 +143,7 @@ Provide:
 
 Keep the original meaning and style but enhance the craft.`;
 
-      const result = await callGeminiAPI(systemPrompt, userPrompt);
+      const result = await callOpenAI(systemPrompt, userPrompt);
       setResponse({ text: result, type: 'success' });
     } catch (error) {
       setResponse({
@@ -174,7 +174,7 @@ Keep the original meaning and style but enhance the craft.`;
 
       userPrompt += '\n\nCreate a complete, polished poem (8-20 lines recommended). Only output the poem itself, no explanations.';
 
-      const result = await callGeminiAPI(systemPrompt, userPrompt);
+      const result = await callOpenAI(systemPrompt, userPrompt);
       setResponse({ text: result, type: 'success' });
     } catch (error) {
       setResponse({
@@ -207,7 +207,7 @@ Provide:
 
 Format the response clearly with categories.`;
 
-      const result = await callGeminiAPI(systemPrompt, userPrompt);
+      const result = await callOpenAI(systemPrompt, userPrompt);
       setResponse({ text: result, type: 'success' });
     } catch (error) {
       setResponse({
@@ -236,7 +236,7 @@ ${content}
 
 Match the existing style, meter, rhyme scheme (if present), and themes. Only provide the additional lines.`;
 
-      const result = await callGeminiAPI(systemPrompt, userPrompt);
+      const result = await callOpenAI(systemPrompt, userPrompt);
       setResponse({ text: result, type: 'success' });
     } catch (error) {
       setResponse({

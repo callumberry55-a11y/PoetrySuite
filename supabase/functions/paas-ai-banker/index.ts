@@ -1,6 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { GoogleGenerativeAI } from "npm:@google/generative-ai@0.24.1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -26,19 +25,43 @@ async function verifyAdminKey(apiKey: string) {
   return { valid: true };
 }
 
-async function callGeminiAI(prompt: string): Promise<string> {
-  const apiKey = Deno.env.get('GEMINI_API_KEY');
+async function callOpenAI(prompt: string): Promise<string> {
+  const apiKey = Deno.env.get('OPENAI_API_KEY');
 
   if (!apiKey) {
-    throw new Error('GEMINI_API_KEY not configured');
+    throw new Error('OPENAI_API_KEY not configured');
   }
 
-  const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`
+    },
+    body: JSON.stringify({
+      model: 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: 'You are an AI Banker for a PaaS billing system. Analyze usage and provide fair pricing decisions.' },
+        { role: 'user', content: prompt }
+      ],
+      temperature: 0.7,
+      max_tokens: 1000,
+    })
+  });
 
-  const result = await model.generateContent(prompt);
-  const response = await result.response;
-  return response.text();
+  if (!response.ok) {
+    const errorData = await response.text();
+    throw new Error(`OpenAI API error: ${response.statusText} - ${errorData}`);
+  }
+
+  const data = await response.json();
+  const text = data.choices?.[0]?.message?.content;
+
+  if (!text) {
+    throw new Error('No response from OpenAI');
+  }
+
+  return text;
 }
 
 Deno.serve(async (req: Request) => {
@@ -204,7 +227,7 @@ Respond ONLY with a JSON object in this format:
 }`;
 
     // Call AI
-    const aiResponse = await callGeminiAI(aiPrompt);
+    const aiResponse = await callOpenAI(aiPrompt);
 
     // Parse AI response
     let aiDecision;
@@ -280,7 +303,7 @@ Respond ONLY with a JSON object:
 
 Note: Percentages should add up to 100.`;
 
-    const reserveResponse = await callGeminiAI(reserveAnalysisPrompt);
+    const reserveResponse = await callOpenAI(reserveAnalysisPrompt);
 
     let reserveRecommendation: any = null;
     try {
@@ -332,7 +355,7 @@ Note: Percentages should add up to 100.`;
         ai_adjustment_factor: adjustmentFactor,
         final_cost: finalCost,
         reasoning: aiDecision.reasoning || 'No reasoning provided',
-        model_version: 'gemini-2.0-flash'
+        model_version: 'gpt-4o-mini'
       })
       .select()
       .maybeSingle();
