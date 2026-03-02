@@ -1,10 +1,18 @@
 // @refresh reset
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { supabase } from '@/lib/supabase';
+import {
+  getUserThemePreferences,
+  getThemeById,
+  applyThemeToDocument,
+  type Theme
+} from '@/utils/themes';
 
 interface ThemeContextType {
   isDark: boolean;
   toggleTheme: () => void;
+  activeTheme: Theme | null;
+  refreshTheme: () => Promise<void>;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -13,19 +21,23 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [isDark, setIsDark] = useState(() => {
     try {
       const saved = localStorage.getItem('theme');
-      return saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (saved) return saved === 'dark';
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
     } catch (error) {
       console.warn('Error accessing localStorage:', error);
       return false;
     }
   });
   const [userId, setUserId] = useState<string | null>(null);
+  const [activeTheme, setActiveTheme] = useState<Theme | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         setUserId(session.user.id);
         loadThemeFromDatabase(session.user.id);
+      } else {
+        applyBasicTheme(isDark);
       }
     });
 
@@ -35,29 +47,53 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         loadThemeFromDatabase(session.user.id);
       } else {
         setUserId(null);
+        setActiveTheme(null);
+        applyBasicTheme(isDark);
       }
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
+  const applyBasicTheme = (dark: boolean) => {
+    if (dark) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  };
+
   const loadThemeFromDatabase = async (uid: string) => {
     try {
-      const { data, error } = await supabase
-        .from('user_preferences')
-        .select('theme')
-        .eq('user_id', uid)
-        .maybeSingle();
+      const [preferences, basicPrefs] = await Promise.all([
+        getUserThemePreferences(uid),
+        supabase
+          .from('user_preferences')
+          .select('theme')
+          .eq('user_id', uid)
+          .maybeSingle()
+      ]);
 
-      if (error) throw error;
+      if (preferences?.active_theme_id) {
+        const theme = await getThemeById(preferences.active_theme_id);
+        if (theme) {
+          setActiveTheme(theme);
+          applyThemeToDocument(theme);
+          return;
+        }
+      }
 
-      if (data?.theme) {
-        const darkMode = data.theme === 'dark';
+      if (basicPrefs.data?.theme) {
+        const darkMode = basicPrefs.data.theme === 'dark';
         setIsDark(darkMode);
-        localStorage.setItem('theme', data.theme);
+        localStorage.setItem('theme', basicPrefs.data.theme);
+        applyBasicTheme(darkMode);
+      } else {
+        applyBasicTheme(isDark);
       }
     } catch (error) {
       console.warn('Error loading theme from database:', error);
+      applyBasicTheme(isDark);
     }
   };
 
@@ -80,6 +116,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
+    if (activeTheme) return;
+
     try {
       if (isDark) {
         document.documentElement.classList.add('dark');
@@ -95,12 +133,23 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.warn('Error setting theme:', error);
     }
-  }, [isDark, userId]);
+  }, [isDark, userId, activeTheme]);
 
-  const toggleTheme = () => setIsDark(!isDark);
+  const toggleTheme = () => {
+    if (activeTheme) {
+      setActiveTheme(null);
+    }
+    setIsDark(!isDark);
+  };
+
+  const refreshTheme = async () => {
+    if (userId) {
+      await loadThemeFromDatabase(userId);
+    }
+  };
 
   return (
-    <ThemeContext.Provider value={{ isDark, toggleTheme }}>
+    <ThemeContext.Provider value={{ isDark, toggleTheme, activeTheme, refreshTheme }}>
       {children}
     </ThemeContext.Provider>
   );

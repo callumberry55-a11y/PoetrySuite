@@ -46,7 +46,7 @@ const Quizzes = lazy(() => import('@/components/Quizzes'));
 const ChatView = lazy(() => import('@/components/ChatView'));
 
 function NativeInit() {
-  const { isDark } = useTheme();
+  const { isDark, activeTheme } = useTheme();
 
   useEffect(() => {
     const initNative = async () => {
@@ -54,17 +54,30 @@ function NativeInit() {
 
       await splashScreen.hide();
 
+      let bgColor = '#10b981';
+
+      if (activeTheme && typeof activeTheme.colors === 'object') {
+        const colors = activeTheme.colors as any;
+        if (colors.primary) {
+          bgColor = colors.primary;
+        } else if (colors.light?.primary) {
+          bgColor = colors.light.primary;
+        }
+      } else if (isDark) {
+        bgColor = '#18181b';
+      }
+
       if (isDark) {
         await statusBar.setLight();
-        await statusBar.setBackground('#0f172a');
+        await statusBar.setBackground(bgColor);
       } else {
         await statusBar.setDark();
-        await statusBar.setBackground('#10b981');
+        await statusBar.setBackground(bgColor);
       }
     };
 
     initNative();
-  }, [isDark]);
+  }, [isDark, activeTheme]);
 
   useEffect(() => {
     if (!isNative) return;

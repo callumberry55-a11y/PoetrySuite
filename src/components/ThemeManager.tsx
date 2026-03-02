@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Palette, Download, Upload, Trash2, Check, Sparkles, Sun, Waves, Zap, AlertCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { supabase } from '../lib/supabase';
 import {
   getAllThemes,
@@ -15,6 +16,7 @@ import { useToast } from '../contexts/ToastContext';
 
 export default function ThemeManager() {
   const { user } = useAuth();
+  const { refreshTheme } = useTheme();
   const { showToast } = useToast();
   const [themes, setThemes] = useState<Theme[]>([]);
   const [activeThemeId, setActiveThemeId] = useState<string | null>(null);
@@ -61,6 +63,7 @@ export default function ThemeManager() {
       applyThemeToDocument(theme);
       await saveUserThemePreferences(user.id, { active_theme_id: theme.id });
       setActiveThemeId(theme.id);
+      await refreshTheme();
       showToast(`${theme.name} theme applied`, 'success');
     } catch (error) {
       console.error('Error applying theme:', error);
