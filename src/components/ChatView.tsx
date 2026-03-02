@@ -129,17 +129,26 @@ export default function ChatView() {
           filter: `room_id=eq.${currentRoom}`,
         },
         async (payload) => {
-          const { data } = await supabase
+          // Fetch the message and username separately to avoid FK issues
+          const { data: message } = await supabase
             .from('chat_messages')
-            .select(`
-              *,
-              user_profiles(username)
-            `)
+            .select('*')
             .eq('id', payload.new.id)
             .single();
 
-          if (data) {
-            setMessages((prev) => [...prev, data]);
+          if (message) {
+            const { data: profile } = await supabase
+              .from('user_profiles')
+              .select('username')
+              .eq('user_id', message.user_id)
+              .maybeSingle();
+
+            const messageWithProfile = {
+              ...message,
+              user_profiles: profile ? { username: profile.username } : null
+            };
+
+            setMessages((prev) => [...prev, messageWithProfile]);
           }
         }
       )
