@@ -24,6 +24,7 @@ export default function EyeTrackingSettings() {
   const [cameraPermission, setCameraPermission] = useState<'unknown' | 'granted' | 'denied'>('unknown');
   const [isCalibrating, setIsCalibrating] = useState(false);
   const [calibrationStep, setCalibrationStep] = useState(0);
+  const [aiStats, setAiStats] = useState(eyeTrackingManager.getAIStats());
 
   useEffect(() => {
     let permissionStatus: PermissionStatus | null = null;
@@ -56,6 +57,16 @@ export default function EyeTrackingSettings() {
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (!config.enabled) return;
+
+    const interval = setInterval(() => {
+      setAiStats(eyeTrackingManager.getAIStats());
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [config.enabled]);
 
   const handleEnableToggle = async () => {
     if (!config.enabled) {
@@ -332,7 +343,7 @@ export default function EyeTrackingSettings() {
 
               <button
                 onClick={startCalibration}
-                className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium flex items-center justify-center gap-2"
+                className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium flex items-center justify-center gap-2 transition-colors"
               >
                 <RefreshCw size={18} />
                 {config.calibrated ? 'Recalibrate' : 'Start Calibration'}
@@ -341,6 +352,46 @@ export default function EyeTrackingSettings() {
                 Calibration improves accuracy by learning your eye patterns
               </p>
             </div>
+
+            {aiStats.enabled && (
+              <div className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
+                <div className="flex items-center gap-3 mb-3">
+                  <Sparkles size={20} className="text-blue-600 dark:text-blue-400" />
+                  <h4 className="font-semibold text-slate-900 dark:text-white">AI Performance</h4>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-white/50 dark:bg-slate-800/50 rounded-lg p-3">
+                    <div className="text-xs text-slate-600 dark:text-slate-400 mb-1">Success Rate</div>
+                    <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                      {aiStats.successRate.toFixed(1)}%
+                    </div>
+                  </div>
+                  <div className="bg-white/50 dark:bg-slate-800/50 rounded-lg p-3">
+                    <div className="text-xs text-slate-600 dark:text-slate-400 mb-1">Process Time</div>
+                    <div className="text-lg font-bold text-cyan-600 dark:text-cyan-400">
+                      {aiStats.avgProcessTime.toFixed(0)}ms
+                    </div>
+                  </div>
+                  <div className="bg-white/50 dark:bg-slate-800/50 rounded-lg p-3">
+                    <div className="text-xs text-slate-600 dark:text-slate-400 mb-1">Processed</div>
+                    <div className="text-lg font-bold text-green-600 dark:text-green-400">
+                      {aiStats.successCount}
+                    </div>
+                  </div>
+                  <div className="bg-white/50 dark:bg-slate-800/50 rounded-lg p-3">
+                    <div className="text-xs text-slate-600 dark:text-slate-400 mb-1">Frame Skip</div>
+                    <div className="text-lg font-bold text-slate-600 dark:text-slate-400">
+                      1/{aiStats.processingInterval}
+                    </div>
+                  </div>
+                </div>
+                {aiStats.failureCount > 0 && (
+                  <div className="mt-3 text-xs text-amber-700 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/30 rounded-lg p-2">
+                    {aiStats.failureCount} failures detected - system is adapting
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4 space-y-4">
               <div className="flex items-center gap-3">

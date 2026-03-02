@@ -65,6 +65,9 @@ class EyeTrackingManager {
   private useAI = true;
   private frameCounter = 0;
   private aiProcessingInterval = 3;
+  private aiSuccessCount = 0;
+  private aiFailureCount = 0;
+  private lastAIProcessTime = 0;
 
   private config: EyeTrackingConfig = {
     enabled: false,
@@ -264,18 +267,34 @@ class EyeTrackingManager {
   }
 
   private async detectGazeWithAI(): Promise<GazePoint | null> {
+    const startTime = performance.now();
+
     try {
       if (!this.canvas || !this.model) {
         return this.detectGazeBasic();
       }
 
-      const imageBase64 = this.canvas.toDataURL('image/jpeg', 0.7).split(',')[1];
+      const imageBase64 = this.canvas.toDataURL('image/jpeg', 0.6).split(',')[1];
 
-      const prompt = `Analyze this webcam image and detect the person's eye gaze direction.
-Return ONLY a JSON object with this exact format (no other text):
+      const prompt = `You are an expert computer vision system for accessibility eye tracking.
+
+Analyze this webcam image to detect where the person is looking on their screen.
+
+CRITICAL INSTRUCTIONS:
+1. Detect the person's face and eyes
+2. Analyze the direction and angle of their gaze
+3. Estimate where on the screen they are looking
+4. Consider head position, eye angle, and pupil direction
+
+Return ONLY a valid JSON object with NO additional text, markdown, or explanation:
 {"gazeX": <number 0-1>, "gazeY": <number 0-1>, "confidence": <number 0-1>}
-Where gazeX and gazeY represent the estimated gaze point as fractions of the image (0=left/top, 1=right/bottom).
-Confidence should reflect how certain you are about the detection.`;
+
+Where:
+- gazeX: Horizontal gaze position (0 = far left of screen, 0.5 = center, 1 = far right)
+- gazeY: Vertical gaze position (0 = top of screen, 0.5 = middle, 1 = bottom)
+- confidence: Detection certainty (0 = uncertain, 1 = very confident)
+
+If no face/eyes detected, return: {"gazeX": 0.5, "gazeY": 0.5, "confidence": 0}`;
 
       const result = await Promise.race([
         this.model.generateContent([
@@ -315,6 +334,16 @@ Confidence should reflect how certain you are about the detection.`;
       const screenX = (parsed.gazeX * window.innerWidth) + this.calibrationOffsetX;
       const screenY = (parsed.gazeY * window.innerHeight) + this.calibrationOffsetY;
 
+      this.aiSuccessCount++;
+      this.lastAIProcessTime = performance.now() - startTime;
+
+      // Adapt processing interval based on performance
+      if (this.lastAIProcessTime > 200) {
+        this.aiProcessingInterval = Math.min(10, this.aiProcessingInterval + 1);
+      } else if (this.lastAIProcessTime < 100 && this.aiProcessingInterval > 2) {
+        this.aiProcessingInterval = Math.max(2, this.aiProcessingInterval - 1);
+      }
+
       return {
         x: Math.max(0, Math.min(window.innerWidth, screenX)) * this.config.sensitivity,
         y: Math.max(0, Math.min(window.innerHeight, screenY)) * this.config.sensitivity,
@@ -322,6 +351,8 @@ Confidence should reflect how certain you are about the detection.`;
         timestamp: Date.now()
       };
     } catch (error) {
+      this.aiFailureCount++;
+
       if (error instanceof Error && error.message === 'AI timeout') {
         console.warn('AI gaze detection timeout, falling back to basic');
       } else {
@@ -329,9 +360,16 @@ Confidence should reflect how certain you are about the detection.`;
       }
 
       // Disable AI temporarily on repeated failures
-      if (this.useAI) {
+      const failureRate = this.aiFailureCount / (this.aiSuccessCount + this.aiFailureCount);
+      if (this.useAI && failureRate > 0.5 && this.aiFailureCount > 5) {
+        console.warn(`AI eye tracking disabled temporarily (${Math.round(failureRate * 100)}% failure rate)`);
         this.useAI = false;
-        setTimeout(() => { this.useAI = true; }, 30000); // Re-enable after 30s
+        setTimeout(() => {
+          this.useAI = true;
+          this.aiSuccessCount = 0;
+          this.aiFailureCount = 0;
+          console.log('AI eye tracking re-enabled');
+        }, 30000);
       }
 
       return this.detectGazeBasic();
@@ -554,6 +592,18 @@ Confidence should reflect how certain you are about the detection.`;
     this.dwellListeners.push(callback);
     return () => {
       this.dwellListeners = this.dwellListeners.filter(l => l !== callback);
+    };
+  }
+
+  getAIStats() {
+    const total = this.aiSuccessCount + this.aiFailureCount;
+    return {
+      enabled: this.useAI,
+      successCount: this.aiSuccessCount,
+      failureCount: this.aiFailureCount,
+      successRate: total > 0 ? (this.aiSuccessCount / total) * 100 : 0,
+      avgProcessTime: this.lastAIProcessTime,
+      processingInterval: this.aiProcessingInterval
     };
   }
 
