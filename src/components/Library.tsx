@@ -5,7 +5,6 @@ import { supabase } from '@/lib/supabase';
 import {
   Star,
   Trash2,
-  Tag,
   X,
   Folder,
   Globe,
@@ -69,7 +68,6 @@ function Library({ onEditPoem }: LibraryProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterBy, setFilterBy] = useState<'all' | 'favorites' | 'public' | 'private'>('all');
   const [selectedCollection, setSelectedCollection] = useState<string | null>(null);
-  const [showCollectionMenu, setShowCollectionMenu] = useState<string | null>(null);
   const [poemCollections, setPoemCollections] = useState<Record<string, string[]>>({});
   const [sortBy, setSortBy] = useState<'recent' | 'oldest' | 'title' | 'likes' | 'comments' | 'words'>('recent');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -311,33 +309,6 @@ function Library({ onEditPoem }: LibraryProps) {
     }
   }, [activeTab, internetPoems.length, loadingInternet, loadRandomPoems]);
 
-  const addPoemToCollection = useCallback(async (poemId: string, collectionId: string) => {
-    const { error } = await supabase
-      .from('poem_collections')
-      .insert([{ poem_id: poemId, collection_id: collectionId }]);
-
-    if (error) {
-      console.error('Error adding poem to collection:', error);
-      return;
-    }
-
-    loadPoemCollections();
-  }, [loadPoemCollections]);
-
-  const removePoemFromCollection = useCallback(async (poemId: string, collectionId: string) => {
-    const { error } = await supabase
-      .from('poem_collections')
-      .delete()
-      .eq('poem_id', poemId)
-      .eq('collection_id', collectionId);
-
-    if (error) {
-      console.error('Error removing poem from collection:', error);
-      return;
-    }
-
-    loadPoemCollections();
-  }, [loadPoemCollections]);
 
   const filteredPoems = useMemo(() => {
     let filtered = [...poems];
@@ -893,63 +864,6 @@ function Library({ onEditPoem }: LibraryProps) {
                       >
                         {poem.is_public ? <Lock size={16} aria-hidden="true" /> : <Globe size={16} aria-hidden="true" />}
                       </button>
-                      <div className="relative">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setShowCollectionMenu(showCollectionMenu === poem.id ? null : poem.id);
-                          }}
-                          className="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
-                          aria-label={`${showCollectionMenu === poem.id ? 'Close' : 'Open'} collection menu for ${poem.title}`}
-                          aria-expanded={showCollectionMenu === poem.id}
-                          aria-haspopup="menu"
-                        >
-                          <Tag size={16} aria-hidden="true" />
-                        </button>
-                        {showCollectionMenu === poem.id && (
-                          <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-700 rounded-xl shadow-xl border border-slate-200 dark:border-slate-600 z-10" role="menu" aria-label="Collection menu">
-                            <div className="p-2">
-                              <p className="text-xs font-medium text-slate-500 dark:text-slate-400 px-2 py-1">
-                                Add to Collection
-                              </p>
-                              {collections.length === 0 ? (
-                                <p className="text-xs text-slate-500 dark:text-slate-400 px-2 py-2">
-                                  No collections yet
-                                </p>
-                              ) : (
-                                collections.map((collection) => {
-                                  const isInCollection = poemCollections[poem.id]?.includes(collection.id);
-                                  return (
-                                    <button
-                                      key={collection.id}
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        if (isInCollection) {
-                                          removePoemFromCollection(poem.id, collection.id);
-                                        } else {
-                                          addPoemToCollection(poem.id, collection.id);
-                                        }
-                                      }}
-                                      className={`w-full text-left px-2 py-1.5 rounded-lg text-sm transition-colors ${
-                                        isInCollection
-                                          ? 'bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300'
-                                          : 'hover:bg-slate-100 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300'
-                                      }`}
-                                      role="menuitem"
-                                      aria-label={`${isInCollection ? 'Remove from' : 'Add to'} collection: ${collection.name}`}
-                                    >
-                                      <div className="flex items-center gap-2">
-                                        <Folder size={14} aria-hidden="true" />
-                                        <span>{collection.name}</span>
-                                      </div>
-                                    </button>
-                                  );
-                                })
-                              )}
-                            </div>
-                          </div>
-                        )}
-                      </div>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
