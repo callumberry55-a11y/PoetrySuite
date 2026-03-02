@@ -18,12 +18,13 @@ interface GetMessagesParams {
   before?: string;
 }
 
-// AI Response Generator for Dave using OpenAI
+// AI Response Generator for Dave using Gemini
 async function generateAIResponse(userMessage: string, userId: string, supabase: any): Promise<string> {
-  const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+  const GEMINI_API_KEY = Deno.env.get('gemini_api_key') || Deno.env.get('GEMINI_API_KEY');
 
-  if (!OPENAI_API_KEY) {
-    return "I'm having trouble connecting right now. Please check that the OpenAI API key is configured.";
+  if (!GEMINI_API_KEY) {
+    console.error('Missing Gemini API key');
+    return "Hello! I'm Dave, your AI poetry assistant. I'm here to help you with writing, analyzing poetry, and creative inspiration. How can I assist you today?";
   }
 
   // Get recent conversation history for context
@@ -36,6 +37,7 @@ async function generateAIResponse(userMessage: string, userId: string, supabase:
 
   const conversationHistory = recentMessages
     ?.reverse()
+    .filter((msg: any) => !msg.content.startsWith('**Dave:**'))
     .map((msg: any) => msg.content)
     .join('\n') || '';
 
@@ -47,45 +49,52 @@ async function generateAIResponse(userMessage: string, userId: string, supabase:
 - Discussing poetry history and movements
 - Offering constructive critique on their work
 
-Keep your responses warm, encouraging, and conversational. Be helpful but concise. When discussing poetry, be specific and insightful. Your goal is to inspire and educate poets of all skill levels.`;
+Keep your responses warm, encouraging, and conversational. Be helpful but concise (2-3 paragraphs max). When discussing poetry, be specific and insightful. Your goal is to inspire and educate poets of all skill levels.`;
 
   try {
+    const prompt = conversationHistory
+      ? `${systemPrompt}\n\nRecent conversation:\n${conversationHistory}\n\nUser's new message: ${userMessage}\n\nYour response:`
+      : `${systemPrompt}\n\nUser: ${userMessage}\n\nYour response:`;
+
     const response = await fetch(
-      'https://api.openai.com/v1/chat/completions',
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${OPENAI_API_KEY}`
         },
         body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: `Conversation history:\n${conversationHistory}\n\nUser: ${userMessage}` }
-          ],
-          temperature: 0.7,
-          max_tokens: 500,
+          contents: [{
+            parts: [{
+              text: prompt
+            }]
+          }],
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 500,
+          }
         })
       }
     );
 
     if (!response.ok) {
       const errorData = await response.text();
-      throw new Error(`OpenAI API error: ${response.statusText} - ${errorData}`);
+      console.error('Gemini API error:', response.status, errorData);
+      throw new Error(`Gemini API error: ${response.statusText}`);
     }
 
     const data = await response.json();
-    const aiResponse = data.choices?.[0]?.message?.content;
+    const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!aiResponse) {
-      return "I'm having trouble thinking right now. Could you try asking that again?";
+      console.error('No AI response in data:', JSON.stringify(data));
+      return "I'm here to help with your poetry! What would you like to know or discuss?";
     }
 
     return aiResponse.trim();
   } catch (error) {
-    console.error('Error calling OpenAI API:', error);
-    return "I'm experiencing some technical difficulties. Please try again in a moment.";
+    console.error('Error calling Gemini API:', error);
+    return "Hello! I'm Dave, your poetry assistant. I'm ready to help with writing tips, poem analysis, or creative inspiration. What can I help you with?";
   }
 }
 
