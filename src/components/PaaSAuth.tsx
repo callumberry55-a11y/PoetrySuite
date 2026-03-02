@@ -1,19 +1,15 @@
 import { useState } from 'react';
-import { Shield, Key } from 'lucide-react';
+import { Shield } from 'lucide-react';
 import PaaSAdmin from './PaaSAdmin';
-import DeveloperDashboard from './DeveloperDashboard';
 
-type Mode = 'select' | 'admin' | 'developer-login';
-type UserType = 'none' | 'admin' | 'developer';
+type Mode = 'select' | 'admin';
+type UserType = 'none' | 'admin';
 
 export default function PaaSAuth() {
   const [mode, setMode] = useState<Mode>('select');
   const [userType, setUserType] = useState<UserType>('none');
   const [adminCode, setAdminCode] = useState('');
   const [error, setError] = useState('');
-
-  const [developerCode, setDeveloperCode] = useState('');
-
 
   const handleAdminLogin = () => {
     if (adminCode === '1798') {
@@ -24,50 +20,14 @@ export default function PaaSAuth() {
     }
   };
 
-
-  const handleDeveloperLogin = async () => {
-    if (developerCode === '1798') {
-      setUserType('developer');
-      setError('');
-    } else {
-      setError('Invalid developer access code');
-    }
-  };
-
-  const handleLogout = async () => {
-    try {
-      const { supabase } = await import('../lib/supabase');
-      await supabase.auth.signOut();
-      setUserType('none');
-      setMode('select');
-      setAdminCode('');
-      setDeveloperCode('');
-    } catch (err) {
-      console.error('Logout error:', err);
-    }
+  const handleLogout = () => {
+    setUserType('none');
+    setMode('select');
+    setAdminCode('');
   };
 
   if (userType === 'admin') {
-    return <PaaSAdmin onLogout={() => { setUserType('none'); setMode('select'); }} />;
-  }
-
-  if (userType === 'developer') {
-    return (
-      <div>
-        <div className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 p-4">
-          <div className="max-w-7xl mx-auto flex items-center justify-between">
-            <h1 className="text-xl font-bold text-slate-900 dark:text-white">PaaS Platform</h1>
-            <button
-              onClick={handleLogout}
-              className="px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-lg transition-colors"
-            >
-              Logout
-            </button>
-          </div>
-        </div>
-        <DeveloperDashboard />
-      </div>
-    );
+    return <PaaSAdmin onLogout={handleLogout} />;
   }
 
   return (
@@ -82,25 +42,6 @@ export default function PaaSAuth() {
         </div>
 
         <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8 border border-slate-200 dark:border-slate-700">
-          {mode === 'select' && (
-            <div className="space-y-3">
-              <button
-                onClick={() => setMode('admin')}
-                className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl font-semibold transition-all transform hover:scale-105"
-              >
-                <Shield size={20} />
-                Admin Access
-              </button>
-              <button
-                onClick={() => setMode('developer-login')}
-                className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white rounded-xl font-semibold transition-all transform hover:scale-105"
-              >
-                <Key size={20} />
-                Developer Access
-              </button>
-            </div>
-          )}
-
           {mode === 'admin' && (
             <>
               <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6">Admin Access</h2>
@@ -123,61 +64,12 @@ export default function PaaSAuth() {
                     {error}
                   </div>
                 )}
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => { setMode('select'); setError(''); setAdminCode(''); }}
-                    className="flex-1 px-4 py-3 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-lg font-medium transition-colors"
-                  >
-                    Back
-                  </button>
-                  <button
-                    onClick={handleAdminLogin}
-                    className="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
-                  >
-                    Access
-                  </button>
-                </div>
-              </div>
-            </>
-          )}
-
-          {mode === 'developer-login' && (
-            <>
-              <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6">Developer Access</h2>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                    <Key className="inline mr-2" size={16} />
-                    Developer Access Code
-                  </label>
-                  <input
-                    type="password"
-                    value={developerCode}
-                    onChange={(e) => setDeveloperCode(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleDeveloperLogin()}
-                    placeholder="Enter developer code"
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-900 dark:text-white"
-                  />
-                </div>
-                {error && (
-                  <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-700 dark:text-red-400">
-                    {error}
-                  </div>
-                )}
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => { setMode('select'); setError(''); setDeveloperCode(''); }}
-                    className="flex-1 px-4 py-3 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-lg font-medium transition-colors"
-                  >
-                    Back
-                  </button>
-                  <button
-                    onClick={handleDeveloperLogin}
-                    className="flex-1 px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors"
-                  >
-                    Access
-                  </button>
-                </div>
+                <button
+                  onClick={handleAdminLogin}
+                  className="w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+                >
+                  Access Admin Panel
+                </button>
               </div>
             </>
           )}

@@ -60,7 +60,7 @@ interface PaaSAdminProps {
 
 export default function PaaSAdmin({ onLogout }: PaaSAdminProps) {
   const [isAuthenticated] = useState(true);
-  const [activeTab, setActiveTab] = useState<'overview' | 'developers' | 'security' | 'transactions' | 'api-keys' | 'billing' | 'reserves'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'developers' | 'developer-tools' | 'security' | 'transactions' | 'api-keys' | 'billing' | 'reserves'>('overview');
   const [developers, setDevelopers] = useState<Developer[]>([]);
   const [securityEvents, setSecurityEvents] = useState<SecurityEvent[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -408,6 +408,17 @@ export default function PaaSAdmin({ onLogout }: PaaSAdminProps) {
               <span>Developers</span>
             </button>
             <button
+              onClick={() => setActiveTab('developer-tools')}
+              className={`py-3 px-3 md:py-4 md:px-4 border-b-2 font-medium transition-colors whitespace-nowrap flex items-center gap-2 ${
+                activeTab === 'developer-tools'
+                  ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <Key size={18} />
+              <span>Dev Tools</span>
+            </button>
+            <button
               onClick={() => setActiveTab('security')}
               className={`py-3 px-3 md:py-4 md:px-4 border-b-2 font-medium transition-colors whitespace-nowrap flex items-center gap-2 ${
                 activeTab === 'security'
@@ -680,6 +691,96 @@ export default function PaaSAdmin({ onLogout }: PaaSAdminProps) {
           {activeTab === 'billing' && <PaaSBilling />}
 
           {activeTab === 'reserves' && <DeveloperReserves />}
+
+          {activeTab === 'developer-tools' && (
+            <div className="space-y-6">
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-6">
+                <div className="flex items-start gap-4">
+                  <div className="p-3 bg-blue-600 rounded-lg">
+                    <Key className="text-white" size={24} />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">Developer Tools & Features</h3>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+                      All developer dashboard features have been consolidated into the admin panel. Manage API keys, monitor usage, view transactions, and handle feedback from this centralized location.
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+                        <CheckCircle size={16} className="text-green-600 dark:text-green-400" />
+                        <span>API Key Management</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+                        <CheckCircle size={16} className="text-green-600 dark:text-green-400" />
+                        <span>Usage Analytics</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+                        <CheckCircle size={16} className="text-green-600 dark:text-green-400" />
+                        <span>Transaction History</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+                        <CheckCircle size={16} className="text-green-600 dark:text-green-400" />
+                        <span>User Feedback</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <button
+                  onClick={() => setActiveTab('api-keys')}
+                  className="p-6 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-500 transition-colors text-left group"
+                >
+                  <Key className="text-blue-600 dark:text-blue-400 mb-3 group-hover:scale-110 transition-transform" size={32} />
+                  <h4 className="font-semibold text-slate-900 dark:text-white mb-2">External API Keys</h4>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">Manage API keys for third-party integrations</p>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('transactions')}
+                  className="p-6 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-500 transition-colors text-left group"
+                >
+                  <Coins className="text-green-600 dark:text-green-400 mb-3 group-hover:scale-110 transition-transform" size={32} />
+                  <h4 className="font-semibold text-slate-900 dark:text-white mb-2">View Transactions</h4>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">Monitor point transactions and usage</p>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('billing')}
+                  className="p-6 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-500 transition-colors text-left group"
+                >
+                  <CreditCard className="text-purple-600 dark:text-purple-400 mb-3 group-hover:scale-110 transition-transform" size={32} />
+                  <h4 className="font-semibold text-slate-900 dark:text-white mb-2">Billing & Usage</h4>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">Review billing and API usage metrics</p>
+                </button>
+              </div>
+
+              <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                  <Activity size={20} />
+                  Quick Stats
+                </h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
+                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">Total Developers</p>
+                    <p className="text-2xl font-bold text-slate-900 dark:text-white">{stats.totalDevelopers}</p>
+                  </div>
+                  <div className="p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
+                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">Active Now</p>
+                    <p className="text-2xl font-bold text-green-600 dark:text-green-400">{stats.activeDevelopers}</p>
+                  </div>
+                  <div className="p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
+                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">Total Points</p>
+                    <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{stats.totalPoints.toLocaleString()}</p>
+                  </div>
+                  <div className="p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
+                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">API Calls (24h)</p>
+                    <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{stats.apiCalls24h.toLocaleString()}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
