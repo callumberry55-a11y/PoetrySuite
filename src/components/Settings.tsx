@@ -4,16 +4,14 @@ import { useTheme } from '../contexts/ThemeContext';
 import {
   Moon, Sun, User, Mail, Download, Smartphone, Trash2, AlertTriangle, Bell, BellOff, MessageSquare,
   Send, Coins, Activity, TrendingUp, DollarSign, Settings as SettingsIcon,
-  Palette, Globe, Award, HelpCircle, Sparkles, ChevronUp, ChevronDown, Fingerprint, Shield, Wand2, Hand, Eye
+  Palette, Globe, Award, HelpCircle, Sparkles, ChevronUp, ChevronDown, Fingerprint, Shield, Wand2,
+  Bug, Lightbulb, TrendingUpIcon, MessageCircle, CheckCircle2, Loader2
 } from 'lucide-react';
 import { functions } from '../lib/firebase';
 import { httpsCallable, Functions } from 'firebase/functions';
 import { subscribeToNotifications, unsubscribeFromNotifications, isSubscribed } from '../utils/notifications';
 import packageJson from '../../package.json';
 import ThemeManager from './ThemeManager';
-import HandGestureSettings from './HandGestureSettings';
-import EyeTrackingSettings from './EyeTrackingSettings';
-import { eyeTrackingManager } from '../utils/eyeTracking';
 
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[];
@@ -21,7 +19,7 @@ interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
 }
 
-type TabType = 'general' | 'appearance' | 'themes' | 'points' | 'feedback' | 'accessibility';
+type TabType = 'general' | 'appearance' | 'themes' | 'points' | 'feedback';
 
 export default function Settings() {
   const { user, signOut } = useAuth();
@@ -48,8 +46,6 @@ export default function Settings() {
   const [biometricEnabled, setBiometricEnabled] = useState(false);
   const [isTogglingBiometric, setIsTogglingBiometric] = useState(false);
   const [biometricError, setBiometricError] = useState<string | null>(null);
-  const [eyeTrackingEnabled, setEyeTrackingEnabled] = useState(false);
-  const [showEyeTrackingSettings, setShowEyeTrackingSettings] = useState(false);
 
   const loadNotificationPreference = useCallback(async () => {
     if (!user) return;
@@ -90,20 +86,6 @@ export default function Settings() {
       console.warn('Error loading biometric settings:', error);
     }
   }, [user]);
-
-  useEffect(() => {
-    const config = eyeTrackingManager.getConfig();
-    setEyeTrackingEnabled(config.enabled);
-
-    const interval = setInterval(() => {
-      const currentConfig = eyeTrackingManager.getConfig();
-      setEyeTrackingEnabled(currentConfig.enabled);
-    }, 1000);
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, []);
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -319,19 +301,10 @@ export default function Settings() {
     }
   };
 
-  const handleToggleEyeTracking = () => {
-    const newState = !showEyeTrackingSettings;
-    setShowEyeTrackingSettings(newState);
-
-    const config = eyeTrackingManager.getConfig();
-    setEyeTrackingEnabled(config.enabled);
-  };
-
   const tabs = [
     { id: 'general' as TabType, label: 'General', icon: SettingsIcon },
     { id: 'appearance' as TabType, label: 'Appearance', icon: Palette },
     { id: 'themes' as TabType, label: 'Advanced Themes', icon: Wand2 },
-    { id: 'accessibility' as TabType, label: 'Accessibility', icon: Hand },
     { id: 'points' as TabType, label: 'Points System', icon: Coins },
     { id: 'feedback' as TabType, label: 'Feedback', icon: MessageSquare },
   ];
@@ -1017,162 +990,150 @@ export default function Settings() {
 
           {activeTab === 'feedback' && (
             <div className="space-y-6">
-              <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-                <div className="bg-gradient-to-r from-blue-500 to-cyan-500 px-6 py-4">
-                  <div className="flex items-center gap-3">
-                    <MessageSquare className="text-white" size={24} />
-                    <h2 className="text-xl font-bold text-white">Send Us Your Feedback</h2>
+              {feedbackSuccess && (
+                <div className="bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 rounded-2xl shadow-2xl p-8 animate-in fade-in slide-in-from-top duration-500">
+                  <div className="flex items-center gap-4">
+                    <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center ring-4 ring-white/30">
+                      <CheckCircle2 className="text-white" size={32} />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-2xl font-bold text-white mb-1">Feedback Received!</h3>
+                      <p className="text-white/90 text-lg">
+                        Thank you for helping us improve. We'll review your feedback shortly.
+                      </p>
+                    </div>
                   </div>
                 </div>
-                <div className="p-6">
-                  <p className="text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">
-                    Help us improve Poetry Suite by sharing your thoughts, reporting bugs, or suggesting new features. Your feedback matters!
-                  </p>
+              )}
 
-                  {feedbackSuccess && (
-                    <div className="mb-6 p-6 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border-2 border-emerald-200 dark:border-emerald-800 rounded-xl animate-in fade-in slide-in-from-top-2 duration-300">
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg animate-in zoom-in duration-500">
-                          <Sparkles className="text-white" size={22} />
-                        </div>
-                        <div>
-                          <p className="text-emerald-900 dark:text-emerald-100 font-bold text-lg">
-                            Feedback Received!
-                          </p>
-                          <p className="text-emerald-700 dark:text-emerald-300 text-sm">
-                            Thank you for helping us improve. We'll review it shortly.
-                          </p>
-                        </div>
-                      </div>
+              <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+                <div className="relative bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 px-8 py-8">
+                  <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjEiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-30"></div>
+                  <div className="relative flex items-center gap-4">
+                    <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center ring-4 ring-white/30">
+                      <MessageSquare className="text-white" size={28} />
                     </div>
-                  )}
+                    <div>
+                      <h2 className="text-3xl font-bold text-white mb-1">Share Your Thoughts</h2>
+                      <p className="text-white/90 text-lg">Help us shape the future of Poetry Suite</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-8">
+                  <div className="mb-8">
+                    <p className="text-slate-700 dark:text-slate-300 text-lg leading-relaxed">
+                      Your insights drive our innovation. Whether it's a bug, a feature idea, or general feedback, we're all ears.
+                    </p>
+                  </div>
 
                   <div className="space-y-6">
                     <div>
-                      <label className="block text-sm font-bold text-slate-900 dark:text-white mb-3">
-                        What type of feedback do you have?
+                      <label className="block text-sm font-bold text-slate-900 dark:text-white mb-4">
+                        What type of feedback are you sharing?
                       </label>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {[
-                          { value: 'bug', label: 'Bug Report', icon: AlertTriangle, color: 'red', desc: 'Something isn\'t working' },
-                          { value: 'feature', label: 'Feature Request', icon: Sparkles, color: 'blue', desc: 'Suggest a new feature' },
-                          { value: 'improvement', label: 'Improvement', icon: TrendingUp, color: 'green', desc: 'Make something better' },
-                          { value: 'other', label: 'Other', icon: MessageSquare, color: 'slate', desc: 'General feedback' },
-                        ].map((category) => (
-                          <button
-                            key={category.value}
-                            type="button"
-                            onClick={() => setFeedbackCategory(category.value as any)}
-                            disabled={isSubmittingFeedback}
-                            className={`relative p-4 rounded-xl border-2 transition-all duration-200 ${
-                              feedbackCategory === category.value
-                                ? `border-${category.color}-500 bg-${category.color}-50 dark:bg-${category.color}-900/20 shadow-lg scale-105`
-                                : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-md'
-                            } disabled:opacity-50 disabled:cursor-not-allowed`}
-                          >
-                            <div className="flex flex-col items-center gap-2">
-                              <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                                feedbackCategory === category.value
-                                  ? `bg-gradient-to-br from-${category.color}-500 to-${category.color}-600 shadow-md`
-                                  : 'bg-slate-100 dark:bg-slate-700'
-                              }`}>
-                                <category.icon
-                                  size={20}
-                                  className={feedbackCategory === category.value ? 'text-white' : 'text-slate-600 dark:text-slate-400'}
-                                />
+                          { value: 'bug', label: 'Bug Report', icon: Bug, color: 'from-red-500 to-orange-500', desc: 'Something isn\'t working' },
+                          { value: 'feature', label: 'Feature Request', icon: Lightbulb, color: 'from-amber-500 to-yellow-500', desc: 'Suggest something new' },
+                          { value: 'improvement', label: 'Improvement', icon: TrendingUpIcon, color: 'from-blue-500 to-cyan-500', desc: 'Make existing better' },
+                          { value: 'other', label: 'General Feedback', icon: MessageCircle, color: 'from-purple-500 to-pink-500', desc: 'Other thoughts' },
+                        ].map((category) => {
+                          const Icon = category.icon;
+                          const isSelected = feedbackCategory === category.value;
+                          return (
+                            <button
+                              key={category.value}
+                              onClick={() => setFeedbackCategory(category.value as 'bug' | 'feature' | 'improvement' | 'other')}
+                              disabled={isSubmittingFeedback}
+                              className={`relative p-4 rounded-xl border-2 transition-all text-left group ${
+                                isSelected
+                                  ? `border-transparent bg-gradient-to-br ${category.color} shadow-lg`
+                                  : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 hover:border-slate-300 dark:hover:border-slate-600'
+                              }`}
+                            >
+                              <div className="flex items-start gap-3">
+                                <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                                  isSelected
+                                    ? 'bg-white/20 backdrop-blur-sm'
+                                    : 'bg-slate-200 dark:bg-slate-800'
+                                }`}>
+                                  <Icon className={isSelected ? 'text-white' : 'text-slate-600 dark:text-slate-400'} size={20} />
+                                </div>
+                                <div className="flex-1">
+                                  <div className={`font-bold mb-0.5 ${isSelected ? 'text-white' : 'text-slate-900 dark:text-white'}`}>
+                                    {category.label}
+                                  </div>
+                                  <div className={`text-sm ${isSelected ? 'text-white/80' : 'text-slate-600 dark:text-slate-400'}`}>
+                                    {category.desc}
+                                  </div>
+                                </div>
+                                {isSelected && (
+                                  <CheckCircle2 className="text-white absolute top-3 right-3" size={18} />
+                                )}
                               </div>
-                              <span className={`text-xs font-semibold text-center ${
-                                feedbackCategory === category.value
-                                  ? `text-${category.color}-900 dark:text-${category.color}-100`
-                                  : 'text-slate-700 dark:text-slate-300'
-                              }`}>
-                                {category.label}
-                              </span>
-                              <span className="text-[10px] text-slate-500 dark:text-slate-400 text-center leading-tight">
-                                {category.desc}
-                              </span>
-                            </div>
-                            {feedbackCategory === category.value && (
-                              <div className={`absolute -top-1 -right-1 w-5 h-5 rounded-full bg-${category.color}-500 flex items-center justify-center shadow-md`}>
-                                <span className="text-white text-xs">✓</span>
-                              </div>
-                            )}
-                          </button>
-                        ))}
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
 
                     <div>
-                      <div className="flex items-center justify-between mb-3">
-                        <label className="text-sm font-bold text-slate-900 dark:text-white">
-                          Title
-                        </label>
-                        <span className={`text-xs font-medium ${
-                          feedbackTitle.length > 90
-                            ? 'text-red-600 dark:text-red-400'
-                            : 'text-slate-500 dark:text-slate-400'
-                        }`}>
-                          {feedbackTitle.length}/100
-                        </span>
-                      </div>
+                      <label className="block text-sm font-bold text-slate-900 dark:text-white mb-3">
+                        Title <span className="text-red-500">*</span>
+                      </label>
                       <input
                         type="text"
                         value={feedbackTitle}
                         onChange={(e) => setFeedbackTitle(e.target.value)}
-                        placeholder={
-                          feedbackCategory === 'bug' ? 'e.g., Unable to save poems' :
-                          feedbackCategory === 'feature' ? 'e.g., Add voice recording for poems' :
-                          feedbackCategory === 'improvement' ? 'e.g., Improve search performance' :
-                          'Brief summary of your feedback'
-                        }
-                        className="w-full px-4 py-3 border-2 border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                        placeholder="Brief, descriptive summary..."
+                        className="w-full px-5 py-4 border-2 border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-lg"
                         disabled={isSubmittingFeedback}
                         maxLength={100}
                       />
+                      <div className="flex items-center justify-between mt-2">
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                          Keep it clear and concise
+                        </p>
+                        <p className={`text-sm font-medium ${feedbackTitle.length > 80 ? 'text-amber-600 dark:text-amber-400' : 'text-slate-500 dark:text-slate-400'}`}>
+                          {feedbackTitle.length}/100
+                        </p>
+                      </div>
                     </div>
 
                     <div>
-                      <div className="flex items-center justify-between mb-3">
-                        <label className="text-sm font-bold text-slate-900 dark:text-white">
-                          Details
-                        </label>
-                        <span className={`text-xs font-medium ${
-                          feedbackMessage.length > 900
-                            ? 'text-red-600 dark:text-red-400'
-                            : 'text-slate-500 dark:text-slate-400'
-                        }`}>
-                          {feedbackMessage.length}/1000
-                        </span>
-                      </div>
+                      <label className="block text-sm font-bold text-slate-900 dark:text-white mb-3">
+                        Details <span className="text-red-500">*</span>
+                      </label>
                       <textarea
                         value={feedbackMessage}
                         onChange={(e) => setFeedbackMessage(e.target.value)}
-                        placeholder={
-                          feedbackCategory === 'bug'
-                            ? 'Please describe what happened, what you expected, and steps to reproduce the issue...'
-                            : feedbackCategory === 'feature'
-                            ? 'Describe the feature you\'d like to see and how it would help you...'
-                            : feedbackCategory === 'improvement'
-                            ? 'Tell us what could be better and your suggestions for improvement...'
-                            : 'Share your thoughts with us...'
-                        }
-                        rows={7}
-                        className="w-full px-4 py-3 border-2 border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none transition-all"
+                        placeholder="Share your thoughts in detail. The more context, the better we can help..."
+                        rows={8}
+                        className="w-full px-5 py-4 border-2 border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 resize-none transition-all text-lg leading-relaxed"
                         disabled={isSubmittingFeedback}
                         maxLength={1000}
                       />
+                      <div className="flex items-center justify-between mt-2">
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                          Include steps to reproduce, expected behavior, etc.
+                        </p>
+                        <p className={`text-sm font-medium ${feedbackMessage.length > 900 ? 'text-amber-600 dark:text-amber-400' : 'text-slate-500 dark:text-slate-400'}`}>
+                          {feedbackMessage.length}/1000
+                        </p>
+                      </div>
                     </div>
 
-                    <div className="pt-2">
+                    <div className="pt-4 flex gap-3">
                       <button
                         onClick={handleSubmitFeedback}
                         disabled={!feedbackTitle.trim() || !feedbackMessage.trim() || isSubmittingFeedback}
-                        className="w-full flex items-center justify-center gap-3 px-8 py-4 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 disabled:from-slate-300 disabled:to-slate-400 dark:disabled:from-slate-600 dark:disabled:to-slate-700 disabled:cursor-not-allowed text-white rounded-xl font-bold text-lg shadow-lg hover:shadow-xl shadow-blue-500/30 hover:shadow-blue-500/40 disabled:shadow-none transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] disabled:transform-none"
+                        className="flex-1 flex items-center justify-center gap-3 px-8 py-4 bg-gradient-to-r from-blue-500 via-blue-600 to-cyan-600 hover:from-blue-600 hover:via-blue-700 hover:to-cyan-700 disabled:from-slate-300 disabled:to-slate-400 disabled:cursor-not-allowed text-white rounded-xl font-bold text-lg shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 disabled:shadow-none transition-all transform hover:scale-[1.02] active:scale-[0.98]"
                       >
                         {isSubmittingFeedback ? (
                           <>
-                            <div className="w-5 h-5 border-3 border-white border-t-transparent rounded-full animate-spin" />
-                            <span>Sending Your Feedback...</span>
+                            <Loader2 size={22} className="animate-spin" />
+                            <span>Submitting...</span>
                           </>
                         ) : (
                           <>
@@ -1182,87 +1143,32 @@ export default function Settings() {
                         )}
                       </button>
                     </div>
-
-                    <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl">
-                      <div className="flex gap-3">
-                        <HelpCircle className="text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" size={18} />
-                        <p className="text-sm text-blue-800 dark:text-blue-200 leading-relaxed">
-                          <strong>Privacy Note:</strong> Your feedback is reviewed by our team and helps shape future updates. We may contact you if we need more information about your submission.
-                        </p>
-                      </div>
-                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
 
-          {activeTab === 'accessibility' && (
-            <div className="space-y-6">
-              <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-                <div className="bg-gradient-to-r from-blue-500 to-cyan-500 px-6 py-4">
-                  <div className="flex items-center gap-3">
-                    <Eye className="text-white" size={24} />
-                    <div>
-                      <h2 className="text-2xl font-bold text-white">Eye Tracking</h2>
-                      <p className="text-blue-100 text-sm">Control your device with your eyes</p>
-                    </div>
+              <div className="bg-gradient-to-br from-slate-50 to-blue-50/50 dark:from-slate-800/50 dark:to-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center flex-shrink-0">
+                    <HelpCircle className="text-blue-600 dark:text-blue-400" size={20} />
                   </div>
-                </div>
-
-                <div className="p-6 space-y-6">
-                  <div className="flex items-start gap-4">
-                    <div className="flex-1">
-                      <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Enable Eye Tracking</h3>
-                      <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                        Use your webcam to track eye movement and control the interface. This feature uses advanced computer vision to detect where you're looking and enables hands-free interaction.
-                      </p>
-                      <div className="mt-4 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl">
-                        <div className="flex gap-3">
-                          <AlertTriangle className="text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" size={18} />
-                          <p className="text-sm text-amber-800 dark:text-amber-200 leading-relaxed">
-                            <strong>Experimental Feature:</strong> Eye tracking requires camera access and may not work perfectly on all devices. Performance depends on lighting conditions and camera quality.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                    <button
-                      onClick={handleToggleEyeTracking}
-                      className={`relative inline-flex h-12 w-20 items-center rounded-full transition-all shadow-lg ${
-                        eyeTrackingEnabled
-                          ? 'bg-gradient-to-r from-blue-500 to-cyan-500'
-                          : 'bg-slate-300 dark:bg-slate-600'
-                      }`}
-                    >
-                      <span
-                        className={`inline-block h-10 w-10 transform rounded-full bg-white shadow-md transition-transform ${
-                          eyeTrackingEnabled ? 'translate-x-9' : 'translate-x-1'
-                        }`}
-                      />
-                    </button>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-slate-900 dark:text-white mb-2">Quick Tips</h3>
+                    <ul className="space-y-2 text-sm text-slate-700 dark:text-slate-300">
+                      <li className="flex items-start gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1.5 flex-shrink-0"></div>
+                        <span>For bugs, include steps to reproduce and what you expected to happen</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1.5 flex-shrink-0"></div>
+                        <span>For feature requests, explain the problem you're trying to solve</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1.5 flex-shrink-0"></div>
+                        <span>Screenshots and examples are always helpful</span>
+                      </li>
+                    </ul>
                   </div>
-
-                  {showEyeTrackingSettings && (
-                    <div className="pt-6 border-t border-slate-200 dark:border-slate-700">
-                      <EyeTrackingSettings />
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-                <div className="bg-gradient-to-r from-purple-500 to-pink-500 px-6 py-4">
-                  <div className="flex items-center gap-3">
-                    <Hand className="text-white" size={24} />
-                    <div>
-                      <h2 className="text-2xl font-bold text-white">Hand Gestures</h2>
-                      <p className="text-purple-100 text-sm">Control with hand movements</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="p-6">
-                  <HandGestureSettings />
                 </div>
               </div>
             </div>
