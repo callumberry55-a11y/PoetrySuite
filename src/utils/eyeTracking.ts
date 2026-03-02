@@ -132,7 +132,6 @@ class EyeTrackingManager {
       this.videoElement.autoplay = true;
       this.videoElement.playsInline = true;
       this.videoElement.style.display = 'none';
-      this.videoElement.muted = true;
 
       this.videoElement.addEventListener('error', (e) => {
         console.error('Video element error:', e);
@@ -266,7 +265,9 @@ class EyeTrackingManager {
 
   private async detectGazeWithAI(): Promise<GazePoint | null> {
     try {
-      if (!this.canvas) return null;
+      if (!this.canvas || !this.model) {
+        return this.detectGazeBasic();
+      }
 
       const imageBase64 = this.canvas.toDataURL('image/jpeg', 0.7).split(',')[1];
 
@@ -276,14 +277,17 @@ Return ONLY a JSON object with this exact format (no other text):
 Where gazeX and gazeY represent the estimated gaze point as fractions of the image (0=left/top, 1=right/bottom).
 Confidence should reflect how certain you are about the detection.`;
 
-      const result = await this.model.generateContent([
-        {
-          inlineData: {
-            mimeType: 'image/jpeg',
-            data: imageBase64
-          }
-        },
-        { text: prompt }
+      const result = await Promise.race([
+        this.model.generateContent([
+          {
+            inlineData: {
+              mimeType: 'image/jpeg',
+              data: imageBase64
+            }
+          },
+          { text: prompt }
+        ]),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('AI timeout')), 5000))
       ]);
 
       const response = await result.response;
@@ -291,12 +295,20 @@ Confidence should reflect how certain you are about the detection.`;
 
       const jsonMatch = text.match(/\{[^}]+\}/);
       if (!jsonMatch) {
+        console.warn('AI response missing JSON, falling back');
         return this.detectGazeBasic();
       }
 
       const parsed = JSON.parse(jsonMatch[0]);
 
       if (typeof parsed.gazeX !== 'number' || typeof parsed.gazeY !== 'number') {
+        console.warn('AI response missing coordinates, falling back');
+        return this.detectGazeBasic();
+      }
+
+      // Validate ranges
+      if (parsed.gazeX < 0 || parsed.gazeX > 1 || parsed.gazeY < 0 || parsed.gazeY > 1) {
+        console.warn('AI coordinates out of range, falling back');
         return this.detectGazeBasic();
       }
 
@@ -306,11 +318,22 @@ Confidence should reflect how certain you are about the detection.`;
       return {
         x: Math.max(0, Math.min(window.innerWidth, screenX)) * this.config.sensitivity,
         y: Math.max(0, Math.min(window.innerHeight, screenY)) * this.config.sensitivity,
-        confidence: parsed.confidence || 0.7,
+        confidence: Math.max(0, Math.min(1, parsed.confidence || 0.7)),
         timestamp: Date.now()
       };
     } catch (error) {
-      console.error('AI gaze detection failed, falling back to basic:', error);
+      if (error instanceof Error && error.message === 'AI timeout') {
+        console.warn('AI gaze detection timeout, falling back to basic');
+      } else {
+        console.error('AI gaze detection failed, falling back to basic:', error);
+      }
+
+      // Disable AI temporarily on repeated failures
+      if (!this.useAI) {
+        this.useAI = false;
+        setTimeout(() => { this.useAI = true; }, 30000); // Re-enable after 30s
+      }
+
       return this.detectGazeBasic();
     }
   }

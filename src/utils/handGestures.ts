@@ -191,12 +191,21 @@ class HandGestureManager {
       this.stream = null;
     }
 
-    if (this.videoElement && document.body.contains(this.videoElement)) {
-      document.body.removeChild(this.videoElement);
+    if (this.videoElement) {
+      if (this.videoElement.srcObject) {
+        this.videoElement.srcObject = null;
+      }
+      if (document.body.contains(this.videoElement)) {
+        document.body.removeChild(this.videoElement);
+      }
       this.videoElement = null;
     }
 
+    this.canvas = null;
+    this.ctx = null;
     this.handHistory = [];
+    this.lastGesture = 'none';
+    this.lastGestureTime = 0;
   }
 
   private startDetection(): void {
@@ -205,7 +214,13 @@ class HandGestureManager {
         return;
       }
 
-      this.ctx.drawImage(this.videoElement, 0, 0, this.canvas.width, this.canvas.height);
+      try {
+        this.ctx.drawImage(this.videoElement, 0, 0, this.canvas.width, this.canvas.height);
+      } catch (error) {
+        console.error('Error drawing video frame:', error);
+        this.animationFrameId = requestAnimationFrame(processFrame);
+        return;
+      }
 
       this.frameCounter++;
 
@@ -222,14 +237,19 @@ class HandGestureManager {
             confidence: 0.8
           };
         }
-      } else {
-        const hand = this.detectHand();
-        if (hand) {
+      }
+
+      // Always run basic detection for hand history tracking
+      const hand = this.detectHand();
+      if (hand) {
+        this.handHistory.push(hand);
+        if (this.handHistory.length > this.historySize) {
+          this.handHistory.shift();
+        }
+
+        // Only use basic gesture recognition if AI didn't detect anything
+        if (gesture === 'none') {
           handData = hand;
-          this.handHistory.push(hand);
-          if (this.handHistory.length > this.historySize) {
-            this.handHistory.shift();
-          }
           gesture = this.recognizeGesture(hand);
         }
       }
@@ -323,7 +343,9 @@ class HandGestureManager {
 
   private async recognizeGestureWithAI(): Promise<GestureType> {
     try {
-      if (!this.canvas) return 'none';
+      if (!this.canvas || !this.model) {
+        return 'none';
+      }
 
       const imageBase64 = this.canvas.toDataURL('image/jpeg', 0.7).split(',')[1];
 
@@ -333,14 +355,17 @@ Return ONLY a JSON object with this exact format (no other text):
 {"gesture": "<gesture_name>", "confidence": <number 0-1>}
 If no clear gesture is detected, return "none".`;
 
-      const result = await this.model.generateContent([
-        {
-          inlineData: {
-            mimeType: 'image/jpeg',
-            data: imageBase64
-          }
-        },
-        { text: prompt }
+      const result = await Promise.race([
+        this.model.generateContent([
+          {
+            inlineData: {
+              mimeType: 'image/jpeg',
+              data: imageBase64
+            }
+          },
+          { text: prompt }
+        ]),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('AI timeout')), 5000))
       ]);
 
       const response = await result.response;
@@ -348,6 +373,7 @@ If no clear gesture is detected, return "none".`;
 
       const jsonMatch = text.match(/\{[^}]+\}/);
       if (!jsonMatch) {
+        console.warn('AI response missing JSON');
         return 'none';
       }
 
@@ -362,9 +388,21 @@ If no clear gesture is detected, return "none".`;
         return parsed.gesture as GestureType;
       }
 
+      console.warn('AI returned invalid gesture:', parsed.gesture);
       return 'none';
     } catch (error) {
-      console.error('AI gesture recognition failed:', error);
+      if (error instanceof Error && error.message === 'AI timeout') {
+        console.warn('AI gesture recognition timeout');
+      } else {
+        console.error('AI gesture recognition failed:', error);
+      }
+
+      // Disable AI temporarily on repeated failures
+      if (!this.useAI) {
+        this.useAI = false;
+        setTimeout(() => { this.useAI = true; }, 30000); // Re-enable after 30s
+      }
+
       return 'none';
     }
   }
@@ -388,20 +426,58 @@ If no clear gesture is detected, return "none".`;
     return 'none';
   }
 
-  private countExtendedFingers(_hand: DetectedHand): number {
-    // Simplified finger counting
-    // Real implementation would analyze landmark positions
-    return Math.floor(Math.random() * 6);
+  private countExtendedFingers(hand: DetectedHand): number {
+    if (hand.landmarks.length < 21) return 0;
+
+    let count = 0;
+    const wrist = hand.landmarks[0];
+
+    // Check each finger tip (indices 4, 8, 12, 16, 20) against palm base
+    const fingerTips = [4, 8, 12, 16, 20];
+    const fingerBases = [2, 5, 9, 13, 17];
+
+    for (let i = 0; i < fingerTips.length; i++) {
+      const tip = hand.landmarks[fingerTips[i]];
+      const base = hand.landmarks[fingerBases[i]];
+
+      // If tip is further from wrist than base, finger is extended
+      const tipDist = Math.sqrt(Math.pow(tip.x - wrist.x, 2) + Math.pow(tip.y - wrist.y, 2));
+      const baseDist = Math.sqrt(Math.pow(base.x - wrist.x, 2) + Math.pow(base.y - wrist.y, 2));
+
+      if (tipDist > baseDist * 1.2) {
+        count++;
+      }
+    }
+
+    return count;
   }
 
-  private isThumbUp(_hand: DetectedHand): boolean {
-    // Simplified thumb up detection
-    return false;
+  private isThumbUp(hand: DetectedHand): boolean {
+    if (hand.landmarks.length < 21) return false;
+
+    const thumbTip = hand.landmarks[4];
+    const indexTip = hand.landmarks[8];
+    const wrist = hand.landmarks[0];
+
+    // Thumb should be above wrist, other fingers below
+    const thumbUp = thumbTip.y < wrist.y - 30;
+    const indexDown = indexTip.y > wrist.y;
+
+    return thumbUp && indexDown;
   }
 
-  private isThumbDown(_hand: DetectedHand): boolean {
-    // Simplified thumb down detection
-    return false;
+  private isThumbDown(hand: DetectedHand): boolean {
+    if (hand.landmarks.length < 21) return false;
+
+    const thumbTip = hand.landmarks[4];
+    const indexTip = hand.landmarks[8];
+    const wrist = hand.landmarks[0];
+
+    // Thumb should be below wrist, other fingers above
+    const thumbDown = thumbTip.y > wrist.y + 30;
+    const indexUp = indexTip.y < wrist.y;
+
+    return thumbDown && indexUp;
   }
 
   private detectSwipe(): GestureType {
