@@ -34,10 +34,19 @@ const gestureNames: Record<GestureType, string> = {
 export default function GestureFeedback() {
   const [currentGesture, setCurrentGesture] = useState<GestureEvent | null>(null);
   const [isVisible, setIsVisible] = useState(false);
-  const config = handGestureManager.getConfig();
+  const [enabled, setEnabled] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
 
   useEffect(() => {
-    if (!config.enabled || !config.showVisualFeedback) {
+    const config = handGestureManager.getConfig();
+    setEnabled(config.enabled);
+    setShowFeedback(config.showVisualFeedback);
+  }, []);
+
+  useEffect(() => {
+    if (!enabled || !showFeedback) {
+      setIsVisible(false);
+      setCurrentGesture(null);
       return;
     }
 
@@ -52,9 +61,9 @@ export default function GestureFeedback() {
     });
 
     return unsubscribe;
-  }, [config.enabled, config.showVisualFeedback]);
+  }, [enabled, showFeedback]);
 
-  if (!config.enabled || !config.showVisualFeedback || !currentGesture || !isVisible) {
+  if (!enabled || !showFeedback || !currentGesture || !isVisible) {
     return null;
   }
 

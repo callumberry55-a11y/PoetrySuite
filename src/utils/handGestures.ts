@@ -398,7 +398,7 @@ If no clear gesture is detected, return "none".`;
       }
 
       // Disable AI temporarily on repeated failures
-      if (!this.useAI) {
+      if (this.useAI) {
         this.useAI = false;
         setTimeout(() => { this.useAI = true; }, 30000); // Re-enable after 30s
       }

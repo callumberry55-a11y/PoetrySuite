@@ -329,7 +329,7 @@ Confidence should reflect how certain you are about the detection.`;
       }
 
       // Disable AI temporarily on repeated failures
-      if (!this.useAI) {
+      if (this.useAI) {
         this.useAI = false;
         setTimeout(() => { this.useAI = true; }, 30000); // Re-enable after 30s
       }
